@@ -1,6 +1,6 @@
-diff -ur srcold/apinger.c src/apinger.c
---- srcold/apinger.c	2013-08-16 09:19:01.000000000 +0000
-+++ src/apinger.c	2013-08-16 09:19:13.000000000 +0000
+diff -u srcold/apinger.c src/apinger.c
+--- srcold/apinger.c	2013-08-16 19:22:14.000000000 +0000
++++ src/apinger.c	2013-08-16 19:25:49.000000000 +0000
 @@ -44,6 +44,8 @@
  # include <arpa/inet.h>
  #endif
@@ -369,7 +369,7 @@ diff -ur srcold/apinger.c src/apinger.c
  	t->queue[i]=1;
  	
  	if (AVG_LOSS_KNOWN(t)){
-@@ -639,10 +514,12 @@
+@@ -639,46 +514,100 @@
  	}
  }
  
@@ -382,9 +382,12 @@ diff -ur srcold/apinger.c src/apinger.c
 +struct active_alarm_list *aal,*naal;
 +struct alarm_cfg *a, *na;
  union addr addr, srcaddr;
++#ifdef HAVE_IPV6
++struct addrinfo hints, *res;
++#endif
  int r;
  int l;
-@@ -650,35 +527,84 @@
+ 
  	/* delete all not configured targets */
  	pt=NULL;
  	for(t=targets;t;t=nt){
@@ -479,13 +482,40 @@ diff -ur srcold/apinger.c src/apinger.c
  		if (t==NULL) { /* new target */
  			memset(&addr,0,sizeof(addr));
  			r=inet_pton(AF_INET,tc->name,&addr.addr4.sin_addr);
-@@ -709,13 +635,23 @@
+@@ -686,13 +615,22 @@
+ 				addr.addr.sa_family=AF_INET;
+ 			}else{
+ #ifdef HAVE_IPV6
+-				r=inet_pton(AF_INET6,tc->name,&addr.addr6.sin6_addr);
+-				if (r==0){
++				memset(&hints, 0, sizeof(hints));
++				hints.ai_family = AF_INET6;
++				hints.ai_flags = AI_NUMERICHOST;
++				r = getaddrinfo(tc->srcip, NULL, &hints, &res);
++				if (r != 0) {
++					r=inet_pton(AF_INET6,tc->name,&addr.addr6.sin6_addr);
++					if (r==0){
+ #endif
+-					logit("Bad host address: %s\n",tc->name);
+-					logit("Ignoring target %s\n",tc->name);
+-					continue;
++						logit("Bad host address: %s\n",tc->name);
++						logit("Ignoring target %s\n",tc->name);
++						continue;
+ #ifdef HAVE_IPV6
++					}
++				} else {
++					memcpy(&addr.addr6, res->ai_addr, res->ai_addrlen);
++					freeaddrinfo(res);
+ 				}
+ 				if (icmp6_sock<0){
+ 					logit("Sorry, IPv6 is not available\n");
+@@ -709,13 +647,22 @@
  				srcaddr.addr.sa_family=AF_INET;
  			}else{
  #ifdef HAVE_IPV6
 -				r=inet_pton(AF_INET6,tc->srcip,&srcaddr.addr6.sin6_addr);
 -				if (r==0){
-+				struct addrinfo hints, *res;
 +				memset(&hints, 0, sizeof(hints));
 +				hints.ai_family = AF_INET6;
 +				hints.ai_flags = AI_NUMERICHOST;
@@ -508,7 +538,7 @@ diff -ur srcold/apinger.c src/apinger.c
  				}
  				if (icmp6_sock<0){
  					logit("Sorry, IPv6 is not available\n");
-@@ -726,34 +662,51 @@
+@@ -726,34 +673,51 @@
  #endif
  			}
  			t=NEW(struct target,1);
@@ -575,7 +605,7 @@ diff -ur srcold/apinger.c src/apinger.c
  	}
  
  	if (targets==NULL){
-@@ -761,7 +714,7 @@
+@@ -761,7 +725,7 @@
  		exit(1);
  	}
  	gettimeofday(&operation_started,NULL);
@@ -584,7 +614,7 @@ diff -ur srcold/apinger.c src/apinger.c
  		rrd_create();
  }
  
-@@ -788,20 +741,8 @@
+@@ -788,20 +752,8 @@
  
  
  void reload_config(void){
@@ -607,7 +637,7 @@ diff -ur srcold/apinger.c src/apinger.c
  }
  
  void write_status(void){
-@@ -810,8 +751,10 @@
+@@ -810,8 +762,10 @@
  struct active_alarm_list *al;
  struct alarm_cfg *a;
  time_t tm;
@@ -618,7 +648,7 @@ diff -ur srcold/apinger.c src/apinger.c
  
  	if (config->status_file==NULL) return;
  	
-@@ -838,6 +781,7 @@
+@@ -838,6 +792,7 @@
  		}
  		else fprintf(f,"none");
  
@@ -626,7 +656,7 @@ diff -ur srcold/apinger.c src/apinger.c
  		buf1=NEW(char,t->config->avg_loss_delay_samples+1);
  		buf2=NEW(char,t->config->avg_loss_samples+1);
  		i=t->last_sent%(t->config->avg_loss_delay_samples+t->config->avg_loss_samples);
-@@ -877,7 +821,8 @@
+@@ -877,7 +832,8 @@
  		}
  		free(buf1);
  		free(buf2);
@@ -636,7 +666,7 @@ diff -ur srcold/apinger.c src/apinger.c
  		fprintf(f,"\n");
  	}
  	fclose(f);
-@@ -896,7 +841,7 @@
+@@ -896,7 +852,7 @@
  struct active_alarm_list *aal;
  struct alarm_cfg *a;
  
@@ -645,7 +675,7 @@ diff -ur srcold/apinger.c src/apinger.c
  	memset(&pfd, '\0', sizeof pfd);
  
  	if (config->status_interval){
-@@ -945,8 +890,6 @@
+@@ -945,8 +901,6 @@
  		}
  		for(t=targets;t;t=t->next){
  			for(aal=t->active_alarms;aal;aal=aal->next){
@@ -654,7 +684,7 @@ diff -ur srcold/apinger.c src/apinger.c
  				a=aal->alarm;
  				if (a->repeat_interval<=0)
  					continue;
-@@ -956,10 +899,7 @@
+@@ -956,10 +910,7 @@
  					continue;
  				aal->num_repeats++;
  				debug("Repeating reports...");
@@ -666,7 +696,7 @@ diff -ur srcold/apinger.c src/apinger.c
  			}
  		}
  		if (config->status_interval){
-@@ -971,7 +911,7 @@
+@@ -971,7 +922,7 @@
  		if (status_request){
  			status_request=0;
  			if (config->status_file){
@@ -675,7 +705,7 @@ diff -ur srcold/apinger.c src/apinger.c
  				write_status();
  			}
  			signal(SIGUSR1, signal_handler);
-@@ -997,8 +937,10 @@
+@@ -997,8 +948,10 @@
  				next_probe=next_report;
  		}
  
@@ -686,7 +716,7 @@ diff -ur srcold/apinger.c src/apinger.c
  
  		gettimeofday(&cur_time,NULL);
  		if (timercmp(&cur_time,&event_time,<)){
-@@ -1016,19 +958,21 @@
+@@ -1016,19 +969,21 @@
  			timeout=tv.tv_usec/1000+tv.tv_sec*1000;
  		}
  		debug("Polling, timeout: %5.3fs",((double)timeout)/1000);
@@ -712,9 +742,9 @@ diff -ur srcold/apinger.c src/apinger.c
  						break;
  					}
  				}
-diff -ur srcold/apinger.h src/apinger.h
---- srcold/apinger.h	2013-08-16 09:19:01.000000000 +0000
-+++ src/apinger.h	2013-08-16 09:19:04.000000000 +0000
+diff -u srcold/apinger.h src/apinger.h
+--- srcold/apinger.h	2013-08-16 19:22:14.000000000 +0000
++++ src/apinger.h	2013-08-16 19:22:21.000000000 +0000
 @@ -58,7 +58,6 @@
  struct active_alarm_list {
  	struct alarm_cfg *alarm;
@@ -752,9 +782,9 @@ diff -ur srcold/apinger.h src/apinger.h
 +#define NEW(type,size) ((type *)calloc(1,sizeof(type)*size))
  
  #endif
-diff -ur srcold/conf.c src/conf.c
---- srcold/conf.c	2013-08-16 09:19:01.000000000 +0000
-+++ src/conf.c	2013-08-16 09:19:04.000000000 +0000
+diff -u srcold/conf.c src/conf.c
+--- srcold/conf.c	2013-08-16 19:22:14.000000000 +0000
++++ src/conf.c	2013-08-16 19:22:21.000000000 +0000
 @@ -41,7 +41,7 @@
  struct pool_item *pi;
  char *p;
@@ -773,9 +803,9 @@ diff -ur srcold/conf.c src/conf.c
  			struct pool_item *pool=config->pool;
  			pool_clear(&pool);
  			config=NULL;
-diff -ur srcold/conf.h src/conf.h
---- srcold/conf.h	2013-08-16 09:19:01.000000000 +0000
-+++ src/conf.h	2013-08-16 09:19:04.000000000 +0000
+diff -u srcold/conf.h src/conf.h
+--- srcold/conf.h	2013-08-16 19:22:14.000000000 +0000
++++ src/conf.h	2013-08-16 19:22:21.000000000 +0000
 @@ -113,6 +113,7 @@
  struct alarm_list *alarm2list(const char *aname,struct alarm_list *list);
  
@@ -784,9 +814,9 @@ diff -ur srcold/conf.h src/conf.h
  void free_config(void);
  
  #endif
-diff -ur srcold/icmp.c src/icmp.c
---- srcold/icmp.c	2013-08-16 09:19:01.000000000 +0000
-+++ src/icmp.c	2013-08-16 09:19:04.000000000 +0000
+diff -u srcold/icmp.c src/icmp.c
+--- srcold/icmp.c	2013-08-16 19:22:14.000000000 +0000
++++ src/icmp.c	2013-08-16 19:22:21.000000000 +0000
 @@ -155,67 +155,34 @@
  			(struct sockaddr *)&t->addr.addr4,sizeof(t->addr.addr4));
  	if (ret<0){
@@ -906,9 +936,9 @@ diff -ur srcold/icmp.c src/icmp.c
  
  	return t->socket;
  }
-diff -ur srcold/icmp6.c src/icmp6.c
---- srcold/icmp6.c	2013-08-16 09:19:01.000000000 +0000
-+++ src/icmp6.c	2013-08-16 09:19:04.000000000 +0000
+diff -u srcold/icmp6.c src/icmp6.c
+--- srcold/icmp6.c	2013-08-16 19:22:14.000000000 +0000
++++ src/icmp6.c	2013-08-16 19:22:21.000000000 +0000
 @@ -120,71 +120,35 @@
  			(struct sockaddr *)&t->addr.addr6,sizeof(t->addr.addr6));
  	if (ret<0){
@@ -1038,9 +1068,9 @@ diff -ur srcold/icmp6.c src/icmp6.c
  
  	return t->socket;
  }
-diff -ur srcold/rrd.c src/rrd.c
---- srcold/rrd.c	2013-08-16 09:19:01.000000000 +0000
-+++ src/rrd.c	2013-08-16 09:19:04.000000000 +0000
+diff -u srcold/rrd.c src/rrd.c
+--- srcold/rrd.c	2013-08-16 19:22:14.000000000 +0000
++++ src/rrd.c	2013-08-16 19:22:21.000000000 +0000
 @@ -87,8 +87,9 @@
  	va_start(args, format);
  	if (foreground && config->debug){
