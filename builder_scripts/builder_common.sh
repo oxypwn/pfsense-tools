@@ -3057,6 +3057,9 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	fi
 
+	if [ ! -d "${SRCDIR}" ]; then
+		mkdir -p ${SRCDIR}
+	fi
 	echo ">>> Removing old patch rejects..."
 	find $SRCDIR -name "*.rej" -exec rm {} \;
 	echo ">>> Removing original files ..."
