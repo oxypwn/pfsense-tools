@@ -310,7 +310,7 @@ index 2c34739..cca8cdc 100644
  #define STF2IFP(sc)	((sc)->sc_ifp)
  
 +static struct mtx stf_mtx;
-+static MALLOC_DEFINE(M_STF, STFNAME, "6to4 Tunnel Interface");
++static MALLOC_DEFINE(M_STF, stfname, "6to4 Tunnel Interface");
 +static VNET_DEFINE(LIST_HEAD(, stf_softc), stf_softc_list);
 +#define	V_stf_softc_list      VNET(stf_softc_list)
 +
