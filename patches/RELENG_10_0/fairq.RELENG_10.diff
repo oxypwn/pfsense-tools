@@ -1783,7 +1783,7 @@ diff --git a/sys/net/pf_mtag.h b/sys/net/pf_mtag.h
 index baff00a..904d759 100644
 --- a/sys/net/pf_mtag.h
 +++ b/sys/net/pf_mtag.h
-@@ -43,6 +43,7 @@
+@@ -43,6 +43,8 @@
  struct pf_mtag {
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
  	u_int32_t	 qid;		/* queue id */
@@ -1791,6 +1791,7 @@ index baff00a..904d759 100644
  	u_int16_t	 tag;		/* tag id */
  	u_int8_t	 flags;
  	u_int8_t	 routed;
++	u_int8_t	 af;		/* for ECN */
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
 index c16591b..61fe19b 100644
 --- a/sys/net/pfvar.h

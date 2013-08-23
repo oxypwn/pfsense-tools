@@ -101,7 +101,7 @@ index 33054c0..22d6253 100644
  	key_sa_recordxfer(sav, m);		/* record data transfer */
  
 +#ifdef DEV_ENC
-+	if (saidx->qid && (atag = pf_get_mtag(m)) != NULL) {
++	if (saidx->qid && (atag = pf_find_mtag(m)) != NULL) {
 +        	atag->qid = saidx->qid;
 +                /* add hints for ecn */
 +                atag->af = saidx->dst.sa.sa_family;
