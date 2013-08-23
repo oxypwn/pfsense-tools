@@ -364,6 +364,14 @@ index 9623e4b..4e99bdd 100644
  	}	ifv_mib;
  	SLIST_HEAD(, vlan_mc_entry) vlan_mc_listhead;
  #ifndef VLAN_ARRAY
+@@ -120,6 +126,7 @@
+ };
+ #define	ifv_proto	ifv_mib.ifvm_proto
+ #define	ifv_vid		ifv_mib.ifvm_tag
++#define	ifv_pcp		ifv_mib.ifvm_pcp
+ #define	ifv_encaplen	ifv_mib.ifvm_encaplen
+ #define	ifv_mtufudge	ifv_mib.ifvm_mtufudge
+ #define	ifv_mintu	ifv_mib.ifvm_mintu
 @@ -144,6 +150,15 @@ static int soft_pad = 0;
  SYSCTL_INT(_net_link_vlan, OID_AUTO, soft_pad, CTLFLAG_RW, &soft_pad, 0,
  	   "pad short frames before tagging");
@@ -390,7 +398,7 @@ index 9623e4b..4e99bdd 100644
 +vlan_tag_recalculate(struct ifvlan *ifv)
 +{
 +
-+	ifv->ifv_mib.ifvm_tag = EVL_MAKETAG(ifv->ifv_tag, ifv->ifv_pcp, 0);
++	ifv->ifv_mib.ifvm_tag = EVL_MAKETAG(ifv->ifv_vid, ifv->ifv_pcp, 0);
 +}
 +
 +/*
@@ -412,9 +420,9 @@ index 9623e4b..4e99bdd 100644
  	 */
 +	if (vlan_mtag_pcp && (mtag = m_tag_locate(m, MTAG_8021Q,
 +	    MTAG_8021Q_PCP_OUT, NULL)) != NULL)
-+		tag = EVL_MAKETAG(ifv->ifv_tag, *(uint8_t *)(mtag + 1), 0);
++		tag = EVL_MAKETAG(ifv->ifv_vid, *(uint8_t *)(mtag + 1), 0);
 +	else
-+		tag = EVL_MAKETAG(ifv->ifv_tag, ifv->ifv_pcp, 0);
++		tag = EVL_MAKETAG(ifv->ifv_vid, ifv->ifv_pcp, 0);
  	if (p->if_capenable & IFCAP_VLAN_HWTAGGING) {
 -		m->m_pkthdr.ether_vtag = ifv->ifv_vid;
 +		m->m_pkthdr.ether_vtag = tag;
