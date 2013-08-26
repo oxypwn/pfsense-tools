@@ -131,7 +131,7 @@ if [ "$1" = "" ]; then
 	freesbie_make obj
 
 	# Build world, kernel and install
-	echo ">>> Building world and kernels for ISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+	echo ">>> Building world and kernels for OVA... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 	make_world
 
 	# Build SMP, Embedded (wrap) and Developers edition kernels
