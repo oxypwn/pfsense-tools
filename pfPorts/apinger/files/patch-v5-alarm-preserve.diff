@@ -491,7 +491,7 @@ diff -u srcold/apinger.c src/apinger.c
 +				memset(&hints, 0, sizeof(hints));
 +				hints.ai_family = AF_INET6;
 +				hints.ai_flags = AI_NUMERICHOST;
-+				r = getaddrinfo(tc->srcip, NULL, &hints, &res);
++				r = getaddrinfo(tc->name, NULL, &hints, &res);
 +				if (r != 0) {
 +					r=inet_pton(AF_INET6,tc->name,&addr.addr6.sin6_addr);
 +					if (r==0){
