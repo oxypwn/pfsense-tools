@@ -233,13 +233,6 @@ build_iso() {
 	sha256 ${MEMSTICKSERIALPATH} > ${MEMSTICKSERIALPATH}.sha256
 }
 
-build_ova() {
-	cd $BUILDERSCRIPTS
-	./clean_build.sh
-	./build_ova.sh
-	copy_staging_ova
-}
-
 build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
@@ -389,27 +382,6 @@ dobuilds() {
 	# Do the NanoBSD+VGA builds too
 	export NANO_WITH_VGA=yes
 	donanobuilds
-	# build ova
-	build_ova
-}
-
-copy_staging_ova() {
-	if [ "${DATESTRING}" = "" ]; then
-		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-		else
-			DATESTRING=`date "+%Y%m%d-%H%M"`
-		fi
-	fi
-	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova"
-	mkdir -p $STAGINGAREA/virtualization
-	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.ova $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/virtualization/
-	if [ -f $STAGINGAREA/virtualization/$FILENAMEFULL ]; then
-		chmod a+r $STAGINGAREA/virtualization/$FILENAMEFULL
-		sha256 $STAGINGAREA/virtualization/$FILENAMEFULL > $STAGINGAREA/virtualization/$FILENAMEFULL.sha256 2>/dev/null
-	fi
 }
 
 copy_to_staging_nanobsd() {
