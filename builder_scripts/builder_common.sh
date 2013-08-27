@@ -1151,6 +1151,26 @@ create_md5_summary_file() {
 	echo "Done."
 }
 
+# This routine creates an mtree file that can be used to check
+# and correct file permissions post-install, to correct for the
+# fact that the ISO image doesn't support some permissions.
+create_mtree_summary_file() {
+	echo -n ">>> Creating mtree summary of files present..."
+	rm -f $PFSENSEBASEDIR/etc/pfSense.mtree
+	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
+	echo "cd /" >> $PFSENSEBASEDIR/chroot.sh
+	echo "/tmp" >> $PFSENSEBASEDIR/tmp/pfSense.mtree.exclude
+	echo "/dev" >> $PFSENSEBASEDIR/tmp/pfSense.mtree.exclude
+	echo "/usr/sbin/mtree -c -k uid,gid,mode,size,sha256digest -p / -X /tmp/pfSense.mtree.exclude > /tmp/pfSense.mtree" >> $PFSENSEBASEDIR/chroot.sh
+	echo "/bin/chmod 600 /tmp/pfSense.mtree" >> $PFSENSEBASEDIR/chroot.sh
+	echo "/bin/mv /tmp/pfSense.mtree /etc/" >> $PFSENSEBASEDIR/chroot.sh
+
+	chmod a+rx $PFSENSEBASEDIR/chroot.sh
+	(chroot $PFSENSEBASEDIR /chroot.sh) 2>&1 | egrep -wi '(^>>>|errors)'
+	rm $PFSENSEBASEDIR/chroot.sh
+	echo "Done."
+}
+
 # Creates a full update file
 create_pfSense_Full_update_tarball() {
 	mkdir -p $UPDATESDIR
@@ -1174,6 +1194,7 @@ create_pfSense_Full_update_tarball() {
 	install_custom_overlay_final
 
 	create_md5_summary_file
+	create_mtree_summary_file
 
 	echo ; echo Creating ${UPDATES_TARBALL_FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATES_TARBALL_FILENAME} .

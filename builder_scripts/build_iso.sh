@@ -203,6 +203,9 @@ install_extra_loader_conf_options
 # Create md5 summary file listing checksums
 create_md5_summary_file
 
+# Create mtree summary file listing owner/permissions/sha256 and similar
+create_mtree_summary_file
+
 # Setup custom tcshrc prompt
 setup_tcshrc_prompt
 

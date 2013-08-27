@@ -169,6 +169,9 @@ chroot $PFSENSEBASEDIR /chroot.sh 2>/dev/null
 rm $PFSENSEBASEDIR/chroot.sh
 echo "Done."
 
+# Create mtree summary file listing owner/permissions/sha256 and similar
+create_mtree_summary_file
+
 # Copy config.xml
 copy_config_xml_from_conf_default
 
