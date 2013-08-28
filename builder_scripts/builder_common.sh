@@ -3544,7 +3544,7 @@ buildworld() {
 	fi
 	echo ">>> Building world for ${ARCH} architecture..."
 	cd $SRCDIR
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} TARGET=${ARCH} NO_CLEAN=yes"
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} __MAKE_CONF= MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} TARGET=${ARCH} NO_CLEAN=yes"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
 	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
 	cd $BUILDER_SCRIPTS
@@ -3567,7 +3567,7 @@ installworld() {
 	# Set SRC_CONF variable if it's not already set.
 	mkdir -p ${BASEDIR}
 	cd ${SRCDIR}
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR} TARGET=${ARCH}"
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} __MAKE_CONF= MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR} TARGET=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
 	# make installworld
 	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installworld || print_error_pfS;) | egrep '^>>>'
