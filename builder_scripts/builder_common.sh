@@ -3593,7 +3593,7 @@ buildkernel() {
 	echo ">>> SRC_CONF:    ${SRCCONFBASENAME}"
 
 	LOGFILE="/tmp/kernel.${KERNCONF}.log"
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF= MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR
 	(env $MAKE_CONF script -q $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
@@ -3613,7 +3613,7 @@ installkernel() {
 	fi
 	mkdir -p ${BASEDIR}/boot
 	LOGFILE="/tmp/kernel.${KERNCONF}.log"
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF= MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
 	cd ${SRCDIR}
 	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel KERNCONF=${KERNCONF} || print_error_pfS;) | egrep '^>>>'
