@@ -1,5 +1,5 @@
 diff --git a/sys/netgraph/ng_eiface.c b/sys/netgraph/ng_eiface.c
-index 0f471bb..679eaa0 100644
+index cedfba0..b290b36 100644
 --- a/sys/netgraph/ng_eiface.c
 +++ b/sys/netgraph/ng_eiface.c
 @@ -43,6 +43,7 @@
@@ -84,7 +84,7 @@ index 0f471bb..679eaa0 100644
  		case NGM_EIFACE_GET_IFADDRS:
  		    {
 diff --git a/sys/netgraph/ng_eiface.h b/sys/netgraph/ng_eiface.h
-index 6fc1c5b..9f1509b 100644
+index 552ac59..92e5cd8 100644
 --- a/sys/netgraph/ng_eiface.h
 +++ b/sys/netgraph/ng_eiface.h
 @@ -54,6 +54,7 @@ enum {
@@ -96,7 +96,7 @@ index 6fc1c5b..9f1509b 100644
  
  #endif /* _NETGRAPH_NG_EIFACE_H_ */
 diff --git a/usr.sbin/ngctl/main.c b/usr.sbin/ngctl/main.c
-index 3581386..aae67df 100644
+index fd99d6c..6026409 100644
 --- a/usr.sbin/ngctl/main.c
 +++ b/usr.sbin/ngctl/main.c
 @@ -218,7 +218,6 @@ ReadFile(FILE *fp)

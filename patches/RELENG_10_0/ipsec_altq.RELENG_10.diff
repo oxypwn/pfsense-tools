@@ -1,5 +1,5 @@
 diff --git a/sys/net/if_enc.c b/sys/net/if_enc.c
-index e49f40c..93528583 100644
+index 60d4b28..d23f2ec 100644
 --- a/sys/net/if_enc.c
 +++ b/sys/net/if_enc.c
 @@ -52,6 +52,9 @@
@@ -36,10 +36,10 @@ index e49f40c..93528583 100644
  
  bad:
 diff --git a/sys/netipsec/ipsec.h b/sys/netipsec/ipsec.h
-index 65faab8..433ad5b 100644
+index 5046fca..7ebe04d 100644
 --- a/sys/netipsec/ipsec.h
 +++ b/sys/netipsec/ipsec.h
-@@ -440,7 +440,7 @@ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
+@@ -443,7 +443,7 @@ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
  #define	ENC_AFTER	0x0002
  #define	ENC_IN		0x0100
  #define	ENC_OUT		0x0200
@@ -49,10 +49,10 @@ index 65faab8..433ad5b 100644
  #endif
  #endif /* _KERNEL */
 diff --git a/sys/netipsec/ipsec_input.c b/sys/netipsec/ipsec_input.c
-index 1f9ae64..91c10ea 100644
+index 0da35d7..b6e7e3e 100644
 --- a/sys/netipsec/ipsec_input.c
 +++ b/sys/netipsec/ipsec_input.c
-@@ -486,7 +486,8 @@ ipsec4_common_input_cb(struct mbuf *m, struct secasvar *sav,
+@@ -475,7 +475,8 @@ ipsec4_common_input_cb(struct mbuf *m, struct secasvar *sav,
  	ipsec_bpf(m, sav, AF_INET, ENC_IN|ENC_BEFORE);
  
  	if (prot != IPPROTO_IPIP)
@@ -62,7 +62,7 @@ index 1f9ae64..91c10ea 100644
  			return (error);
  #endif
  
-@@ -753,7 +754,8 @@ ipsec6_common_input_cb(struct mbuf *m, struct secasvar *sav, int skip, int proto
+@@ -729,7 +730,8 @@ ipsec6_common_input_cb(struct mbuf *m, struct secasvar *sav, int skip, int proto
  
  	/* XXX-BZ does not make sense. */
  	if (prot != IPPROTO_IPIP)
@@ -73,7 +73,7 @@ index 1f9ae64..91c10ea 100644
  #endif
  
 diff --git a/sys/netipsec/ipsec_output.c b/sys/netipsec/ipsec_output.c
-index 33054c0..22d6253 100644
+index 4a95b19..d5d938d 100644
 --- a/sys/netipsec/ipsec_output.c
 +++ b/sys/netipsec/ipsec_output.c
 @@ -43,6 +43,11 @@
@@ -111,7 +111,7 @@ index 33054c0..22d6253 100644
  	/*
  	 * We're done with IPsec processing, transmit the packet using the
  	 * appropriate network protocol (IP or IPv6). SPD lookup will be
-@@ -447,7 +461,8 @@ ipsec4_process_packet(
+@@ -451,7 +465,8 @@ ipsec4_process_packet(
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, sav, AF_INET, ENC_OUT|ENC_BEFORE);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -121,7 +121,7 @@ index 33054c0..22d6253 100644
  		goto bad;
  #endif
  
-@@ -552,7 +567,8 @@ ipsec4_process_packet(
+@@ -556,7 +571,8 @@ ipsec4_process_packet(
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, sav, AF_INET, ENC_OUT|ENC_AFTER);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -131,7 +131,7 @@ index 33054c0..22d6253 100644
  		goto bad;
  #endif
  
-@@ -810,7 +826,8 @@ ipsec6_output_tunnel(struct ipsec_output_state *state, struct secpolicy *sp, int
+@@ -814,7 +830,8 @@ ipsec6_output_tunnel(struct ipsec_output_state *state, struct secpolicy *sp, int
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, isr->sav, AF_INET6, ENC_OUT|ENC_BEFORE);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -141,7 +141,7 @@ index 33054c0..22d6253 100644
  		goto bad;
  #endif
  
-@@ -886,7 +903,8 @@ ipsec6_output_tunnel(struct ipsec_output_state *state, struct secpolicy *sp, int
+@@ -890,7 +907,8 @@ ipsec6_output_tunnel(struct ipsec_output_state *state, struct secpolicy *sp, int
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, isr->sav, AF_INET6, ENC_OUT|ENC_AFTER);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -152,7 +152,7 @@ index 33054c0..22d6253 100644
  #endif
  
 diff --git a/sys/netipsec/keydb.h b/sys/netipsec/keydb.h
-index 7494f5f..f22230b 100644
+index 8b7dab0..03c569b 100644
 --- a/sys/netipsec/keydb.h
 +++ b/sys/netipsec/keydb.h
 @@ -58,6 +58,8 @@ struct secasindex {
@@ -165,10 +165,10 @@ index 7494f5f..f22230b 100644
  
  /* 
 diff --git a/sys/netipsec/xform_ipip.c b/sys/netipsec/xform_ipip.c
-index fc3b1d2..f7cc8c2 100644
+index 4553d74..bd681b0 100644
 --- a/sys/netipsec/xform_ipip.c
 +++ b/sys/netipsec/xform_ipip.c
-@@ -365,7 +365,7 @@ _ipip_input(struct mbuf *m, int iphlen, struct ifnet *gifp)
+@@ -371,7 +371,7 @@ _ipip_input(struct mbuf *m, int iphlen, struct ifnet *gifp)
  		panic("%s: bogus ip version %u", __func__, v>>4);
  	}
  	/* pass the mbuf to enc0 for packet filtering */

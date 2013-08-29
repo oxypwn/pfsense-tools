@@ -1,5 +1,5 @@
 diff --git a/sys/netinet/ip_output.c b/sys/netinet/ip_output.c
-index 21d47f7..6e6d6d5 100644
+index f4cecce..810d0d2 100644
 --- a/sys/netinet/ip_output.c
 +++ b/sys/netinet/ip_output.c
 @@ -130,10 +130,9 @@ ip_output(struct mbuf *m, struct mbuf *opt, struct route *ro, int flags,

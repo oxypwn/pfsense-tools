@@ -1,8 +1,8 @@
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index a5356d5..e2a427d 100644
+index 18dd1e1..b63d670 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
-@@ -1594,6 +1594,8 @@ struct pfioc_trans {
+@@ -1570,6 +1570,8 @@ struct pfioc_trans {
  #ifdef _KERNEL
  #define PFR_FLAG_USERIOCTL	0x10000000
  #endif
@@ -12,7 +12,7 @@ index a5356d5..e2a427d 100644
  struct pfioc_table {
  	struct pfr_table	 pfrio_table;
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index 4516563..d851e41 100644
+index 1c9aeb9..efa4a77 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
 @@ -981,6 +981,8 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td

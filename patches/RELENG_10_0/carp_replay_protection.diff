@@ -1,8 +1,8 @@
 diff --git a/sys/netinet/ip_carp.c b/sys/netinet/ip_carp.c
-index a0d9b2a..614840c 100644
+index 73024b6..44bafff 100644
 --- a/sys/netinet/ip_carp.c
 +++ b/sys/netinet/ip_carp.c
-@@ -114,7 +114,6 @@ struct carp_softc {
+@@ -115,7 +115,6 @@ struct carp_softc {
  	int			sc_sendad_success;
  #define	CARP_SENDAD_MIN_SUCCESS 3
  
@@ -10,7 +10,7 @@ index a0d9b2a..614840c 100644
  	uint64_t		sc_counter;
  
  	/* authentication */
-@@ -551,7 +550,6 @@ carp_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
+@@ -568,7 +567,6 @@ carp_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
  	struct ifnet *ifp = m->m_pkthdr.rcvif;
  	struct ifaddr *ifa;
  	struct carp_softc *sc;
@@ -18,7 +18,7 @@ index a0d9b2a..614840c 100644
  	struct timeval sc_tv, ch_tv;
  
  	/* verify that the VHID is valid on the receiving interface */
-@@ -591,14 +589,20 @@ carp_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
+@@ -608,14 +606,20 @@ carp_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
  		goto out;
  	}
  
@@ -35,19 +35,19 @@ index a0d9b2a..614840c 100644
 +                /* Do not log duplicates from non simplex interfaces */
 +                if (sc->sc_carpdev->if_flags & IFF_SIMPLEX) {
 +                        CARPSTATS_INC(carps_badauth);
-+                        SC2IFP(sc)->if_ierrors++;
-+                        CARP_UNLOCK(ifp->if_carp);
++                        ifp->if_ierrors++;
++                        CARP_UNLOCK(sc);
 +                        CARP_LOG("%s, replay or network loop detected.\n",
-+				SC2IFP(sc)->if_xname);
++				ifp->if_xname);
 +                } else
-+                        CARP_UNLOCK(ifp->if_carp);
++                        CARP_UNLOCK(sc);
 +                m_freem(m);
 +                return;
 +        }
  
  	sc_tv.tv_sec = sc->sc_advbase;
  	sc_tv.tv_usec = DEMOTE_ADVSKEW(sc) * 1000000 / 256;
-@@ -672,13 +676,12 @@ carp_prepare_ad(struct mbuf *m, struct carp_softc *sc, struct carp_header *ch)
+@@ -689,13 +693,12 @@ carp_prepare_ad(struct mbuf *m, struct carp_softc *sc, struct carp_header *ch)
  {
  	struct m_tag *mtag;
  
@@ -63,7 +63,7 @@ index a0d9b2a..614840c 100644
  
  	ch->carp_counter[0] = htonl((sc->sc_counter>>32)&0xffffffff);
  	ch->carp_counter[1] = htonl(sc->sc_counter&0xffffffff);
-@@ -1461,9 +1464,9 @@ carp_alloc(struct ifnet *ifp)
+@@ -1478,9 +1481,9 @@ carp_alloc(struct ifnet *ifp)
  
  	sc = malloc(sizeof(*sc), M_CARP, M_WAITOK|M_ZERO);
  

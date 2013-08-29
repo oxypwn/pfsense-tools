@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index c03b28c..ffa524d 100644
+index 215a0c6..ada100b 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
-@@ -240,6 +240,9 @@ struct filter_opts {
+@@ -239,6 +239,9 @@ struct filter_opts {
  	char			*tag;
  	char			*match_tag;
  	u_int8_t		 match_tag_not;
@@ -12,15 +12,15 @@ index c03b28c..ffa524d 100644
  	u_int			 rtableid;
  	struct {
  		struct node_host	*addr;
-@@ -453,6 +456,7 @@ int	parseport(char *, struct range *r, int);
+@@ -450,6 +453,7 @@ int	parseport(char *, struct range *r, int);
  %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
- %token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
- %token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
+ %token	ALTQ CBQ PRIQ HFSC BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
+ %token	QUEUE PRIORITY QLIMIT RTABLE
 +%token  DNPIPE DNQUEUE 
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
  %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
-@@ -1604,14 +1608,22 @@ bandwidth	: STRING {
+@@ -1600,14 +1604,22 @@ bandwidth	: STRING {
  
  			bps = strtod($1, &cp);
  			if (cp != NULL) {
@@ -47,7 +47,7 @@ index c03b28c..ffa524d 100644
  				else if (!strcmp(cp, "%")) {
  					if (bps < 0 || bps > 100) {
  						yyerror("bandwidth spec "
-@@ -2323,6 +2335,15 @@ pfrule		: action dir logquick interface route af proto fromto
+@@ -2255,6 +2267,15 @@ pfrule		: action dir logquick interface route af proto fromto
  			}
  #endif
  
@@ -63,7 +63,7 @@ index c03b28c..ffa524d 100644
  			expand_rule(&r, $4, $5.host, $7, $8.src_os,
  			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
  			    $9.uid, $9.gid, $9.icmpspec, "");
-@@ -2420,6 +2441,32 @@ filter_opt	: USER uids {
+@@ -2352,6 +2373,32 @@ filter_opt	: USER uids {
  			}
  			filter_opts.queues = $1;
  		}
@@ -96,7 +96,7 @@ index c03b28c..ffa524d 100644
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -4569,6 +4616,11 @@ filter_consistent(struct pf_rule *r, int anchor_call)
+@@ -4501,6 +4548,11 @@ filter_consistent(struct pf_rule *r, int anchor_call)
  		yyerror("tos and dscp cannot be used together");
  		problems++;
  	}
@@ -108,7 +108,7 @@ index c03b28c..ffa524d 100644
  	return (-problems);
  }
  
-@@ -5361,6 +5413,8 @@ lookup(char *s)
+@@ -5291,6 +5343,8 @@ lookup(char *s)
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
@@ -118,7 +118,7 @@ index c03b28c..ffa524d 100644
  		{ "divert-to",		DIVERTTO},
  		{ "drop",		DROP},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index 544bc22..8f23a7b 100644
+index c8d2e68..be0b907 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -1001,6 +1001,14 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -137,7 +137,7 @@ index 544bc22..8f23a7b 100644
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index c0bb106..fb08312 100644
+index 65b57fe..18dd1e1 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -603,6 +603,11 @@ struct pf_rule {
@@ -153,7 +153,7 @@ index c0bb106..fb08312 100644
  	u_int32_t		 nr;
  	u_int32_t		 prob;
 diff --git a/sys/netpfil/ipfw/ip_dn_io.c b/sys/netpfil/ipfw/ip_dn_io.c
-index 9a4b486..c842ce0 100644
+index fbe69f2..7bb8d50 100644
 --- a/sys/netpfil/ipfw/ip_dn_io.c
 +++ b/sys/netpfil/ipfw/ip_dn_io.c
 @@ -651,6 +651,7 @@ dummynet_send(struct mbuf *m)
@@ -165,7 +165,7 @@ index 9a4b486..c842ce0 100644
  			tag->m_tag_cookie = MTAG_IPFW_RULE;
  			tag->m_tag_id = 0;
 diff --git a/sys/netpfil/ipfw/ip_dummynet.c b/sys/netpfil/ipfw/ip_dummynet.c
-index 429f2f1..b68884f 100644
+index c0457e4..12361bb 100644
 --- a/sys/netpfil/ipfw/ip_dummynet.c
 +++ b/sys/netpfil/ipfw/ip_dummynet.c
 @@ -2288,7 +2288,6 @@ static moduledata_t dummynet_mod = {
@@ -177,10 +177,10 @@ index 429f2f1..b68884f 100644
  
  /*
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index eee1661..d9dac20 100644
+index be5db46..86121ee 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -87,6 +87,8 @@ __FBSDID("$FreeBSD$");
+@@ -87,6 +87,8 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf.c,v 1.21 2013/06/14 00:31:34 svnexp Ex
  #include <netinet/udp_var.h>
  
  #include <netpfil/ipfw/ip_fw_private.h> /* XXX: only for DIR_IN/DIR_OUT */
@@ -204,9 +204,9 @@ index eee1661..d9dac20 100644
  static int		 pf_mtag_init(void *, int, int);
  static void		 pf_mtag_free(struct m_tag *);
 +static void		 pf_packet_redo_nat(struct mbuf *, struct pf_pdesc *,
-+			    int, pf_state *, int);
++			    int, struct pf_state *, int);
 +static void		 pf_packet_undo_nat(struct mbuf *, struct pf_pdesc *,
-+			    int, pf_state *, int);
++			    int, struct pf_state *, int);
  #ifdef INET
  static void		 pf_route(struct mbuf **, struct pf_rule *, int,
  			    struct ifnet *, struct pf_state *,
@@ -230,7 +230,7 @@ index eee1661..d9dac20 100644
 +				pf_packet_redo_nat(m, pd, off, s, direction); \
 +			}                                               \
 +			return (PF_PASS);                               \
-+		}							\ 
++		}							\
  		if ((d) == PF_OUT &&					\
  		    (((s)->rule.ptr->rt == PF_ROUTETO &&		\
  		    (s)->rule.ptr->direction == PF_OUT) ||		\
@@ -266,7 +266,7 @@ index eee1661..d9dac20 100644
 +		if (direction == PF_OUT) {
 +			pf_change_ap(pd->src, &uh->uh_sport, pd->ip_sum,
 +				&uh->uh_sum, &nk->addr[pd->sidx],
-+				nk->port[pd->sidx, 1, pd->af);
++				nk->port[pd->sidx], 1, pd->af);
 +		} else {
 +			pf_change_ap(pd->dst, &uh->uh_dport, pd->ip_sum,
 +				&uh->uh_sum, &nk->addr[pd->didx],
@@ -283,7 +283,7 @@ index eee1661..d9dac20 100644
 +			switch (pd->af) {
 +			case AF_INET:
 +				pf_change_a(&pd->src->v4.s_addr,
-+					pd->ip_sum, nk->addr[pd->sidx)].v4.s_addr,
++					pd->ip_sum, nk->addr[pd->sidx].v4.s_addr,
 +					0);
 +				break;
 +			case AF_INET6:
@@ -308,7 +308,7 @@ index eee1661..d9dac20 100644
 +
 +static void
 +pf_packet_redo_nat(struct mbuf *m, struct pf_pdesc *pd, int off,
-+    pf_state *state, int direction)
++    struct pf_state *state, int direction)
 +{
 +	struct pf_state_key *nk = state->key[pd->didx];
 +
@@ -377,7 +377,7 @@ index eee1661..d9dac20 100644
  static __inline uint32_t
  pf_hashkey(struct pf_state_key *sk)
  {
-@@ -4919,7 +5065,7 @@ pf_test_state_icmp(struct pf_state **state, int direction, struct pfi_kif *kif,
+@@ -4946,7 +5092,7 @@ pf_test_state_icmp(struct pf_state **state, int direction, struct pfi_kif *kif,
  
  static int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -386,19 +386,18 @@ index eee1661..d9dac20 100644
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_key_cmp	 key;
-@@ -5612,7 +5758,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -5639,7 +5785,9 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	struct pf_state		*s = NULL;
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_pdesc		 pd;
 -	int			 off, dirndx, pqid = 0;
 +	int			 off = 0, dirndx, pqid = 0;
 +	int                      loopedfrom = 0;
-+	struct m_tag		*dn_tag;
 +	struct ip_fw_args        dnflow;
  
  	M_ASSERTPKTHDR(m);
  
-@@ -5638,22 +5787,24 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -5665,22 +5813,24 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  
  	PF_RULES_RLOCK();
  
@@ -426,7 +425,7 @@ index eee1661..d9dac20 100644
  	} else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
  		/* We do IP header normalization and packet reassembly here */
  		action = PF_DROP;
-@@ -5696,6 +5847,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -5723,6 +5873,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -437,7 +436,7 @@ index eee1661..d9dac20 100644
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -5725,6 +5880,9 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -5752,6 +5906,9 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -447,7 +446,7 @@ index eee1661..d9dac20 100644
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -5783,7 +5941,7 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -5810,7 +5967,7 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  #endif
  
  	default:
@@ -456,7 +455,7 @@ index eee1661..d9dac20 100644
  		if (action == PF_PASS) {
  			if (pfsync_update_state_ptr != NULL)
  				pfsync_update_state_ptr(s);
-@@ -5833,6 +5991,54 @@ done:
+@@ -5858,6 +6015,54 @@ done:
  	}
  #endif /* ALTQ */
  
@@ -487,7 +486,7 @@ index eee1661..d9dac20 100644
 +		}
 +
 +		if (s != NULL && s->nat_rule.ptr)
-+			pf_packet_undo_nat(m, pd, off, s, dir);
++			pf_packet_undo_nat(m, &pd, off, s, dir);
 +
 +		ip_dn_io_ptr(m0,
 +			(dir == PF_IN) ? DIR_IN : DIR_OUT,
@@ -497,7 +496,7 @@ index eee1661..d9dac20 100644
 +			m_tag_delete(*m0, m_tag_first(*m0));
 +			pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
 +			if (s != NULL && s->nat_rule.ptr)
-+				pf_packet_redo_nat(m, pd, off, s, dir);
++				pf_packet_redo_nat(m, &pd, off, s, dir);
 +		} else {
 +			*m0 = NULL;
 +			if (s)
@@ -511,7 +510,7 @@ index eee1661..d9dac20 100644
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -5979,7 +6185,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6004,7 +6209,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	struct pf_state		*s = NULL;
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_pdesc		 pd;
@@ -523,7 +522,7 @@ index eee1661..d9dac20 100644
  
  	M_ASSERTPKTHDR(m);
  
-@@ -6003,8 +6212,20 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6028,8 +6236,20 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  
  	PF_RULES_RLOCK();
  
@@ -545,7 +544,7 @@ index eee1661..d9dac20 100644
  		action = PF_DROP;
  		goto done;
  	}
-@@ -6113,6 +6334,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6138,6 +6358,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -556,7 +555,7 @@ index eee1661..d9dac20 100644
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -6140,6 +6365,9 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6165,6 +6389,9 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -566,7 +565,7 @@ index eee1661..d9dac20 100644
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -6196,7 +6424,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6221,7 +6448,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	}
  
  	default:
@@ -575,7 +574,7 @@ index eee1661..d9dac20 100644
  		if (action == PF_PASS) {
  			if (pfsync_update_state_ptr != NULL)
  				pfsync_update_state_ptr(s);
-@@ -6251,6 +6479,49 @@ done:
+@@ -6274,6 +6501,49 @@ done:
  	}
  #endif /* ALTQ */
  
@@ -601,7 +600,7 @@ index eee1661..d9dac20 100644
 +		dnflow.f_id.dst_ip6 = h->ip6_dst;
 +
 +		if (s != NULL && s->nat_rule.ptr)
-+			pf_packet_undo_nat(m, pd, off, s, dir);
++			pf_packet_undo_nat(m, &pd, off, s, dir);
 +
 +		ip_dn_io_ptr(m0,
 +			(dir == PF_IN) ? DIR_IN : DIR_OUT,
@@ -611,7 +610,7 @@ index eee1661..d9dac20 100644
 +			m_tag_delete(*m0, m_tag_first(*m0));
 +			pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
 +			if (s != NULL && s->nat_rule.ptr)
-+				pf_packet_redo_nat(m, pd, off, s, dir);
++				pf_packet_redo_nat(m, &pd, off, s, dir);
 +		} else {
 +			*m0 = NULL;
 +			if (s)

@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 99c26c0..3ebd5f0 100644
+index fa21df0..66bcb5a 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
-@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD$");
+@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/parse.y,v 1.2 2012/11/17 01:50:24 svnexp Exp
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
  #include <altq/altq_hfsc.h>
@@ -10,7 +10,7 @@ index 99c26c0..3ebd5f0 100644
  
  #include <stdio.h>
  #include <unistd.h>
-@@ -300,6 +301,7 @@ struct pool_opts {
+@@ -306,6 +307,7 @@ struct pool_opts {
  
  
  struct node_hfsc_opts	 hfsc_opts;
@@ -18,7 +18,7 @@ index 99c26c0..3ebd5f0 100644
  struct node_state_opt	*keep_state_defaults = NULL;
  
  int		 disallow_table(struct node_host *, const char *);
-@@ -422,6 +424,7 @@ typedef struct {
+@@ -429,6 +431,7 @@ typedef struct {
  		struct table_opts	 table_opts;
  		struct pool_opts	 pool_opts;
  		struct node_hfsc_opts	 hfsc_opts;
@@ -26,7 +26,7 @@ index 99c26c0..3ebd5f0 100644
  	} v;
  	int lineno;
  } YYSTYPE;
-@@ -446,8 +449,8 @@ int	parseport(char *, struct range *r, int);
+@@ -453,8 +456,8 @@ int	parseport(char *, struct range *r, int);
  %token	REQUIREORDER SYNPROXY FINGERPRINTS NOSYNC DEBUG SKIP HOSTID
  %token	ANTISPOOF FOR INCLUDE
  %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
@@ -34,10 +34,10 @@ index 99c26c0..3ebd5f0 100644
 -%token	QUEUE PRIORITY QLIMIT RTABLE
 +%token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
 +%token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
+ %token  DNPIPE DNQUEUE 
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
- %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
-@@ -495,6 +498,7 @@ int	parseport(char *, struct range *r, int);
+@@ -503,6 +506,7 @@ int	parseport(char *, struct range *r, int);
  %type	<v.number>		cbqflags_list cbqflags_item
  %type	<v.number>		priqflags_list priqflags_item
  %type	<v.hfsc_opts>		hfscopts_list hfscopts_item hfsc_opts
@@ -45,7 +45,7 @@ index 99c26c0..3ebd5f0 100644
  %type	<v.queue_bwspec>	bandwidth
  %type	<v.filter_opts>		filter_opts filter_opt filter_opts_l
  %type	<v.antispoof_opts>	antispoof_opts antispoof_opt antispoof_opts_l
-@@ -1659,6 +1663,15 @@ scheduler	: CBQ				{
+@@ -1675,6 +1679,15 @@ scheduler	: CBQ				{
  			$$.qtype = ALTQT_HFSC;
  			$$.data.hfsc_opts = $3;
  		}
@@ -61,7 +61,7 @@ index 99c26c0..3ebd5f0 100644
  		;
  
  cbqflags_list	: cbqflags_item				{ $$ |= $1; }
-@@ -1807,6 +1820,61 @@ hfscopts_item	: LINKSHARE bandwidth				{
+@@ -1823,6 +1836,61 @@ hfscopts_item	: LINKSHARE bandwidth				{
  		}
  		;
  
@@ -123,7 +123,7 @@ index 99c26c0..3ebd5f0 100644
  qassign		: /* empty */		{ $$ = NULL; }
  		| qassign_item		{ $$ = $1; }
  		| '{' optnl qassign_list '}'	{ $$ = $3; }
-@@ -4799,7 +4867,8 @@ expand_altq(struct pf_altq *a, struct node_if *interfaces,
+@@ -4937,7 +5005,8 @@ expand_altq(struct pf_altq *a, struct node_if *interfaces,
  				if (n == NULL)
  					err(1, "expand_altq: calloc");
  				if (pa.scheduler == ALTQT_CBQ ||
@@ -133,7 +133,7 @@ index 99c26c0..3ebd5f0 100644
  					if (strlcpy(n->parent, qname,
  					    sizeof(n->parent)) >=
  					    sizeof(n->parent))
-@@ -5226,6 +5295,7 @@ lookup(char *s)
+@@ -5372,6 +5441,7 @@ lookup(char *s)
  		{ "bitmask",		BITMASK},
  		{ "block",		BLOCK},
  		{ "block-policy",	BLOCKPOLICY},
@@ -141,15 +141,15 @@ index 99c26c0..3ebd5f0 100644
  		{ "cbq",		CBQ},
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
-@@ -5235,6 +5305,7 @@ lookup(char *s)
- 		{ "drop",		DROP},
+@@ -5384,6 +5454,7 @@ lookup(char *s)
  		{ "drop-ovl",		FRAGDROP},
+ 		{ "dscp",		DSCP},
  		{ "dup-to",		DUPTO},
 +		{ "fairq",		FAIRQ},
  		{ "fastroute",		FASTROUTE},
  		{ "file",		FILENAME},
  		{ "fingerprints",	FINGERPRINTS},
-@@ -5247,6 +5318,7 @@ lookup(char *s)
+@@ -5396,6 +5467,7 @@ lookup(char *s)
  		{ "global",		GLOBAL},
  		{ "group",		GROUP},
  		{ "hfsc",		HFSC},
@@ -158,10 +158,10 @@ index 99c26c0..3ebd5f0 100644
  		{ "icmp-type",		ICMPTYPE},
  		{ "icmp6-type",		ICMP6TYPE},
 diff --git a/sbin/pfctl/pfctl_altq.c b/sbin/pfctl/pfctl_altq.c
-index 40e11d5..e888e45 100644
+index c74bf53..e92503c 100644
 --- a/sbin/pfctl/pfctl_altq.c
 +++ b/sbin/pfctl/pfctl_altq.c
-@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD$");
+@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_altq.c,v 1.2 2012/11/17 01:50:24 svnexp
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
  #include <altq/altq_hfsc.h>
@@ -251,7 +251,7 @@ index 40e11d5..e888e45 100644
  	default:
  		break;
  	}
-@@ -807,6 +830,85 @@ err_ret:
+@@ -800,6 +823,85 @@ err_ret:
  	return (-1);
  }
  
@@ -337,7 +337,7 @@ index 40e11d5..e888e45 100644
  static int
  check_commit_hfsc(int dev, int opts, struct pf_altq *pa)
  {
-@@ -847,6 +949,43 @@ check_commit_hfsc(int dev, int opts, struct pf_altq *pa)
+@@ -840,6 +942,43 @@ check_commit_hfsc(int dev, int opts, struct pf_altq *pa)
  }
  
  static int
@@ -381,7 +381,7 @@ index 40e11d5..e888e45 100644
  print_hfsc_opts(const struct pf_altq *a, const struct node_queue_opt *qopts)
  {
  	const struct hfsc_opts		*opts;
-@@ -892,6 +1031,43 @@ print_hfsc_opts(const struct pf_altq *a, const struct node_queue_opt *qopts)
+@@ -885,6 +1024,43 @@ print_hfsc_opts(const struct pf_altq *a, const struct node_queue_opt *qopts)
  		return (0);
  }
  
@@ -425,7 +425,7 @@ index 40e11d5..e888e45 100644
  /*
   * admission control using generalized service curve
   */
-@@ -1211,6 +1387,23 @@ eval_queue_opts(struct pf_altq *pa, struct node_queue_opt *opts,
+@@ -1204,6 +1380,23 @@ eval_queue_opts(struct pf_altq *pa, struct node_queue_opt *opts,
  			    opts->data.hfsc_opts.upperlimit.d;
  		}
  		break;
@@ -449,7 +449,7 @@ index 40e11d5..e888e45 100644
  	default:
  		warnx("eval_queue_opts: unknown scheduler type %u",
  		    opts->qtype);
-@@ -1256,3 +1449,27 @@ print_hfsc_sc(const char *scname, u_int m1, u_int d, u_int m2,
+@@ -1249,3 +1442,27 @@ print_hfsc_sc(const char *scname, u_int m1, u_int d, u_int m2,
  	if (d != 0)
  		printf(")");
  }
@@ -478,7 +478,7 @@ index 40e11d5..e888e45 100644
 +		printf(")");
 +}
 diff --git a/sbin/pfctl/pfctl_parser.h b/sbin/pfctl/pfctl_parser.h
-index 4560d66..f2b0a9b 100644
+index fe0126d..ab7d0ed 100644
 --- a/sbin/pfctl/pfctl_parser.h
 +++ b/sbin/pfctl/pfctl_parser.h
 @@ -150,12 +150,27 @@ struct node_hfsc_opts {
@@ -510,10 +510,10 @@ index 4560d66..f2b0a9b 100644
  };
  
 diff --git a/sbin/pfctl/pfctl_qstats.c b/sbin/pfctl/pfctl_qstats.c
-index 95371e4..4087d71 100644
+index 6b187b3..9dfaf37 100644
 --- a/sbin/pfctl/pfctl_qstats.c
 +++ b/sbin/pfctl/pfctl_qstats.c
-@@ -38,6 +38,7 @@ __FBSDID("$FreeBSD$");
+@@ -38,6 +38,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_qstats.c,v 1.2 2012/11/17 01:50:24 svne
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
  #include <altq/altq_hfsc.h>
@@ -586,10 +586,10 @@ index 95371e4..4087d71 100644
  		b = 0;
  		p = 0;
 diff --git a/sys/conf/NOTES b/sys/conf/NOTES
-index ec41bb6..e6e170a 100644
+index b2766c4..8cc6722 100644
 --- a/sys/conf/NOTES
 +++ b/sys/conf/NOTES
-@@ -688,6 +688,7 @@ options 	ALTQ_CBQ	# Class Based Queueing
+@@ -694,6 +694,7 @@ options 	ALTQ_CBQ	# Class Based Queueing
  options 	ALTQ_RED	# Random Early Detection
  options 	ALTQ_RIO	# RED In/Out
  options 	ALTQ_HFSC	# Hierarchical Packet Scheduler
@@ -598,10 +598,10 @@ index ec41bb6..e6e170a 100644
  options 	ALTQ_PRIQ	# Priority Queueing
  options 	ALTQ_NOPCC	# Required if the TSC is unusable
 diff --git a/sys/conf/files b/sys/conf/files
-index 7e52504..f72b9c9 100644
+index 0d895fa..ddbb8fa 100644
 --- a/sys/conf/files
 +++ b/sys/conf/files
-@@ -281,6 +281,7 @@ compat/freebsd32/freebsd32_sysent.c	optional compat_freebsd32
+@@ -282,6 +282,7 @@ compat/freebsd32/freebsd32_sysent.c	optional compat_freebsd32
  contrib/altq/altq/altq_cbq.c		optional altq
  contrib/altq/altq/altq_cdnr.c		optional altq
  contrib/altq/altq/altq_hfsc.c		optional altq
@@ -610,10 +610,10 @@ index 7e52504..f72b9c9 100644
  contrib/altq/altq/altq_red.c		optional altq
  contrib/altq/altq/altq_rio.c		optional altq
 diff --git a/sys/conf/options b/sys/conf/options
-index e0eda69..6ea16a2 100644
+index d77162b..8ff0adc 100644
 --- a/sys/conf/options
 +++ b/sys/conf/options
-@@ -370,6 +370,7 @@ ALTQ_CBQ		opt_altq.h
+@@ -377,6 +377,7 @@ ALTQ_CBQ		opt_altq.h
  ALTQ_CDNR		opt_altq.h
  ALTQ_DEBUG		opt_altq.h
  ALTQ_HFSC		opt_altq.h
@@ -622,7 +622,7 @@ index e0eda69..6ea16a2 100644
  ALTQ_PRIQ		opt_altq.h
  ALTQ_RED		opt_altq.h
 diff --git a/sys/contrib/altq/altq/altq.h b/sys/contrib/altq/altq/altq.h
-index c740ed3..6200ac5 100644
+index 0edca5c..24c5c7b 100644
 --- a/sys/contrib/altq/altq/altq.h
 +++ b/sys/contrib/altq/altq/altq.h
 @@ -63,7 +63,8 @@
@@ -636,8 +636,9 @@ index c740ed3..6200ac5 100644
  #ifdef ALTQ3_COMPAT
  struct	altqreq {
 diff --git a/sys/contrib/altq/altq/altq_fairq.c b/sys/contrib/altq/altq/altq_fairq.c
-index e69de29..2267bfd 100644
---- a/sys/contrib/altq/altq/altq_fairq.c
+new file mode 100644
+index 0000000..b59d9e2
+--- /dev/null
 +++ b/sys/contrib/altq/altq/altq_fairq.c
 @@ -0,0 +1,905 @@
 +/*
@@ -1546,8 +1547,9 @@ index e69de29..2267bfd 100644
 +
 +#endif /* ALTQ_FAIRQ */
 diff --git a/sys/contrib/altq/altq/altq_fairq.h b/sys/contrib/altq/altq/altq_fairq.h
-index e69de29..e4675e0 100644
---- a/sys/contrib/altq/altq/altq_fairq.h
+new file mode 100644
+index 0000000..a8e52c7
+--- /dev/null
 +++ b/sys/contrib/altq/altq/altq_fairq.h
 @@ -0,0 +1,136 @@
 +/*
@@ -1687,7 +1689,7 @@ index e69de29..e4675e0 100644
 +
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 diff --git a/sys/contrib/altq/altq/altq_subr.c b/sys/contrib/altq/altq/altq_subr.c
-index 2d7ce75..0e0cc83 100644
+index 2352c94..9e1c462 100644
 --- a/sys/contrib/altq/altq/altq_subr.c
 +++ b/sys/contrib/altq/altq/altq_subr.c
 @@ -535,6 +535,11 @@ altq_pfattach(struct pf_altq *a)
@@ -1763,7 +1765,7 @@ index 2d7ce75..0e0cc83 100644
  		error = ENXIO;
  	}
 diff --git a/sys/contrib/altq/altq/altq_var.h b/sys/contrib/altq/altq/altq_var.h
-index 956ee16..eb603ea 100644
+index 3ad0ad5..80361cb 100644
 --- a/sys/contrib/altq/altq/altq_var.h
 +++ b/sys/contrib/altq/altq/altq_var.h
 @@ -257,5 +257,12 @@ int	hfsc_add_queue(struct pf_altq *);
@@ -1780,10 +1782,10 @@ index 956ee16..eb603ea 100644
  #endif /* _KERNEL */
  #endif /* _ALTQ_ALTQ_VAR_H_ */
 diff --git a/sys/net/pf_mtag.h b/sys/net/pf_mtag.h
-index baff00a..904d759 100644
+index 8b8639d..dff3f59 100644
 --- a/sys/net/pf_mtag.h
 +++ b/sys/net/pf_mtag.h
-@@ -43,6 +43,8 @@
+@@ -43,9 +43,11 @@
  struct pf_mtag {
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
  	u_int32_t	 qid;		/* queue id */
@@ -1792,11 +1794,14 @@ index baff00a..904d759 100644
  	u_int8_t	 flags;
  	u_int8_t	 routed;
 +	u_int8_t	 af;		/* for ECN */
+ };
+ 
+ static __inline struct pf_mtag *
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index c16591b..61fe19b 100644
+index 892d537..0f1379c 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
-@@ -1354,6 +1354,20 @@ struct hfsc_opts {
+@@ -1389,6 +1389,20 @@ struct hfsc_opts {
  	int		flags;
  };
  
@@ -1817,7 +1822,7 @@ index c16591b..61fe19b 100644
  struct pf_altq {
  	char			 ifname[IFNAMSIZ];
  
-@@ -1380,6 +1394,7 @@ struct pf_altq {
+@@ -1415,6 +1429,7 @@ struct pf_altq {
  		struct cbq_opts		 cbq_opts;
  		struct priq_opts	 priq_opts;
  		struct hfsc_opts	 hfsc_opts;
@@ -1826,10 +1831,10 @@ index c16591b..61fe19b 100644
  
  	u_int32_t		 qid;		/* return value */
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index dd64610..44db92b 100644
+index 03be11d..de36173 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -407,6 +407,22 @@ pf_hashsrc(struct pf_addr *addr, sa_family_t af)
+@@ -553,6 +553,21 @@ pf_hashsrc(struct pf_addr *addr, sa_family_t af)
  	return (h & V_pf_srchashmask);
  }
  
@@ -1840,9 +1845,8 @@ index dd64610..44db92b 100644
 +{
 +	u_int32_t hv = (intptr_t)s / sizeof(*s);
 +
-+	hv ^= crc32(&s->lan, sizeof(s->lan));
-+	hv ^= crc32(&s->gwy, sizeof(s->gwy));
-+	hv ^= crc32(&s->ext, sizeof(s->ext));
++	hv ^= crc32(&s->src, sizeof(s->src));
++	hv ^= crc32(&s->dst, sizeof(s->dst));
 +	if (hv == 0)
 +		hv = 1;
 +	return (hv);
@@ -1852,7 +1856,7 @@ index dd64610..44db92b 100644
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -5799,6 +5815,8 @@ done:
+@@ -6125,6 +6140,8 @@ done:
  			action = PF_DROP;
  			REASON_SET(&reason, PFRES_MEMORY);
  		}
@@ -1861,7 +1865,7 @@ index dd64610..44db92b 100644
  		if (pqid || (pd.tos & IPTOS_LOWDELAY))
  			pd.pf_mtag->qid = r->pqid;
  		else
-@@ -6216,6 +6234,8 @@ done:
+@@ -6612,6 +6629,8 @@ done:
  			action = PF_DROP;
  			REASON_SET(&reason, PFRES_MEMORY);
  		}

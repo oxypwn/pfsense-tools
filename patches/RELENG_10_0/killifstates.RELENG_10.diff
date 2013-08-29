@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/pfctl.c b/sbin/pfctl/pfctl.c
-index 90a2bb5..079a927 100644
+index 208fc34..432803f 100644
 --- a/sbin/pfctl/pfctl.c
 +++ b/sbin/pfctl/pfctl.c
-@@ -121,6 +121,8 @@ int		 src_node_killers;
+@@ -123,6 +123,8 @@ int		 src_node_killers;
  char		*src_node_kill[2];
  int		 state_killers;
  char		*state_kill[2];
@@ -11,7 +11,7 @@ index 90a2bb5..079a927 100644
  int		 loadopt;
  int		 altqsupport;
  
-@@ -386,10 +388,46 @@ pfctl_clear_states(int dev, const char *iface, int opts)
+@@ -388,10 +390,46 @@ pfctl_clear_states(int dev, const char *iface, int opts)
  	    sizeof(psk.psk_ifname)) >= sizeof(psk.psk_ifname))
  		errx(1, "invalid interface: %s", iface);
  
@@ -62,16 +62,16 @@ index 90a2bb5..079a927 100644
  	return (0);
  }
  
-@@ -2002,7 +2040,7 @@ main(int argc, char *argv[])
+@@ -2023,7 +2061,7 @@ main(int argc, char *argv[])
  		usage();
  
  	while ((ch = getopt(argc, argv,
--	    "a:AdD:eqf:F:ghi:k:K:mnNOo:Pp:rRs:t:T:vx:z")) != -1) {
-+	    "a:AdD:eqf:F:gG:hi:k:K:mnNOo:Pp:rRs:t:T:vx:z")) != -1) {
+-	    "a:AdD:eqf:F:ghi:k:K:mnNOo:Pp:rRs:t:T:vx:y:z")) != -1) {
++	    "a:AdD:eqf:F:gG:hi:k:K:mnNOo:Pp:rRs:t:T:vx:y:z")) != -1) {
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2071,6 +2109,16 @@ main(int argc, char *argv[])
+@@ -2092,6 +2130,16 @@ main(int argc, char *argv[])
  		case 'g':
  			opts |= PF_OPT_DEBUG;
  			break;
@@ -89,10 +89,10 @@ index 90a2bb5..079a927 100644
  			loadopt |= PFCTL_FLAG_ALTQ;
  			break;
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 1e17019..eee1661 100644
+index 54e99d5..c89741c 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -324,8 +324,8 @@ VNET_DEFINE(struct pf_limit, pf_limits[PF_LIMIT_MAX]);
+@@ -338,8 +338,8 @@ VNET_DEFINE(struct pf_limit, pf_limits[PF_LIMIT_MAX]);
  			return (PF_PASS);				\
  	} while (0)
  
@@ -104,23 +104,52 @@ index 1e17019..eee1661 100644
  #define	STATE_INC_COUNTERS(s)				\
  	do {						\
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index 2b0f2cd..4516563 100644
+index f0748b2..4e07b12 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
-@@ -3169,6 +3169,16 @@ DIOCCHANGEADDR_error:
- 					pf_clear_srcnodes(sn);
- 				sn->expire = 1;
- 				killed++;
-+			} else if (state->af == psk->psk_af && !PF_AZERO(&psk->psk_src.addr.v.a.addr, psk->psk_af) &&
-+			    !PF_AZERO(&state->rt_addr, state->af) && PF_AEQ(&psk->psk_src.addr.v.a.addr, &state->rt_addr, state->af)) {
-+				if (state->proto == IPPROTO_TCP)
-+					state->src.state = PF_TCPS_PROXY_DST; /* XXX: Hack to send a RST back to the host */
-+#if NPFSYNC
-+				/* don't send out individual delete messages */
-+				state->sync_flags = PFSTATE_NOSYNC;
-+#endif
-+				pf_unlink_state(state);
-+				killed++;
- 			}
- 		    PF_HASHROW_UNLOCK(sh);
+@@ -66,6 +66,8 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf_ioctl.c,v 1.12 2013/05/12 00:33:36 svn
+ #include <net/route.h>
+ #include <net/pfil.h>
+ #include <net/pfvar.h>
++#define TCPSTATES
++#include <netinet/tcp_fsm.h>
+ #include <net/if_pfsync.h>
+ #include <net/if_pflog.h>
+ 
+@@ -1578,6 +1580,7 @@ DIOCCHANGERULE_error:
+ 
+ 	case DIOCCLRSTATES: {
+ 		struct pf_state		*s;
++		struct pf_state_key	*sk;
+ 		struct pfioc_state_kill *psk = (struct pfioc_state_kill *)addr;
+ 		u_int			 i, killed = 0;
+ 
+@@ -1587,6 +1590,7 @@ DIOCCHANGERULE_error:
+ relock_DIOCCLRSTATES:
+ 			PF_HASHROW_LOCK(ih);
+ 			LIST_FOREACH(s, &ih->states, entry)
++				sk = s->key[PF_SK_WIRE];
+ 				if (!psk->psk_ifname[0] ||
+ 				    !strcmp(psk->psk_ifname,
+ 				    s->kif->pfik_name)) {
+@@ -1598,6 +1602,20 @@ relock_DIOCCLRSTATES:
+ 					pf_unlink_state(s, PF_ENTER_LOCKED);
+ 					killed++;
+ 					goto relock_DIOCCLRSTATES;
++				} else if (sk->af == psk->psk_af &&
++				    !PF_AZERO(&psk->psk_src.addr.v.a.addr, psk->psk_af) &&
++			    	    !PF_AZERO(&s->rt_addr, sk->af) &&
++				    PF_AEQ(&psk->psk_src.addr.v.a.addr, &s->rt_addr, sk->af)) {
++					if (sk->proto == IPPROTO_TCP)
++						s->src.state = PF_TCPS_PROXY_DST; /* XXX: Hack to send a RST back to the host */
++					/*
++					 * Don't send out individual
++					 * delete messages.
++					 */
++					s->state_flags |= PFSTATE_NOSYNC;
++					pf_unlink_state(s, PF_ENTER_LOCKED);
++					killed++;
++					goto relock_DIOCCLRSTATES;
+ 				}
+ 			PF_HASHROW_UNLOCK(ih);
  		}

@@ -1,5 +1,5 @@
 diff --git a/sys/net/if_tun.c b/sys/net/if_tun.c
-index d885024..7d7c916 100644
+index c98f8d5..9d8b6ba 100644
 --- a/sys/net/if_tun.c
 +++ b/sys/net/if_tun.c
 @@ -52,6 +52,7 @@

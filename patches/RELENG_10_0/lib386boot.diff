@@ -1,5 +1,5 @@
 diff --git a/sys/boot/i386/boot0/boot0.S b/sys/boot/i386/boot0/boot0.S
-index 798ee97..ab17088 100644
+index 4375e82..e9cd49c 100644
 --- a/sys/boot/i386/boot0/boot0.S
 +++ b/sys/boot/i386/boot0/boot0.S
 @@ -647,8 +647,8 @@ os_dos:

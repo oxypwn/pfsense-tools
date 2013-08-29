@@ -1,5 +1,5 @@
 diff --git a/sys/net/pfil.c b/sys/net/pfil.c
-index 9939d72..4452e2f 100644
+index 8111032..27e5126 100644
 --- a/sys/net/pfil.c
 +++ b/sys/net/pfil.c
 @@ -34,6 +34,7 @@
@@ -194,7 +194,7 @@ index 9939d72..4452e2f 100644
  		if (err) {
  			if (flags & PFIL_IN)
 diff --git a/sys/net/pfil.h b/sys/net/pfil.h
-index 9cdb422..3f8bf83 100644
+index de3603e..e4849b3 100644
 --- a/sys/net/pfil.h
 +++ b/sys/net/pfil.h
 @@ -38,6 +38,7 @@
@@ -238,10 +238,10 @@ index 9cdb422..3f8bf83 100644
  	    int, struct inpcb *), void *, int, struct pfil_head *);
  int	pfil_remove_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
 diff --git a/sys/netinet/ip_input.c b/sys/netinet/ip_input.c
-index f38c6fa..6767d2d 100644
+index a1cc77c..4e2c500 100644
 --- a/sys/netinet/ip_input.c
 +++ b/sys/netinet/ip_input.c
-@@ -361,6 +361,9 @@ ip_init(void)
+@@ -305,6 +305,9 @@ ip_init(void)
  	if ((i = pfil_head_register(&V_inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -252,7 +252,7 @@ index f38c6fa..6767d2d 100644
  #ifdef FLOWTABLE
  	if (TUNABLE_INT_FETCH("net.inet.ip.output_flowtable_size",
 diff --git a/sys/netinet6/ip6_input.c b/sys/netinet6/ip6_input.c
-index 51af22b..2ae9337 100644
+index f16931b..f75ac83 100644
 --- a/sys/netinet6/ip6_input.c
 +++ b/sys/netinet6/ip6_input.c
 @@ -139,6 +139,7 @@ static struct netisr_handler ip6_nh = {
@@ -262,8 +262,8 @@ index 51af22b..2ae9337 100644
 +SYSCTL_DECL(_net_inet6_ip6);
  VNET_DEFINE(struct pfil_head, inet6_pfil_hook);
  
- VNET_DEFINE(struct ip6stat, ip6stat);
-@@ -181,6 +182,9 @@ ip6_init(void)
+ VNET_PCPUSTAT_DEFINE(struct ip6stat, ip6stat);
+@@ -185,6 +186,9 @@ ip6_init(void)
  	if ((i = pfil_head_register(&V_inet6_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -274,7 +274,7 @@ index 51af22b..2ae9337 100644
  	scope6_init();
  	addrsel_policy_init();
 diff --git a/sys/netpfil/ipfw/ip_fw_pfil.c b/sys/netpfil/ipfw/ip_fw_pfil.c
-index 79973b1..e672b62 100644
+index 03616df..c7a4e6a 100644
 --- a/sys/netpfil/ipfw/ip_fw_pfil.c
 +++ b/sys/netpfil/ipfw/ip_fw_pfil.c
 @@ -499,7 +499,11 @@ ipfw_hook(int onoff, int pf)
@@ -284,17 +284,17 @@ index 79973b1..e672b62 100644
 -	(void) (onoff ? pfil_add_hook : pfil_remove_hook)
 +	if (onoff)
 +	(void) pfil_add_named_hook
-+		(ipfw_check_hook, NULL, "ipfw", PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
++		(hook_func, NULL, "ipfw", PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
 +	else
 +	(void) pfil_remove_hook
  	    (hook_func, NULL, PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
  
  	return 0;
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index 83a8079..6814852 100644
+index edfb8b6..f0748b2 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
-@@ -3628,8 +3628,8 @@ hook_pf(void)
+@@ -3618,8 +3618,8 @@ hook_pf(void)
  	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
  	if (pfh_inet == NULL)
  		return (ESRCH); /* XXX */
@@ -305,7 +305,7 @@ index 83a8079..6814852 100644
  #endif
  #ifdef INET6
  	pfh_inet6 = pfil_head_get(PFIL_TYPE_AF, AF_INET6);
-@@ -3642,8 +3642,10 @@ hook_pf(void)
+@@ -3632,8 +3632,10 @@ hook_pf(void)
  #endif
  		return (ESRCH); /* XXX */
  	}

@@ -1,8 +1,8 @@
 diff --git a/sbin/route/route.c b/sbin/route/route.c
-index 48f90a7..437bfa7 100644
+index 1d0530e..8be72e5 100644
 --- a/sbin/route/route.c
 +++ b/sbin/route/route.c
-@@ -1482,10 +1482,15 @@ rtmsg(int cmd, int flags, int fib)
+@@ -1483,10 +1483,15 @@ rtmsg(int cmd, int flags, int fib)
  		print_rtmsg(&rtm, l);
  	if (debugonly)
  		return (0);

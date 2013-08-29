@@ -1,5 +1,5 @@
 diff --git a/sys/net/if_ethersubr.c b/sys/net/if_ethersubr.c
-index 3fd6c9d..c93f472 100644
+index c366c05..d6dbb4c 100644
 --- a/sys/net/if_ethersubr.c
 +++ b/sys/net/if_ethersubr.c
 @@ -924,8 +924,6 @@ ether_ifattach(struct ifnet *ifp, const u_int8_t *lla)

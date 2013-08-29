@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/pfctl_altq.c b/sbin/pfctl/pfctl_altq.c
-index 58ea61e..3f9f9c8 100644
+index e92503c..2ad1b46 100644
 --- a/sbin/pfctl/pfctl_altq.c
 +++ b/sbin/pfctl/pfctl_altq.c
-@@ -33,6 +33,7 @@
+@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_altq.c,v 1.2 2012/11/17 01:50:24 svnexp
  #include <errno.h>
  #include <limits.h>
  #include <math.h>
@@ -10,7 +10,7 @@ index 58ea61e..3f9f9c8 100644
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
-@@ -256,15 +256,11 @@ eval_pfaltq(struct pfctl *pf, struct pf_altq *pa, struct node_queue_bw *bw,
+@@ -256,15 +257,11 @@ eval_pfaltq(struct pfctl *pf, struct pf_altq *pa, struct node_queue_bw *bw,
  		pa->ifbandwidth = bw->bw_absolute;
  	else
  #ifdef __FreeBSD__

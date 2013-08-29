@@ -1,8 +1,8 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 1eddfc9..07ad60a 100644
+index abaa972..54e99d5 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -5575,6 +5575,13 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5611,6 +5611,13 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	if (oifp != ifp) {
  		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
  			goto donelocal;

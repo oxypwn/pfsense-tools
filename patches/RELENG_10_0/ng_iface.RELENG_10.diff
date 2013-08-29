@@ -1,5 +1,5 @@
 diff --git a/sys/netgraph/ng_iface.c b/sys/netgraph/ng_iface.c
-index e6ac508..63e3162 100644
+index 57fca20..53b4061 100644
 --- a/sys/netgraph/ng_iface.c
 +++ b/sys/netgraph/ng_iface.c
 @@ -70,9 +70,11 @@
@@ -90,7 +90,7 @@ index e6ac508..63e3162 100644
  		case NGM_IFACE_BROADCAST:
  		    {
 diff --git a/sys/netgraph/ng_iface.h b/sys/netgraph/ng_iface.h
-index 58fb442..3c843c4 100644
+index 3ba433f..0d0ef49 100644
 --- a/sys/netgraph/ng_iface.h
 +++ b/sys/netgraph/ng_iface.h
 @@ -70,6 +70,7 @@ enum {

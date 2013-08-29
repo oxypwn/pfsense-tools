@@ -1,5 +1,5 @@
 diff --git a/sbin/ifconfig/ifvlan.c b/sbin/ifconfig/ifvlan.c
-index cefcbbc..6761ab2 100644
+index 969d485..d528f00 100644
 --- a/sbin/ifconfig/ifvlan.c
 +++ b/sbin/ifconfig/ifvlan.c
 @@ -1,6 +1,10 @@
@@ -66,10 +66,10 @@ index cefcbbc..6761ab2 100644
  	DEF_CMD_ARG("vlan",				setvlantag),
  	DEF_CMD_ARG("vlandev",				setvlandev),
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index ad889ca..dacd912 100644
+index 0922ebc..0c1f12d 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
-@@ -37,6 +37,8 @@ __FBSDID("$FreeBSD$");
+@@ -37,6 +37,8 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/parse.y,v 1.2 2012/11/17 01:50:24 svnexp Exp
  #include <sys/sysctl.h>
  #endif
  #include <net/if.h>
@@ -78,7 +78,7 @@ index ad889ca..dacd912 100644
  #include <netinet/in.h>
  #include <netinet/in_systm.h>
  #include <netinet/ip.h>
-@@ -243,6 +245,11 @@ struct filter_opts {
+@@ -241,6 +243,11 @@ struct filter_opts {
  	char			*tag;
  	char			*match_tag;
  	u_int8_t		 match_tag_not;
@@ -90,15 +90,15 @@ index ad889ca..dacd912 100644
  	u_int32_t                dnpipe;
  	u_int32_t                pdnpipe;
  	u_int32_t                free_flags;
-@@ -465,6 +472,7 @@ int	parseport(char *, struct range *r, int);
+@@ -463,6 +470,7 @@ int	parseport(char *, struct range *r, int);
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
  %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
- %token	TAGGED TAG IFBOUND FLOATING STATEPOLICY STATEDEFAULTS ROUTE SETTOS MAXPCKT
+ %token	TAGGED TAG IFBOUND FLOATING STATEPOLICY STATEDEFAULTS ROUTE SETTOS
 +%token	IEEE8021QPCP IEEE8021QSETPCP
  %token	DIVERTTO DIVERTREPLY
  %token	<v.string>		STRING
  %token	<v.number>		NUMBER
-@@ -888,6 +896,11 @@ anchorrule	: ANCHOR anchorname dir quick interface af proto fromto
+@@ -886,6 +894,11 @@ anchorrule	: ANCHOR anchorname dir quick interface af proto fromto
  				YYERROR;
  			}
  
@@ -110,7 +110,7 @@ index ad889ca..dacd912 100644
  			if ($9.match_tag)
  				if (strlcpy(r.match_tagname, $9.match_tag,
  				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
-@@ -1964,6 +1977,11 @@ pfrule		: action dir logquick interface route af proto fromto
+@@ -1962,6 +1975,11 @@ pfrule		: action dir logquick interface route af proto fromto
  			r.prob = $9.prob;
  			r.rtableid = $9.rtableid;
  
@@ -122,7 +122,7 @@ index ad889ca..dacd912 100644
  			r.af = $6;
  			if ($9.tag)
  				if (strlcpy(r.tagname, $9.tag,
-@@ -2509,6 +2527,98 @@ filter_opt	: USER uids {
+@@ -2498,6 +2516,98 @@ filter_opt	: USER uids {
  			if (filter_opts.prob == 0)
  				filter_opts.prob = 1;
  		}
@@ -221,7 +221,7 @@ index ad889ca..dacd912 100644
  		| RTABLE NUMBER				{
  			if ($2 < 0 || $2 > rt_tableid_max()) {
  				yyerror("invalid rtable id");
-@@ -5483,6 +5593,8 @@ lookup(char *s)
+@@ -5472,6 +5582,8 @@ lookup(char *s)
  		{ "hostid",		HOSTID},
  		{ "icmp-type",		ICMPTYPE},
  		{ "icmp6-type",		ICMP6TYPE},
@@ -231,10 +231,10 @@ index ad889ca..dacd912 100644
  		{ "in",			IN},
  		{ "include",		INCLUDE},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index 4ad469c..735db95 100644
+index dce8539..fcb7931 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
-@@ -40,6 +40,8 @@ __FBSDID("$FreeBSD$");
+@@ -40,6 +40,8 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_parser.c,v 1.2 2012/11/17 01:50:24 svne
  #include <sys/param.h>
  #include <sys/proc.h>
  #include <net/if.h>
@@ -243,7 +243,7 @@ index 4ad469c..735db95 100644
  #include <netinet/in.h>
  #include <netinet/in_systm.h>
  #include <netinet/ip.h>
-@@ -65,6 +67,8 @@ __FBSDID("$FreeBSD$");
+@@ -65,6 +67,8 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_parser.c,v 1.2 2012/11/17 01:50:24 svne
  void		 print_op (u_int8_t, const char *, const char *);
  void		 print_port (u_int8_t, u_int16_t, u_int16_t, const char *, int);
  void		 print_ugid (u_int8_t, unsigned, unsigned, const char *, unsigned);
@@ -300,7 +300,7 @@ index 4ad469c..735db95 100644
  void
  print_flags(u_int8_t f)
  {
-@@ -1030,6 +1075,13 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
+@@ -1024,6 +1069,13 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
  	}
  	if (r->rtableid != -1)
  		printf(" rtable %u", r->rtableid);
@@ -315,7 +315,7 @@ index 4ad469c..735db95 100644
  #ifdef __FreeBSD__
  		printf(" divert-to %u", ntohs(r->divert.port));
 diff --git a/sys/net/if.h b/sys/net/if.h
-index dea853a..9b2c905 100644
+index 9668c32..f5baf19 100644
 --- a/sys/net/if.h
 +++ b/sys/net/if.h
 @@ -385,6 +385,7 @@ struct	ifreq {
@@ -335,7 +335,7 @@ index dea853a..9b2c905 100644
  
  #define	_SIZEOF_ADDR_IFREQ(ifr) \
 diff --git a/sys/net/if_vlan.c b/sys/net/if_vlan.c
-index 9623e4b..4e99bdd 100644
+index 3858a61..0d3ffad 100644
 --- a/sys/net/if_vlan.c
 +++ b/sys/net/if_vlan.c
 @@ -1,5 +1,9 @@
@@ -348,7 +348,7 @@ index 9623e4b..4e99bdd 100644
   *
   * Permission to use, copy, modify, and distribute this software and
   * its documentation for any purpose and without fee is hereby
-@@ -51,6 +55,7 @@ __FBSDID("$FreeBSD$");
+@@ -51,6 +55,7 @@ __FBSDID("$FreeBSD: src/sys/net/if_vlan.c,v 1.170 2013/06/17 00:26:29 svnexp Exp
  #include <sys/mbuf.h>
  #include <sys/module.h>
  #include <sys/rwlock.h>
@@ -364,7 +364,7 @@ index 9623e4b..4e99bdd 100644
  	}	ifv_mib;
  	SLIST_HEAD(, vlan_mc_entry) vlan_mc_listhead;
  #ifndef VLAN_ARRAY
-@@ -120,6 +126,7 @@
+@@ -120,6 +126,7 @@ struct	ifvlan {
  };
  #define	ifv_proto	ifv_mib.ifvm_proto
  #define	ifv_vid		ifv_mib.ifvm_tag
@@ -372,7 +372,7 @@ index 9623e4b..4e99bdd 100644
  #define	ifv_encaplen	ifv_mib.ifvm_encaplen
  #define	ifv_mtufudge	ifv_mib.ifvm_mtufudge
  #define	ifv_mintu	ifv_mib.ifvm_mintu
-@@ -144,6 +150,15 @@ static int soft_pad = 0;
+@@ -144,6 +151,15 @@ static int soft_pad = 0;
  SYSCTL_INT(_net_link_vlan, OID_AUTO, soft_pad, CTLFLAG_RW, &soft_pad, 0,
  	   "pad short frames before tagging");
  
@@ -388,7 +388,7 @@ index 9623e4b..4e99bdd 100644
  static const char vlanname[] = "vlan";
  static MALLOC_DEFINE(M_VLAN, vlanname, "802.1Q Virtual LAN Interface");
  
-@@ -693,6 +708,16 @@ vlan_devat(struct ifnet *ifp, uint16_t vid)
+@@ -693,6 +709,16 @@ vlan_devat(struct ifnet *ifp, uint16_t vid)
  }
  
  /*
@@ -405,7 +405,7 @@ index 9623e4b..4e99bdd 100644
   * VLAN support can be loaded as a module.  The only place in the
   * system that's intimately aware of this is ether_input.  We hook
   * into this code through vlan_input_p which is defined there and
-@@ -1026,6 +1051,8 @@ vlan_transmit(struct ifnet *ifp, struct mbuf *m)
+@@ -1026,6 +1052,8 @@ vlan_transmit(struct ifnet *ifp, struct mbuf *m)
  {
  	struct ifvlan *ifv;
  	struct ifnet *p;
@@ -414,7 +414,7 @@ index 9623e4b..4e99bdd 100644
  	int error, len, mcast;
  
  	ifv = ifp->if_softc;
-@@ -1081,11 +1108,16 @@ vlan_transmit(struct ifnet *ifp, struct mbuf *m)
+@@ -1081,11 +1109,16 @@ vlan_transmit(struct ifnet *ifp, struct mbuf *m)
  	 * knows how to find the VLAN tag to use, so we attach a
  	 * packet tag that holds it.
  	 */
@@ -433,7 +433,7 @@ index 9623e4b..4e99bdd 100644
  		if (m == NULL) {
  			if_printf(ifp, "unable to prepend VLAN header\n");
  			ifp->if_oerrors++;
-@@ -1119,7 +1151,8 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
+@@ -1119,7 +1152,8 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
  {
  	struct ifvlantrunk *trunk = ifp->if_vlantrunk;
  	struct ifvlan *ifv;
@@ -443,7 +443,7 @@ index 9623e4b..4e99bdd 100644
  
  	KASSERT(trunk != NULL, ("%s: no trunk", __func__));
  
-@@ -1128,7 +1161,7 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
+@@ -1128,7 +1162,7 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
  		 * Packet is tagged, but m contains a normal
  		 * Ethernet frame; the tag is stored out-of-band.
  		 */
@@ -452,7 +452,7 @@ index 9623e4b..4e99bdd 100644
  		m->m_flags &= ~M_VLANTAG;
  	} else {
  		struct ether_vlan_header *evl;
-@@ -1144,7 +1177,7 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
+@@ -1144,7 +1178,7 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
  				return;
  			}
  			evl = mtod(m, struct ether_vlan_header *);
@@ -461,7 +461,7 @@ index 9623e4b..4e99bdd 100644
  
  			/*
  			 * Remove the 802.1q header by copying the Ethernet
-@@ -1168,6 +1201,8 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
+@@ -1168,6 +1202,8 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
  		}
  	}
  
@@ -470,7 +470,7 @@ index 9623e4b..4e99bdd 100644
  	TRUNK_RLOCK(trunk);
  	ifv = vlan_gethash(trunk, vid);
  	if (ifv == NULL || !UP_AND_RUNNING(ifv->ifv_ifp)) {
-@@ -1178,6 +1213,28 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
+@@ -1178,6 +1214,28 @@ vlan_input(struct ifnet *ifp, struct mbuf *m)
  	}
  	TRUNK_RUNLOCK(trunk);
  
@@ -499,7 +499,7 @@ index 9623e4b..4e99bdd 100644
  	m->m_pkthdr.rcvif = ifv->ifv_ifp;
  	ifv->ifv_ifp->if_ipackets++;
  
-@@ -1226,6 +1283,8 @@ exists:
+@@ -1226,6 +1284,8 @@ exists:
  	}
  
  	ifv->ifv_vid = vid;	/* must set this before vlan_inshash() */
@@ -508,7 +508,7 @@ index 9623e4b..4e99bdd 100644
  	error = vlan_inshash(trunk, ifv);
  	if (error)
  		goto done;
-@@ -1712,6 +1771,34 @@ vlan_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
+@@ -1712,6 +1772,34 @@ vlan_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
  			error = vlan_setmulti(ifp);
  		break;
  
@@ -544,7 +544,7 @@ index 9623e4b..4e99bdd 100644
  		error = EINVAL;
  		break;
 diff --git a/sys/net/if_vlan_var.h b/sys/net/if_vlan_var.h
-index 4eb3b09..b1950e1 100644
+index 50ae2ab..9ae939c 100644
 --- a/sys/net/if_vlan_var.h
 +++ b/sys/net/if_vlan_var.h
 @@ -89,6 +89,23 @@ struct	vlanreq {
@@ -589,7 +589,7 @@ index 4eb3b09..b1950e1 100644
  	if ((_ifp)->if_vlantrunk != NULL) 			\
  		(*vlan_trunk_cap_p)(_ifp);			\
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index b217cde..70c4809 100644
+index 50fa8ea..4bc9484 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -402,6 +402,14 @@ struct pf_rule_gid {
@@ -615,7 +615,7 @@ index b217cde..70c4809 100644
  	u_int32_t		 max_src_conn;
  	struct {
  		u_int32_t		limit;
-@@ -1865,6 +1874,8 @@ int	pf_match_addr(u_int8_t, struct pf_addr *, struct pf_addr *,
+@@ -1856,6 +1865,8 @@ int	pf_match_addr(u_int8_t, struct pf_addr *, struct pf_addr *,
  int	pf_match_addr_range(struct pf_addr *, struct pf_addr *,
  	    struct pf_addr *, sa_family_t);
  int	pf_match_port(u_int8_t, u_int16_t, u_int16_t, u_int16_t);
@@ -625,10 +625,10 @@ index b217cde..70c4809 100644
  void	pf_normalize_init(void);
  void	pf_normalize_cleanup(void);
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 4348ce2..1eddfc9 100644
+index 8757198..abaa972 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -62,6 +62,8 @@ __FBSDID("$FreeBSD$");
+@@ -62,6 +62,8 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf.c,v 1.21 2013/06/14 00:31:34 svnexp Ex
  
  #include <net/if.h>
  #include <net/if_types.h>
@@ -637,7 +637,7 @@ index 4348ce2..1eddfc9 100644
  #include <net/route.h>
  #include <net/radix_mpath.h>
  #include <net/vnet.h>
-@@ -2454,6 +2456,26 @@ pf_send_tcp(struct mbuf *replyto, const struct pf_rule *r, sa_family_t af,
+@@ -2487,6 +2489,26 @@ pf_send_tcp(struct mbuf *replyto, const struct pf_rule *r, sa_family_t af,
  	pf_send(pfse);
  }
  
@@ -664,7 +664,7 @@ index 4348ce2..1eddfc9 100644
  static void
  pf_send_icmp(struct mbuf *m, u_int8_t type, u_int8_t code, sa_family_t af,
      struct pf_rule *r)
-@@ -2627,6 +2649,36 @@ pf_match_port(u_int8_t op, u_int16_t a1, u_int16_t a2, u_int16_t p)
+@@ -2660,6 +2682,36 @@ pf_match_port(u_int8_t op, u_int16_t a1, u_int16_t a2, u_int16_t p)
  	return (pf_match(op, a1, a2, p));
  }
  
@@ -701,7 +701,7 @@ index 4348ce2..1eddfc9 100644
  static int
  pf_match_uid(u_int8_t op, uid_t a1, uid_t a2, uid_t u)
  {
-@@ -3387,6 +3439,10 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3419,6 +3471,10 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  		    !pf_match_gid(r->gid.op, r->gid.gid[0], r->gid.gid[1],
  		    pd->lookup.gid))
  			r = TAILQ_NEXT(r, entries);
@@ -712,7 +712,7 @@ index 4348ce2..1eddfc9 100644
  		else if (r->prob &&
  		    r->prob <= arc4random())
  			r = TAILQ_NEXT(r, entries);
-@@ -3839,6 +3895,10 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -3873,6 +3929,10 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  		    pd->proto == IPPROTO_ICMPV6) &&
  		    (r->type || r->code))
  			r = TAILQ_NEXT(r, entries);
@@ -723,7 +723,7 @@ index 4348ce2..1eddfc9 100644
  		else if (r->prob && r->prob <=
  		    (arc4random() % (UINT_MAX - 1) + 1))
  			r = TAILQ_NEXT(r, entries);
-@@ -6704,6 +6764,24 @@ done:
+@@ -6691,6 +6751,24 @@ done:
  	if (r->rtableid >= 0)
  		M_SETFIB(m, r->rtableid);
  
@@ -749,7 +749,7 @@ index 4348ce2..1eddfc9 100644
  	if (action == PF_PASS && r->qid) {
  		if (pd.pf_mtag == NULL &&
 diff --git a/sys/sys/priv.h b/sys/sys/priv.h
-index b984f1a..2a8f6b5 100644
+index 6beb17e..b276611 100644
 --- a/sys/sys/priv.h
 +++ b/sys/sys/priv.h
 @@ -338,6 +338,7 @@

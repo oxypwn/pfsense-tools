@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 3ebd5f0..c03b28c 100644
+index 2bdc64e..215a0c6 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
-@@ -216,6 +216,7 @@ struct filter_opts {
+@@ -215,6 +215,7 @@ struct filter_opts {
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
  #define FOM_SRCTRACK	0x10
@@ -10,7 +10,7 @@ index 3ebd5f0..c03b28c 100644
  	struct node_uid		*uid;
  	struct node_gid		*gid;
  	struct {
-@@ -226,6 +227,7 @@ struct filter_opts {
+@@ -225,6 +226,7 @@ struct filter_opts {
  	} flags;
  	struct node_icmp	*icmpspec;
  	u_int32_t		 tos;
@@ -18,7 +18,7 @@ index 3ebd5f0..c03b28c 100644
  	u_int32_t		 prob;
  	struct {
  		int			 action;
-@@ -443,7 +445,7 @@ int	parseport(char *, struct range *r, int);
+@@ -440,7 +442,7 @@ int	parseport(char *, struct range *r, int);
  %token	RETURNRST RETURNICMP RETURNICMP6 PROTO INET INET6 ALL ANY ICMPTYPE
  %token	ICMP6TYPE CODE KEEP MODULATE STATE PORT RDR NAT BINAT ARROW NODF
  %token	MINTTL ERROR ALLOWOPTS FASTROUTE FILENAME ROUTETO DUPTO REPLYTO NO LABEL
@@ -27,7 +27,7 @@ index 3ebd5f0..c03b28c 100644
  %token	REASSEMBLE FRAGDROP FRAGCROP ANCHOR NATANCHOR RDRANCHOR BINATANCHOR
  %token	SET OPTIMIZATION TIMEOUT LIMIT LOGINTERFACE BLOCKPOLICY RANDOMID
  %token	REQUIREORDER SYNPROXY FINGERPRINTS NOSYNC DEBUG SKIP HOSTID
-@@ -461,7 +463,7 @@ int	parseport(char *, struct range *r, int);
+@@ -458,7 +460,7 @@ int	parseport(char *, struct range *r, int);
  %token	<v.i>			PORTBINARY
  %type	<v.interface>		interface if_list if_item_not if_item
  %type	<v.number>		number icmptype icmp6type uid gid
@@ -36,7 +36,7 @@ index 3ebd5f0..c03b28c 100644
  %type	<v.probability>		probability
  %type	<v.i>			no dir af fragcache optimizer
  %type	<v.i>			sourcetrack flush unaryop statelock
-@@ -1996,7 +1998,14 @@ pfrule		: action dir logquick interface route af proto fromto
+@@ -1928,7 +1930,14 @@ pfrule		: action dir logquick interface route af proto fromto
  #endif
  			}
  
@@ -52,7 +52,7 @@ index 3ebd5f0..c03b28c 100644
  			r.keep_state = $9.keep.action;
  			o = $9.keep.options;
  
-@@ -2374,6 +2383,14 @@ filter_opt	: USER uids {
+@@ -2306,6 +2315,14 @@ filter_opt	: USER uids {
  			filter_opts.marker |= FOM_TOS;
  			filter_opts.tos = $2;
  		}
@@ -67,7 +67,7 @@ index 3ebd5f0..c03b28c 100644
  		| keep {
  			if (filter_opts.marker & FOM_KEEP) {
  				yyerror("modulate or keep cannot be redefined");
-@@ -3466,6 +3483,46 @@ tos	: STRING			{
+@@ -3398,6 +3415,46 @@ tos	: STRING			{
  		}
  		;
  
@@ -114,7 +114,7 @@ index 3ebd5f0..c03b28c 100644
  sourcetrack	: SOURCETRACK		{ $$ = PF_SRCTRACK; }
  		| SOURCETRACK GLOBAL	{ $$ = PF_SRCTRACK_GLOBAL; }
  		| SOURCETRACK RULE	{ $$ = PF_SRCTRACK_RULE; }
-@@ -4508,6 +4565,10 @@ filter_consistent(struct pf_rule *r, int anchor_call)
+@@ -4440,6 +4497,10 @@ filter_consistent(struct pf_rule *r, int anchor_call)
  		    "synproxy state or modulate state");
  		problems++;
  	}
@@ -125,16 +125,16 @@ index 3ebd5f0..c03b28c 100644
  	return (-problems);
  }
  
-@@ -5304,6 +5365,7 @@ lookup(char *s)
+@@ -5234,6 +5295,7 @@ lookup(char *s)
  		{ "divert-to",		DIVERTTO},
  		{ "drop",		DROP},
  		{ "drop-ovl",		FRAGDROP},
 +		{ "dscp",		DSCP},
  		{ "dup-to",		DUPTO},
- 		{ "fairq",		FAIRQ},
  		{ "fastroute",		FASTROUTE},
+ 		{ "file",		FILENAME},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index f248995..544bc22 100644
+index 1c2768b..c8d2e68 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -847,8 +847,10 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -151,7 +151,7 @@ index f248995..544bc22 100644
  		printf(" no state");
  	else if (r->keep_state == PF_STATE_NORMAL)
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 61fe19b..c0bb106 100644
+index da96fd2..65b57fe 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -643,6 +643,28 @@ struct pf_rule {
@@ -198,10 +198,10 @@ index 61fe19b..c0bb106 100644
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
  #define PFRULE_STATESLOPPY	0x00020000	/* sloppy state tracking */
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 44db92b..1e17019 100644
+index d3ba935..be5db46 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -3189,8 +3189,11 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3216,8 +3216,11 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  		/* icmp only. type always 0 in other cases */
  		else if (r->code && r->code != icmpcode + 1)
  			r = TAILQ_NEXT(r, entries);
@@ -215,7 +215,7 @@ index 44db92b..1e17019 100644
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
  		else if (pd->proto == IPPROTO_TCP &&
-@@ -3628,6 +3631,9 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -3655,6 +3658,9 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
  		else if (r->tos && !(r->tos == pd->tos))
  			r = TAILQ_NEXT(r, entries);

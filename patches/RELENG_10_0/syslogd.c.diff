@@ -1,8 +1,66 @@
+diff --git a/usr.sbin/syslogd/clog.h b/usr.sbin/syslogd/clog.h
+new file mode 100644
+index 0000000..1a937fb
+--- /dev/null
++++ b/usr.sbin/syslogd/clog.h
+@@ -0,0 +1,52 @@
++/*-
++ * Copyright (c) 2001
++ *     Jeff Wheelhouse (jdw@wwwi.com)
++ *
++ * This code was originally developed by Jeff Wheelhouse (jdw@wwwi.com).
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistribution of source code must retail the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY JEFF WHEELHOUSE ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
++ * NO EVENT SHALL JEFF WHEELHOUSE BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
++ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
++ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
++ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
++ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * $Id: clog.h,v 1.2 2001/10/02 04:43:52 jdw Exp $
++ * $DragonFly: src/usr.sbin/clog/clog.h,v 1.1 2004/10/30 20:26:46 dillon Exp $
++ */
++
++
++#ifndef _CLOG_H_
++#define _CLOG_H_
++
++/*
++ *  This magic constant is used to identify a valid circular log file.
++ *  syslogd will ignore any circular log file that doesn't have this constant.
++ */
++
++const char MAGIC_CONST[4] = "CLOG";
++
++
++struct clog_footer {
++       uint32_t cf_magic;
++       uint32_t cf_wrap;
++       uint32_t cf_next;
++       uint32_t cf_max;
++       uint32_t cf_lock;
++};
++
++
++#endif  /* _CLOG_H_ */
 diff --git a/usr.sbin/syslogd/syslogd.c b/usr.sbin/syslogd/syslogd.c
-index 8fc2678..9775da9 100644
+index 9f91db1..3653e4c 100644
 --- a/usr.sbin/syslogd/syslogd.c
 +++ b/usr.sbin/syslogd/syslogd.c
-@@ -88,6 +88,7 @@ __FBSDID("$FreeBSD$");
+@@ -88,6 +88,7 @@ __FBSDID("$FreeBSD: src/usr.sbin/syslogd/syslogd.c,v 1.174 2013/04/28 00:36:03 s
  #include <sys/resource.h>
  #include <sys/syslimits.h>
  #include <sys/types.h>
@@ -10,7 +68,7 @@ index 8fc2678..9775da9 100644
  
  #include <netinet/in.h>
  #include <netdb.h>
-@@ -109,6 +110,8 @@ __FBSDID("$FreeBSD$");
+@@ -109,6 +110,8 @@ __FBSDID("$FreeBSD: src/usr.sbin/syslogd/syslogd.c,v 1.174 2013/04/28 00:36:03 s
  #include <utmpx.h>
  
  #include "pathnames.h"
@@ -19,7 +77,7 @@ index 8fc2678..9775da9 100644
  #include "ttymsg.h"
  
  #define SYSLOG_NAMES
-@@ -117,6 +120,7 @@ __FBSDID("$FreeBSD$");
+@@ -117,6 +120,7 @@ __FBSDID("$FreeBSD: src/usr.sbin/syslogd/syslogd.c,v 1.174 2013/04/28 00:36:03 s
  const char	*ConfFile = _PATH_LOGCONF;
  const char	*PidFile = _PATH_LOGPID;
  const char	ctty[] = _PATH_CONSOLE;
@@ -223,60 +281,3 @@ index 8fc2678..9775da9 100644
  static void
  double_rbuf(int fd)
  {
-diff --git a/usr.sbin/syslogd/clog.h b/usr.sbin/syslogd/clog.h
-index 8fc2678..9775da9 100644
---- a/usr.sbin/syslogd/clog.h
-+++ b/usr.sbin/syslogd/clog.h
-@@ -0,0 +1,52 @@
-+/*-
-+ * Copyright (c) 2001
-+ *     Jeff Wheelhouse (jdw@wwwi.com)
-+ *
-+ * This code was originally developed by Jeff Wheelhouse (jdw@wwwi.com).
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ * 1. Redistribution of source code must retail the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in the
-+ *    documentation and/or other materials provided with the distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY JEFF WHEELHOUSE ``AS IS'' AND ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN
-+ * NO EVENT SHALL JEFF WHEELHOUSE BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
-+ * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * $Id: clog.h,v 1.2 2001/10/02 04:43:52 jdw Exp $
-+ * $DragonFly: src/usr.sbin/clog/clog.h,v 1.1 2004/10/30 20:26:46 dillon Exp $
-+ */
-+
-+
-+#ifndef _CLOG_H_
-+#define _CLOG_H_
-+
-+/*
-+ *  This magic constant is used to identify a valid circular log file.
-+ *  syslogd will ignore any circular log file that doesn't have this constant.
-+ */
-+
-+const char MAGIC_CONST[4] = "CLOG";
-+
-+
-+struct clog_footer {
-+       uint32_t cf_magic;
-+       uint32_t cf_wrap;
-+       uint32_t cf_next;
-+       uint32_t cf_max;
-+       uint32_t cf_lock;
-+};
-+
-+
-+#endif  /* _CLOG_H_ */

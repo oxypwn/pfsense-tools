@@ -1,5 +1,5 @@
 diff --git a/usr.bin/netstat/if.c b/usr.bin/netstat/if.c
-index 854844f..adf0b5d 100644
+index 94bf2f6..c608696 100644
 --- a/usr.bin/netstat/if.c
 +++ b/usr.bin/netstat/if.c
 @@ -247,9 +247,9 @@ intpr(int interval1, u_long ifnetaddr, void (*pfunc)(char *))

@@ -1,5 +1,5 @@
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index f2d792c..246eff2 100644
+index 0f1379c..524d048 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -267,21 +267,20 @@ extern struct rwlock pf_rules_lock;

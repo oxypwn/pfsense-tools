@@ -1,5 +1,5 @@
 diff --git a/sbin/ifconfig/ifpfsync.c b/sbin/ifconfig/ifpfsync.c
-index 0af89e2..2b55f95 100644
+index 4cbbe3f..6e936dc 100644
 --- a/sbin/ifconfig/ifpfsync.c
 +++ b/sbin/ifconfig/ifpfsync.c
 @@ -203,7 +203,8 @@ pfsync_status(int s)
@@ -13,7 +13,7 @@ index 0af89e2..2b55f95 100644
  }
  
 diff --git a/sys/net/if_pfsync.h b/sys/net/if_pfsync.h
-index 29d4b23..570f9bd 100644
+index 631e792..3e2ae36 100644
 --- a/sys/net/if_pfsync.h
 +++ b/sys/net/if_pfsync.h
 @@ -246,6 +246,9 @@ struct pfsyncreq {
@@ -27,7 +27,7 @@ index 29d4b23..570f9bd 100644
  };
  
 diff --git a/sys/netpfil/pf/if_pfsync.c b/sys/netpfil/pf/if_pfsync.c
-index 5c44757..1c76342 100644
+index 641ad2a..2259a87 100644
 --- a/sys/netpfil/pf/if_pfsync.c
 +++ b/sys/netpfil/pf/if_pfsync.c
 @@ -185,9 +185,6 @@ struct pfsync_softc {

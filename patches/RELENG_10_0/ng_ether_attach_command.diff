@@ -1,5 +1,5 @@
 diff --git a/sys/netgraph/ng_base.c b/sys/netgraph/ng_base.c
-index 95c6061..bc7b8b1 100644
+index 8692138..269bda9 100644
 --- a/sys/netgraph/ng_base.c
 +++ b/sys/netgraph/ng_base.c
 @@ -64,6 +64,10 @@
@@ -36,7 +36,7 @@ index 95c6061..bc7b8b1 100644
  	{ 0 }
  };
  
-@@ -2905,6 +2918,17 @@ ng_generic_msg(node_p here, item_p item, hook_p lasthook)
+@@ -2908,6 +2921,17 @@ ng_generic_msg(node_p here, item_p item, hook_p lasthook)
  		break;
  	    }
  
@@ -55,7 +55,7 @@ index 95c6061..bc7b8b1 100644
  	case NGM_TEXT_STATUS:
  		/*
 diff --git a/sys/netgraph/ng_message.h b/sys/netgraph/ng_message.h
-index da531f0..d17ce46 100644
+index b3ae7dc..8b6e9e4 100644
 --- a/sys/netgraph/ng_message.h
 +++ b/sys/netgraph/ng_message.h
 @@ -138,6 +138,7 @@ enum {
