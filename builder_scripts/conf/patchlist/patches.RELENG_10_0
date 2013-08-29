@@ -5,17 +5,15 @@
 ~~~/sys/contrib/altq/altq/altq_codel.c~
 ~~~/usr.sbin/syslogd/clog.h~
 -p1~~altq_max_queues.diff~
--p1~~fairq.RELENG_10.diff~
 -p1~~dscp.RELENG_10.diff~
 -p1~~hfscconfig.RELENG_10.diff~
--p1~~killifstates.RELENG_10.diff~
 -p1~~dummynet.RELENG_10.diff~
--p1~~divert.RELENG_10.diff~
 -p1~~get_tag_altq_ids.RELENG_10.diff~
 -p1~~reply-to.RELENG_10.diff~
 -p1~~binat.RELENG_10.diff~
 -p1~~schedule_label.RELENG_10.diff~
 -p1~~pfil.RELENG_10.diff~
+-p1~~fairq.RELENG_10.diff~
 -p1~~ipsec_altq.RELENG_10.diff~
 -p1~~ipfw_dummynet_bandwidth.diff~
 -p1~~ng_iface.RELENG_10.diff~
@@ -47,3 +45,5 @@
 -p1~~tun_optimization.diff~
 -p1~~altq_codel.diff~
 -p1~~pf_route_to_daemon_friendly.RELENG_10.diff~
+-p1~~killifstates.RELENG_10.diff~
+-p1~~divert.RELENG_10.diff~
