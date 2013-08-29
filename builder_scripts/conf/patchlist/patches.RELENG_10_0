@@ -44,9 +44,6 @@
 -p1~~if_pfsync.diff~
 -p1~~route.diff~
 -p1~~pf_802.1p.diff~
--p1~~CP_speedup.diff~
--p1~~CP_multi_instance_ipfw.diff~
 -p1~~tun_optimization.diff~
 -p1~~altq_codel.diff~
 -p1~~pf_route_to_daemon_friendly.RELENG_10.diff~
--p1~~stf_6rd.diff~
