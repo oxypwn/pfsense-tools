@@ -35,7 +35,7 @@
 	* Add support for more PBI variables such as the build key, exclude list, and so on.
 */
 
-echo "PBI Buld run started at " . date(DATE_RFC822) . "\n";
+echo "PBI Build run started at " . date(DATE_RFC822) . "\n";
 $full_start_time = time();
 
 echo ">>> [" . date("H:i:s") . "] Forcing bootstrap of PBI tools...\n";
