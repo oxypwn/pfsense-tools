@@ -1,0 +1,47 @@
+diff -r da91afd19d38 src/sg.y.in
+--- src/sg.y.in	Wed Sep 04 17:46:45 2013 -0300
++++ src/sg.y.in	Wed Sep 04 17:57:12 2013 -0300
+@@ -94,6 +94,7 @@
+ %token WITHIN OUTSIDE ELSE LOGFILE ANONYMOUS VERBOSE CONTINIOUS SPORADIC
+ %token LDAPCACHETIME EXECUSERLIST EXECCMD LDAPPROTOVER
+ %token LDAPBINDDN LDAPBINDPASS MYSQLUSERNAME MYSQLPASSWORD DATABASE
++%token STRIPNTDOMAIN STRIPREALM
+ 
+ %type <string> WORD 
+ %type <string> EXECCMD
+@@ -116,6 +117,7 @@
+ %type <string> tval
+ %type <string> date
+ %type <string> ttime
++%type <string> STRIPNTDOMAIN STRIPREALM
+ %%
+ 
+ start: statements
+@@ -127,6 +129,12 @@
+ logdir:    LOGDIR WORD { sgSetting("logdir",$2); }
+          ;
+ 
++stripntdomain: STRIPNTDOMAIN WORD { sgSetting("stripntdomain",$2); }
++         ;
++
++striprealm: STRIPREALM WORD { sgSetting("striprealm",$2); }
++         ;
++ 
+ ldapcachetime: LDAPCACHETIME NUMBER { sgSetting("ldapcachetime",$2); }
+          ;
+ 
+@@ -352,9 +360,11 @@
+ 	     | destination_block
+              | dbhome
+ 	     | logdir
+-            | ldapprotover
+-            | ldapbinddn
+-            | ldapbindpass
++             | stripntdomain
++             | striprealm 
++             | ldapprotover
++             | ldapbinddn
++             | ldapbindpass
+              | ldapcachetime
+ 	     | mysqlusername
+ 	     | mysqlpassword

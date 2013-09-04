@@ -1,7 +1,7 @@
-diff -r da91afd19d38 src/sgDiv.c.in
---- src/sgDiv.c.in	Wed Sep 04 17:46:45 2013 -0300
-+++ src/sgDiv.c.in	Wed Sep 04 17:58:35 2013 -0300
-@@ -234,11 +234,35 @@
+diff -r da91afd19d38 src/sgDiv.c
+--- src/sgDiv.c	Wed Sep 04 17:46:45 2013 -0300
++++ src/sgDiv.c	Wed Sep 04 17:57:52 2013 -0300
+@@ -223,11 +223,35 @@
        break;
      case 1: /* ident */
        if(strcmp(p,"-")){
@@ -13,11 +13,11 @@ diff -r da91afd19d38 src/sgDiv.c.in
 +        char *stripntdomain = NULL, *striprealm = NULL;
 +        HTUnEscape(p);
 +        stripntdomain = sgSettingGetValue("stripntdomain");
-+        if (stripntdomain == NULL)
-+           stripntdomain = DEFAULT_STRIPNTDOMAIN;
++        if(stripntdomain == NULL)
++          stripntdomain = DEFAULT_STRIPNTDOMAIN;
 +        striprealm = sgSettingGetValue("striprealm");
-+        if (striprealm == NULL)
-+           striprealm = DEFAULT_STRIPREALM;
++        if(striprealm == NULL)
++	  striprealm = DEFAULT_STRIPREALM;
 +        if (strcmp(stripntdomain,"false")) {
 +           char *u = strrchr(p, '\\');
 +           if (!u)
@@ -42,12 +42,12 @@ diff -r da91afd19d38 src/sgDiv.c.in
        break;
      case 2: /* method */
        strcpy(s->method,p);
-@@ -745,7 +769,7 @@
+@@ -734,7 +758,7 @@
        p++;
        break;
      case 'u': /* Requested URL */
 -      strcat(buf, req->orig);
-+      strncat(buf, req->orig, 2048);
++      strcat(buf, req->orig, 2048);
        p++;
        break;
      default:

@@ -1,4 +1,4 @@
-# $FreeBSD: head/www/squidguard/Makefile 318501 2013-05-19 09:00:32Z madpilot $
+# $FreeBSD: www/squidguard/Makefile 318501 2013-05-19 09:00:32Z madpilot $
 
 PORTNAME=	squidGuard
 PORTVERSION=	1.4

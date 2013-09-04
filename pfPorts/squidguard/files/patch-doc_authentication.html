@@ -1,0 +1,51 @@
+diff -r da91afd19d38 doc/authentication.html
+--- doc/authentication.html	Wed Sep 04 17:46:45 2013 -0300
++++ doc/authentication.html	Wed Sep 04 17:51:12 2013 -0300
+@@ -345,10 +345,43 @@
+ </div>
+ <br>
+ 
+-
+-
+-
+-
++<li> <b>Stripping NT domain name or Kerberos Realm from user name </b><br><br>
++ 
++(You need squidGuard version 1.5 or higher to use user name stripping.)<br>
++If the authentication is made with NTLM or Kerberos, it contains NT domain
++or Kerberos realm. The following tags exist :
++<br><br>
++<table border=0 cellpadding=2 cellspacing=2>
++	<tr>
++		<td valign=top>stripntdomain</td><td> Strip NT domain name component from
++			      user names (/ or \ separated).
++			</tr><tr>
++			<td valign=top>striprealm</td><td> Strip Kerberos Realm component from
++				      user names (@ separated).
++				</tr><tr>
++				</tr><tr>
++				</tr>
++			</table>
++		
++		<br><br>
++		Example configuration:<br>
++		<br>
++		<div style=width:700px;overflow:auto>
++			<table width="75%" cellpadding="0" cellspacing="0" style="background-color:
++				#f2fff0; border: solid 1px #4455bb;">
++				<tr>
++					<td style="background-color: #223499; border-bottom: 1px solid #888;">
++						<font size="-1" color=white>Stripping NT domain name or Kerberos Realm from user name </font>
++						</td></tr>
++				<tr>
++					<td>
++						<pre> stripntdomain true
++ striprealm true
++</pre>
++					</td></tr>
++			</table>
++		</div>
++	<br> 
+ 
+ </td></tr></table>
+ 

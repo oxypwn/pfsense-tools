@@ -1,5 +1,6 @@
---- ./src/sg.h.in.orig	2007-11-16 08:58:32.000000000 -0800
-+++ ./src/sg.h.in	2009-10-19 12:25:23.000000000 -0700
+diff -r da91afd19d38 src/sg.h.in
+--- src/sg.h.in	Wed Sep 04 17:46:45 2013 -0300
++++ src/sg.h.in	Wed Sep 04 17:51:45 2013 -0300
 @@ -73,7 +73,7 @@
  #define REQUEST_TYPE_REDIRECT   2
  #define REQUEST_TYPE_PASS       3
@@ -9,3 +10,12 @@
  
  #define DEFAULT_LOGFILE "squidGuard.log"
  #define WARNING_LOGFILE "squidGuard.log"
+@@ -82,6 +82,8 @@
+ #define DEFAULT_CONFIGFILE "@prefix@/squidGuard/squidGuard.conf"
+ #define DEFAULT_LOGDIR "@prefix@/squidGuard/log"
+ #define DEFAULT_DBHOME "@prefix@/squidGuard/db"
++#define DEFAULT_STRIPNTDOMAIN "false"
++#define DEFAULT_STRIPREALM "false"
+ #define EXEC_PROGRAM "@prefix@/bin/squidGuard"
+ 
+ #ifdef ACCONFIG
