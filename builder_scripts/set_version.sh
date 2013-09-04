@@ -257,8 +257,8 @@ RELENG_8_3)
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_3"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_8_3-supfile"
-	export PFSENSE_VERSION=2.1-BETA0
-	export PFSENSETAG=HEAD
+	export PFSENSE_VERSION=2.1-RC1
+	export PFSENSETAG=RELENG_2_1
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_3
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_3
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_1"	
@@ -287,8 +287,8 @@ RELENG_2_1)
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_3"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_8_3-supfile"
-	export PFSENSE_VERSION=2.1-DEVELOPMENT
-	export PFSENSETAG=HEAD
+	export PFSENSE_VERSION=2.1-RC1
+	export PFSENSETAG=RELENG_2_1
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_3
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_3
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_1"	
