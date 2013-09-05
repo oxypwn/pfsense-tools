@@ -7,7 +7,7 @@ index 4944230..43c55b9 100644
      "Number of vnodes in existence");
  
 +static int forcesync;
-+SYSCTL_INT(_vfs, OID_AUTO, forcesync, CTLFLAG_RD, &forcesync, 0,
++SYSCTL_INT(_vfs, OID_AUTO, forcesync, CTLFLAG_RW, &forcesync, 0,
 +    "Do full checks when switchint to RO mount of FS");
 +
  /*
