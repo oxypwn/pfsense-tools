@@ -73,7 +73,7 @@ if [ -f /var/IS_VMWARE ]; then echo "" >> /mnt/etc/sysctl.conf; echo "kern.timec
 if [ -d /mnt/usr/sbin/pc-sysinstall ]; then rm -rf /mnt/usr/sbin/pc-sysinstall; fi;
 
 # Fixup permissions on installed files
-if [ -f /etc/pfSense.mtree ]; then /usr/sbin/mtree -U -e -q -f /etc/pfSense.mtree -p /mnt/ > /mnt/conf/mtree.log; fi;
+if [ -f /etc/installed_filesystem.mtree ]; then /usr/sbin/mtree -U -e -q -f /etc/installed_filesystem.mtree -p /mnt/ > /mnt/conf/mtree.log; fi;
 
 #Sync disks
 /bin/sync

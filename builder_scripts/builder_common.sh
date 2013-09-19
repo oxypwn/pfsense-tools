@@ -1156,14 +1156,14 @@ create_md5_summary_file() {
 # fact that the ISO image doesn't support some permissions.
 create_mtree_summary_file() {
 	echo -n ">>> Creating mtree summary of files present..."
-	rm -f $PFSENSEBASEDIR/etc/pfSense.mtree
+	rm -f $PFSENSEBASEDIR/etc/installed_filesystem.mtree
 	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 	echo "cd /" >> $PFSENSEBASEDIR/chroot.sh
-	echo "/tmp" >> $PFSENSEBASEDIR/tmp/pfSense.mtree.exclude
-	echo "/dev" >> $PFSENSEBASEDIR/tmp/pfSense.mtree.exclude
-	echo "/usr/sbin/mtree -c -k uid,gid,mode,size,sha256digest -p / -X /tmp/pfSense.mtree.exclude > /tmp/pfSense.mtree" >> $PFSENSEBASEDIR/chroot.sh
-	echo "/bin/chmod 600 /tmp/pfSense.mtree" >> $PFSENSEBASEDIR/chroot.sh
-	echo "/bin/mv /tmp/pfSense.mtree /etc/" >> $PFSENSEBASEDIR/chroot.sh
+	echo "/tmp" >> $PFSENSEBASEDIR/tmp/installed_filesystem.mtree.exclude
+	echo "/dev" >> $PFSENSEBASEDIR/tmp/installed_filesystem.mtree.exclude
+	echo "/usr/sbin/mtree -c -k uid,gid,mode,size,sha256digest -p / -X /tmp/installed_filesystem.mtree.exclude > /tmp/installed_filesystem.mtree" >> $PFSENSEBASEDIR/chroot.sh
+	echo "/bin/chmod 600 /tmp/installed_filesystem.mtree" >> $PFSENSEBASEDIR/chroot.sh
+	echo "/bin/mv /tmp/installed_filesystem.mtree /etc/" >> $PFSENSEBASEDIR/chroot.sh
 
 	chmod a+rx $PFSENSEBASEDIR/chroot.sh
 	(chroot $PFSENSEBASEDIR /chroot.sh) 2>&1 | egrep -wi '(^>>>|errors)'
