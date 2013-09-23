@@ -2943,6 +2943,8 @@ create_memstick_image() {
 	mkdir -p /tmp/memstick/usbmnt
 	MD=`mdconfig -f $MEMSTICKPATH -x 63 -y 16`
 	bsdlabel -Bw $MD auto
+	# Labels must be alphanumeric only and less than 32 chars
+	FREESBIE_LABEL=`echo ${FREESBIE_LABEL} | /usr/bin/tr -cd '[:alnum:]' | /usr/bin/cut -c1-31`
 	newfs -L $FREESBIE_LABEL /dev/${MD}a
 	mount /dev/${MD}a /tmp/memstick/usbmnt
 	cd $PFSENSEISODIR && \
