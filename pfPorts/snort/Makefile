@@ -6,6 +6,7 @@ PORTVERSION=	2.9.4.6
 CATEGORIES=	security
 MASTER_SITES=	SF/snort/snort \
 		http://mirrors.rit.edu/zi/
+NO_STAGE=	yes
 
 PATCH_DIST_STRIP=	-p1
 

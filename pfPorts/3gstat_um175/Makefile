@@ -10,6 +10,7 @@ PORTVERSION=	20091215
 CATEGORIES=	comms
 MASTER_SITES=	# none
 DISTFILES=	# none
+NO_STAGE=	yes
 
 MAINTAINER=	thompsa@FreeBSD.org
 COMMENT=	3G status

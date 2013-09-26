@@ -9,6 +9,7 @@ PORTNAME=	expiretable
 PORTVERSION=	0.6
 CATEGORIES=	security
 MASTER_SITES=	http://expiretable.fnord.se/
+NO_STAGE=	yes
 
 MAINTAINER=	cris@gufi.org
 COMMENT=	Utility to remove entries from the pf(4) table based on their age

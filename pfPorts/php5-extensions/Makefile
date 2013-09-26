@@ -12,6 +12,7 @@ MASTER_SITES=	# none
 PKGNAMESUFFIX=	-extensions
 DISTFILES=	# none
 EXTRACT_ONLY=	# none
+NO_STAGE=	yes
 
 MAINTAINER=	ale@FreeBSD.org
 COMMENT=	A "meta-port" to install PHP extensions

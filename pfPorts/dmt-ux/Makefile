@@ -12,6 +12,7 @@ MASTER_SITES=	http://www.spida.net/%SUBDIR%/
 MASTER_SITE_SUBDIR=	/projects/${PORTNAME}/
 DISTFILES=	${PORTNAME}-${PORTVERSION}.tar.gz
 WORKSRC=	${WRKDIR}/dmt-ux-${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	me@daniel.stefan.haischt.name
 COMMENT=	The DSL Modem Tool is a useful utility for Diagnosis and Tuning of DSL Modems.

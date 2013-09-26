@@ -10,6 +10,7 @@ PORTVERSION=	0.97
 PORTREVISION=	4
 CATEGORIES=	sysutils
 MASTER_SITES=	ftp://alpha.gnu.org/gnu/grub/
+NO_STAGE=	yes
 
 MAINTAINER=	sem@FreeBSD.org
 COMMENT=	GRand Unified Bootloader

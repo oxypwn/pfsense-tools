@@ -9,6 +9,7 @@ CATEGORIES=	security net
 # so just one MASTER_SITES entry should be OK.
 MASTER_SITES=	http://swupdate.openvpn.net/community/releases/ \
 		${MASTER_SITE_LOCAL:S,$,mandree/,}
+NO_STAGE=	yes
 
 MAINTAINER=	mandree@FreeBSD.org
 COMMENT=	Secure IP/Ethernet tunnel daemon

@@ -15,6 +15,7 @@ DISTFILES=	${PORTNAME}-${PORTVERSION}.tgz:openbsd \
 		if_media.h:freebsd
 DIST_SUBDIR=	${PORTNAME}
 EXTRACT_ONLY=	${PORTNAME}-${PORTVERSION}.tgz
+NO_STAGE=	yes
 
 MAINTAINER=	rea-fbsd@codelabs.ru
 COMMENT=	Free implementation of the Open Shortest Path First Protocol

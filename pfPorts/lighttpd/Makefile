@@ -6,6 +6,7 @@ PORTVERSION=	1.4.32
 PORTREVISION=	1
 CATEGORIES?=	www
 MASTER_SITES?=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
+NO_STAGE=	yes
 
 MAINTAINER?=	mm@FreeBSD.org
 COMMENT?=	A secure, fast, compliant, and very flexible Web Server

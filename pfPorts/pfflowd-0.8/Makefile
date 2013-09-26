@@ -6,6 +6,7 @@ CATEGORIES?=	net
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
+NO_STAGE=	yes
 
 MAINTAINER?=	sullrich@pfsense.org
 COMMENT=        Convert pfsync states to NetFlow datagrams

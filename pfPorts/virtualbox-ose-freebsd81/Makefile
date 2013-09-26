@@ -15,6 +15,7 @@ MASTER_SITES=	http://tmp.chruetertee.ch/ \
 		http://download.virtualbox.org/virtualbox/${VBOX_GUEST_VER}/:guestadditions
 DISTFILES=	VirtualBox-${DISTVERSION}${EXTRACT_SUFX} ${GADISTFILES}
 EXTRACT_ONLY=	VirtualBox-${DISTVERSION}${EXTRACT_SUFX}
+NO_STAGE=	yes
 
 #for discussion please use emulation@FreeBSD.org
 MAINTAINER=	vbox@FreeBSD.org

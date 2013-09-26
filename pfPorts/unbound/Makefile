@@ -10,6 +10,7 @@ PORTVERSION=	1.4.20
 PORTREVISION=	0
 CATEGORIES=	dns
 MASTER_SITES=	http://unbound.net/downloads/
+NO_STAGE=	yes
 
 MAINTAINER=	sem@FreeBSD.org
 COMMENT=	A validating, recursive, and caching DNS resolver

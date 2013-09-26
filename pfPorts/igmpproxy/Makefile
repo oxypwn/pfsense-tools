@@ -12,6 +12,7 @@ CATEGORIES=     net
 MASTER_SITES=   ${MASTER_SITE_SOURCEFORGE}
 MASTER_SITE_SUBDIR=     ${PORTNAME}/${PORTNAME}/${PORTVERSION}-beta2
 DISTNAME=       ${PORTNAME}-src-${PORTVERSION}-beta2
+NO_STAGE=	yes
 
 MAINTAINER=     melifaro@ipfw.ru
 COMMENT=        Multicast router utilizing IGMP forwarding

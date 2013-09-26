@@ -10,6 +10,7 @@ PORTVERSION=	0.68.5.1
 CATEGORIES=	net-mgmt
 MASTER_SITES=	${MASTER_SITE_GOOGLE_CODE}
 PKGNAMESUFFIX=	-ng
+NO_STAGE=	yes
 
 MAINTAINER=	c.kworr@gmail.com
 COMMENT=	Suite of tools and library to work with netflow data

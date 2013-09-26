@@ -12,6 +12,7 @@ MASTER_SITES=	http://pecl.php.net/get/
 PKGNAMEPREFIX=	pecl-
 EXTRACT_SUFX=	.tgz
 DIST_SUBDIR=	PECL
+NO_STAGE=	yes
 
 MAINTAINER=	mnag@FreeBSD.org
 COMMENT=	Alternative PHP Cache

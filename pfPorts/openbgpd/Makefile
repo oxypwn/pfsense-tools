@@ -9,6 +9,7 @@ MASTER_SITE_SUBDIR=	OpenBGPD
 DISTNAME=	${PORTNAME}-4.6
 EXTRACT_SUFX=	.tgz
 DIST_SUBDIR=	${PORTNAME}
+NO_STAGE=	yes
 
 MAINTAINER=	hrs@FreeBSD.org
 COMMENT=	Free implementation of the Border Gateway Protocol, Version 4

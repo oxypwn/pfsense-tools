@@ -17,6 +17,7 @@ DISTNAME=	VirtualBox-${DISTVERSION}
 
 MAINTAINER=	vbox@FreeBSD.org
 COMMENT=	VirtualBox kernel module for FreeBSD
+NO_STAGE=	yes
 
 LICENSE=	GPLv2
 LICENSE_FILE=	${WRKSRC}/COPYING

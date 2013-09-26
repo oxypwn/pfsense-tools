@@ -10,6 +10,7 @@ PORTVERSION=	2.70
 CATEGORIES=	security
 MASTER_SITES=	http://www.snortsam.net/files/snortsam/
 DISTNAME=	${PORTNAME}-src-${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	urisso@bsd.com.br
 COMMENT=	SnortSam is a output plugin for Snort

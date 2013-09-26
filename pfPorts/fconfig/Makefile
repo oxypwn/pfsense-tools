@@ -10,6 +10,7 @@ PORTVERSION=	20080329
 CATEGORIES=	sysutils
 MASTER_SITES=	http://downloads.openwrt.org/sources/ \
 		http://andrzejekiert.ovh.org/software/fconfig/
+NO_STAGE=	yes
 
 MAINTAINER=	thompsa@FreeBSD.org
 COMMENT=	Read and modify RedBoot embedded boot configuration

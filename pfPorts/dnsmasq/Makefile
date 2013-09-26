@@ -10,6 +10,7 @@ CATEGORIES=	dns ipv6
 MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
 		${MASTER_SITE_GENTOO}
 MASTER_SITE_SUBDIR=	distfiles
+NO_STAGE=	yes
 
 MAINTAINER=	farrokhi@FreeBSD.org
 COMMENT=	Lightweight, easy to configure DNS forwarder and DHCP server

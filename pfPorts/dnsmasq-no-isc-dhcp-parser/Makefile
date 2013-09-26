@@ -8,6 +8,7 @@ CATEGORIES=	dns ipv6
 MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
 		${MASTER_SITE_LOCAL}/
 MASTER_SITE_SUBDIR=	mandree
+NO_STAGE=	yes
 
 MAINTAINER=	mandree@FreeBSD.org
 COMMENT=	Lightweight DNS forwarder, DHCP, and TFTP server

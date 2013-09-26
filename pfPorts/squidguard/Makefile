@@ -10,6 +10,7 @@ DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:a \
 		squidGuard-1.4-quoted_string_support.diff:b \
 		squidGuard-1.4-dnsbl.patch:b
 EXTRACT_ONLY=	${DISTNAME}${EXTRACT_SUFX}
+NO_STAGE=	yes
 
 MAINTAINER=	madpilot@FreeBSD.org
 COMMENT=	A fast redirector for squid

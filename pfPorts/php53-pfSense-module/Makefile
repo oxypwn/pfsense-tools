@@ -12,6 +12,7 @@ MASTER_SITES=	#
 DISTFILES=	#
 PKGNAMEPREFIX=	php53-
 PKGNAMESUFFIX=	-module
+NO_STAGE=	yes
 
 MAINTAINER=	eri@pfsense.org
 COMMENT=	Library for getting useful info

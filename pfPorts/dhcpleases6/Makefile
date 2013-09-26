@@ -8,6 +8,7 @@ CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
+NO_STAGE=	yes
 
 MAINTAINER?=	eri@pfsense.org
 COMMENT?=	read dhpcd6.leases file and trigger command on modification

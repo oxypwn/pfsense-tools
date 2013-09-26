@@ -9,6 +9,7 @@ PORTNAME=	imspector
 PORTVERSION=	20111108
 CATEGORIES=	net-im
 MASTER_SITES=	http://www.imspector.org/downloads/snapshots/
+NO_STAGE=	yes
 
 MAINTAINER=	m.tsatsenko@gmail.com
 COMMENT=	IM transparent proxy with monitoring, blocking and content-filtering

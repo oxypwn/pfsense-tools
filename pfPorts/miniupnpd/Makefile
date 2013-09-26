@@ -7,6 +7,7 @@ PORTEPOCH=	1
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.tuxfamily.org/files/ \
 		http://miniupnp.free.fr/files/
+NO_STAGE=	yes
 
 MAINTAINER=	squat@squat.no
 COMMENT=	A UPnP IGD implementation which uses pf/ipf

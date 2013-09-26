@@ -3,6 +3,7 @@
 PROG=   sasyncd
 SRCS=   sasyncd.c bsd-closefrom.c carp.c conf.y log.c monitor.c net.c net_ctl.c pfkey.c timer.c
 MAN=    sasyncd.8 sasyncd.conf.5
+NO_STAGE=	yes
 
 .ifdef DEBUG
 CFLAGS=         -O0 $(PIPE) $(DEBUG)

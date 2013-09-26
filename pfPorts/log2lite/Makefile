@@ -12,6 +12,7 @@ PORTREVISION?=  0
 MASTER_SITES=   # empty
 DISTFILES=      # none
 EXTRACT_ONLY=   # empty
+NO_STAGE=	yes
 
 MAINTAINER=	geekgod@geekgod.com
 COMMENT=	Logs to sqlite database

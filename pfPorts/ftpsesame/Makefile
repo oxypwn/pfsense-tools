@@ -11,6 +11,7 @@ CATEGORIES?=	ftp
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
+NO_STAGE=	yes
 
 CFLAGS=-O
 

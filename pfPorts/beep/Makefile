@@ -8,6 +8,7 @@ PORTNAME=	beep
 PORTVERSION=	1.0
 CATEGORIES=	audio
 MASTER_SITES=	http://freebsd.unixfreunde.de/sources/
+NO_STAGE=	yes
 
 MAINTAINER=	admin@mjbrune.org
 COMMENT=	Beeps a certain duration and pitch out of the PC Speaker

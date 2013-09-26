@@ -6,6 +6,7 @@ CATEGORIES?=	lang
 MASTER_SITES=	# empty
 DISTFILES=		# none
 EXTRACT_ONLY=	# empty
+NO_STAGE=	yes
 
 MAINTAINER?=	sullrich@gmail.com
 COMMENT?=		run various pfSense scripts on event.

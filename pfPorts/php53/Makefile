@@ -8,6 +8,7 @@ CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
 DISTNAME=	php-${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	flo@FreeBSD.org
 COMMENT=	PHP Scripting Language

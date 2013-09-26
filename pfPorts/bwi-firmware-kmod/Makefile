@@ -13,6 +13,7 @@ MASTER_SITES=	http://downloads.openwrt.org/sources/ \
 PKGNAMESUFFIX=	-kmod
 DISTFILES=	${FWFILE}
 EXTRACT_ONLY=	
+NO_STAGE=	yes
 
 MAINTAINER=	swhetzel@gmail.com
 COMMENT=	Broadcom AirForce IEEE 802.11 Firmware Kernel Module

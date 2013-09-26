@@ -11,6 +11,7 @@ CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 PKGNAMESUFFIX=	-clog-zmq
 DISTNAME=	${PORTNAME}-r${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	thompsa@FreeBSD.org
 COMMENT=	FreeBSD syslogd with clog and zmq additions

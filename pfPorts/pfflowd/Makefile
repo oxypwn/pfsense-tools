@@ -9,6 +9,7 @@ PORTNAME=	pfflowd
 PORTVERSION=	0.6
 CATEGORIES=	net
 MASTER_SITES=	http://www.mindrot.org/files/pfflowd/
+NO_STAGE=	yes
 
 MAINTAINER=	thompsa@FreeBSD.org
 COMMENT=	Convert pfsync states to NetFlow datagrams

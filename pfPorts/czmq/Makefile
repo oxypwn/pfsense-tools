@@ -5,6 +5,7 @@ PORTNAME=	czmq
 PORTVERSION=	1.3.2
 CATEGORIES=	devel net
 MASTER_SITES=	http://download.zeromq.org/
+NO_STAGE=	yes
 
 MAINTAINER=	bapt@FreeBSD.org
 COMMENT=	High-level C Binding for zmq

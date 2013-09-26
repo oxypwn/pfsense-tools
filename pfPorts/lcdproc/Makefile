@@ -5,6 +5,7 @@ PORTNAME=	lcdproc
 PORTVERSION=	0.5.6
 CATEGORIES=	sysutils
 MASTER_SITES=	SF
+NO_STAGE=	yes
 
 MAINTAINER=	bsdfan@nurfuerspam.de
 COMMENT=	Client/server suite for LCD devices

@@ -10,6 +10,7 @@ DISTVERSION=	2.7
 PORTEPOCH=	1
 CATEGORIES=	www ipv6
 MASTER_SITES=	http://links.twibright.com/download/ LOCAL/bf
+NO_STAGE=	yes
 
 MAINTAINER=	bf@FreeBSD.org
 COMMENT=	Lynx-like text WWW browser

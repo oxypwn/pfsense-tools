@@ -11,6 +11,7 @@ PORTREVISION=	1
 CATEGORIES=	net ipv6
 MASTER_SITES=	SF/wide-dhcpv6/wide-dhcpv6/wide-dhcpv6-${PORTVERSION}
 DISTNAME=	wide-dhcpv6-${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	ports@FreeBSD.org
 COMMENT=	KAME DHCP6 client, server, and relay

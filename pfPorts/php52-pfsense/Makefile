@@ -12,6 +12,7 @@ CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
 DISTNAME=	php-${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	admin@lissyara.su
 COMMENT=	PHP Scripting Language

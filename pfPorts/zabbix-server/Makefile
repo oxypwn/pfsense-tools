@@ -11,6 +11,7 @@ PORTEPOCH=	2
 CATEGORIES=	net-mgmt
 MASTER_SITES=	SF/zabbix/ZABBIX%20Latest%20Stable/${PORTVERSION}
 PKGNAMESUFFIX?=	-server
+NO_STAGE=	yes
 
 MAINTAINER=	ports@christianserving.org
 COMMENT=	Enterprise-class open source distributed monitoring (${PKGNAMESUFFIX:S/^-//})

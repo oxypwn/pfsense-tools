@@ -8,6 +8,7 @@ CATEGORIES=	net
 MASTER_SITES=	SF
 MASTER_SITE_SUBDIR=	mpd/Mpd4/Mpd-${DISTVERSION}
 DIST_SUBDIR=	mpd4
+NO_STAGE=	yes
 
 MAINTAINER=	mav@FreeBSD.org
 COMMENT=	Multi-link PPP daemon based on netgraph(4)

@@ -6,6 +6,7 @@ DISTVERSION=	5.6
 CATEGORIES=	net
 MASTER_SITES=	SF/${PORTNAME}/Mpd5/Mpd-${PORTVERSION}
 DIST_SUBDIR=	mpd5
+NO_STAGE=	yes
 
 MAINTAINER=	mav@FreeBSD.org
 COMMENT=	Multi-link PPP daemon based on netgraph(4)

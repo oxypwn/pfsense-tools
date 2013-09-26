@@ -15,6 +15,7 @@ MASTER_SITE_SUBDIR=	dhcp dhcp/dhcp-3.0-history
 PKGNAMEPREFIX=	isc-
 PKGNAMESUFFIX=	30-${SUBSYS}
 DISTNAME=	${PORTNAME}-${RELEASE}${VERSION}${PATCHLEVEL}
+NO_STAGE=	yes
 
 MAINTAINER=	jpaetzel@FreeBSD.org
 COMMENT?=	The ISC Dynamic Host Configuration Protocol server

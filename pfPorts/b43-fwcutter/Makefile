@@ -9,6 +9,7 @@ PORTNAME=	b43-fwcutter
 PORTVERSION=	015
 CATEGORIES=	sysutils
 MASTER_SITES=	http://bu3sch.de/b43/fwcutter/
+NO_STAGE=	yes
 
 MAINTAINER=	swhetzel@gmail.com
 COMMENT=	Extracts firmware for Broadcom Wireless adapters

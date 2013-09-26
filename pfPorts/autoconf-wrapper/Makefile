@@ -10,6 +10,7 @@ PORTVERSION=	20101119
 CATEGORIES=	devel
 MASTER_SITES=	# none
 DISTFILES=	# none
+NO_STAGE=	yes
 
 MAINTAINER=	autotools@FreeBSD.org
 COMMENT?=	Wrapper script for GNU autoconf

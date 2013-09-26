@@ -9,6 +9,7 @@ PORTNAME=	imspector
 PORTVERSION=	0.9
 CATEGORIES=	net-im
 MASTER_SITES=	http://www.imspector.org/downloads/
+NO_STAGE=	yes
 
 MAINTAINER=	lawrence@aslak.net
 COMMENT=	IM transparent proxy with monitoring, blocking, and content-filtering supports

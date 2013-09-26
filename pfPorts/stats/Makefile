@@ -12,6 +12,7 @@ CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
+NO_STAGE=	yes
 
 MAINTAINER?=	jebc@c4solutions.net
 COMMENT?=	pfSense stats (cgi)

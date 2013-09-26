@@ -6,6 +6,7 @@ PORTVERSION=	1.2.30
 PORTREVISION=	2
 CATEGORIES=	databases graphics
 MASTER_SITES=	http://oss.oetiker.ch/rrdtool/pub/
+NO_STAGE=	yes
 
 MAINTAINER=	beat@FreeBSD.org
 COMMENT=	Round Robin Database Tools v1.2

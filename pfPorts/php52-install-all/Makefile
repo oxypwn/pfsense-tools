@@ -10,6 +10,7 @@ PORTVERSION=	5.2.6
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 DISTNAME=	php-${PORTVERSION}
+NO_STAGE=	yes
 
 all:	build
 

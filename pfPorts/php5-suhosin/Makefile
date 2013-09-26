@@ -11,6 +11,7 @@ CATEGORIES=	security
 MASTER_SITES=	http://download.suhosin.org/
 PKGNAMEPREFIX=	php-
 EXTRACT_SUFX=	.tgz
+NO_STAGE=	yes
 
 MAINTAINER=	ale@FreeBSD.org
 COMMENT=	A PHP extension that implements high-level protections

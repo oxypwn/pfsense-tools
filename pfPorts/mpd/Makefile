@@ -12,6 +12,7 @@ CATEGORIES=	net
 MASTER_SITES=	${MASTER_SITE_LOCAL}
 MASTER_SITE_SUBDIR=	archie
 DIST_SUBDIR=	mpd
+NO_STAGE=	yes
 
 MAINTAINER=	ports@FreeBSD.org
 COMMENT=	Multi-link PPP daemon based on netgraph(4) [legacy version]

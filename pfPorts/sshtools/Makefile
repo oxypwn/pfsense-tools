@@ -11,6 +11,7 @@ MASTER_SITES=		${MASTER_SITE_SOURCEFORGE}
 MASTER_SITE_SUBDIR=	${PORTNAME}
 DISTNAME=		SSHTerm-${PORTVERSION}-applet-signed
 WRKSRC=			${WRKDIR}/sshterm-applet
+NO_STAGE=	yes
 
 MAINTAINER=		me@daniel.stefan.haischt.name
 COMMENT=		SSHTools is a suite of Java SSH applications providing a Java based SSH application.

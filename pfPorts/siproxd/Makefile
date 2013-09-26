@@ -9,6 +9,7 @@ PORTNAME=	siproxd
 PORTVERSION=	0.8.0
 CATEGORIES=	net
 MASTER_SITES=	SF
+NO_STAGE=	yes
 
 MAINTAINER=	frank@dynamical-systems.org
 COMMENT=	A proxy/masquerading daemon for the SIP protocol

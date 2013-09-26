@@ -10,6 +10,7 @@ PORTVERSION=	2.1.7
 CATEGORIES=	devel net
 MASTER_SITES=	http://download.zeromq.org/
 DISTNAME=	zeromq-${DISTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	gslin@gslin.org
 COMMENT=	Open source message queue optimised for performance

@@ -15,6 +15,7 @@ MASTER_SITES=	${MASTER_SITE_PHP:S,$,:release,} \
 MASTER_SITE_SUBDIR=	distributions/:release
 DISTNAME=	php-${PORTVERSION:S/.r/RC/}
 DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release
+NO_STAGE=	yes
 
 MAINTAINER?=	ale@FreeBSD.org
 COMMENT?=	PHP Scripting Language (Apache Module and CLI)

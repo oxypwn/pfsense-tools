@@ -9,6 +9,7 @@ PORTVERSION=	0.8
 CATEGORIES=	ftp
 MASTER_SITES=	http://www.sentia.org/downloads/
 DISTNAME=	${PORTNAME}-${PORTVERSION}
+NO_STAGE=	yes
 
 MAINTAINER=	geekgod@geekgod.com
 COMMENT=	Much enhanced ftp proxy for pf that supports most ftp protocols

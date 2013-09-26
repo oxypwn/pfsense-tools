@@ -9,6 +9,7 @@ PORTNAME=	rate
 PORTVERSION=	0.9
 CATEGORIES=	net-mgmt
 MASTER_SITES=	http://s-tech.elsat.net.pl/bmtools/
+NO_STAGE=	yes
 
 MAINTAINER=	mich@FreeBSD.org
 COMMENT=	A traffic analysis command-line utility

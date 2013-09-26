@@ -13,6 +13,7 @@ MASTER_SITES=	http://rsync.samba.org/ftp/%SUBDIR%/ \
 		CRITICAL
 MASTER_SITE_SUBDIR=	rsync
 DISTFILES=	${DISTNAME}${EXTRACT_SUFX}
+NO_STAGE=	yes
 
 MAINTAINER=	ehaupt@FreeBSD.org
 COMMENT=	A network file distribution/synchronization utility

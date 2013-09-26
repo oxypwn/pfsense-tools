@@ -13,6 +13,7 @@ PORTNAME=	ipsec-tools
 PORTVERSION=	0.7.3
 CATEGORIES=	security
 MASTER_SITES=	http://ftp.netbsd.org/pub/NetBSD/misc/ipsec-tools/0.7/
+NO_STAGE=	yes
 
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version

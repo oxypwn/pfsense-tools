@@ -6,6 +6,7 @@ PORTVERSION=	0.68
 PORTREVISION=	7
 CATEGORIES=	net-mgmt
 MASTER_SITES=	ftp://ftp.eng.oar.net/pub/flow-tools/
+NO_STAGE=	yes
 
 MAINTAINER=	5u623l20@gmail.com
 COMMENT=	Suite of tools and library to work with netflow data

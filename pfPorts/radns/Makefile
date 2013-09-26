@@ -10,6 +10,7 @@ PORTVERSION=	20110809.2
 DISTNAME=	${PORTNAME}-${PORTVERSION:S/./-/}
 CATEGORIES=	dns
 MASTER_SITES=	http://hack.org/mc/hacks/radns/
+NO_STAGE=	yes
 
 MAINTAINER=	mc@hack.org
 COMMENT=	IPv6 DNS server address autoconfiguration client

@@ -7,6 +7,7 @@ PORTREVISION=	2
 CATEGORIES=	net ipv6
 MASTER_SITES=	http://freebsdcluster.org/~mich/software/ \
 		http://www.bnet.pl/~jajcus/apinger/
+NO_STAGE=	yes
 
 MAINTAINER=	mich@FreeBSD.org
 COMMENT=	An IP device monitoring tool

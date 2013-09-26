@@ -11,6 +11,7 @@ PORTVERSION=	0.8.1
 PORTREVISION=	3
 CATEGORIES=	security
 MASTER_SITES=	SF
+NO_STAGE=	yes
 
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
