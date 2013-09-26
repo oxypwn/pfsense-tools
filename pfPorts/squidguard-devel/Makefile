@@ -1,4 +1,4 @@
-PORTNAME=	squidGuard-devel
+PORTNAME=	squidGuard
 PORTVERSION=	1.5
 PORTREVISION=	1
 CATEGORIES=	www
