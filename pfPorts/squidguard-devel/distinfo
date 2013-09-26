@@ -1,0 +1,4 @@
+SHA256 (squidGuard-1.5-beta.tar.gz) = ba4b79cd193bd3095f3fd27a6e2fc1b36effc2e12a33e17159d4a51993fb3c8e
+SIZE (squidGuard-1.5-beta.tar.gz) = 1983030
+SHA256 (squidguard-1.5-stripnt.patch) = 3f2f2f117fa346f1673c7bd96283869090c38b2619af5a5eefa8af2fa161c296
+SIZE (squidguard-1.5-stripnt.patch) = 6850
