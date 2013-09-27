@@ -241,7 +241,7 @@ function wait_for_procs_finish() {
 
 function copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh) {
 	echo ">>> [" . date("H:i:s") . "] Copying packages to {$copy_packages_to_host_ssh}\n";
-	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
+	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/*.pbi {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
 }
 
 function format_elapsed_time($seconds) {
