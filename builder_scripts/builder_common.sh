@@ -3068,7 +3068,7 @@ update_freebsd_sources_and_apply_patches() {
             return
         fi
 
-	if [ -z ${USE_SVNUP} ]; then
+	if [ -z "${USE_SVNUP}" -a -z "${USE_SVN}" ]; then
 		# If override is in place, use it otherwise
 		# locate fastest cvsup host
 		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
@@ -3091,13 +3091,7 @@ update_freebsd_sources_and_apply_patches() {
 
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
-	if [ -z ${USE_SVNUP} ]; then
-		# CVSUp freebsd version -- this MUST be after Loop through and remove files
-		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
-			| grep -v "error\." | grep -v "opensolaris" | \
-			grep -v "httpd-error"
-	else
+	if [ -n "${USE_SVNUP}" ]; then
 		# SVNup freebsd version -- which normally removes other files as well but leave the removal process for now
 		cp ${SUPFILE} /usr/local/etc
 		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
@@ -3111,7 +3105,30 @@ update_freebsd_sources_and_apply_patches() {
 				| grep -v "error\." | grep -v "opensolaris" | \
 				grep -v "httpd-error"
 		fi
+	elif [ -n "${USE_SVN}" ]; then
+		if [ -f /usr/bin/svnlite ]; then
+			SVN_BIN=/usr/bin/svnlite
+		else
+			SVN_BIN=svn
+		fi
 
+		# If src is already there
+		if [ -d "${SRCDIR}/.svn" ]; then
+			# Remove orphan files
+			(cd ${SRCDIR} && ${SVN_BIN} status --no-ignore | awk '{print $2}' | xargs rm -rf)
+			# Revert possible changed files
+			(cd ${SRCDIR} && ${SVN_BIN} revert -R . 2>&1) | grep -iv 'error'
+			# Update src
+			(cd ${SRCDIR} && ${SVN_BIN} up 2>&1) | grep -iv 'error'
+		else
+			(${SVN_BIN} co ${SVN_BASE}/${SVN_BRANCH} ${SRCDIR} 2>&1) | grep -iv 'error'
+		fi
+	else
+		# CVSUp freebsd version -- this MUST be after Loop through and remove files
+		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
+			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+			| grep -v "error\." | grep -v "opensolaris" | \
+			grep -v "httpd-error"
 	fi
 	echo "Done!"
 
