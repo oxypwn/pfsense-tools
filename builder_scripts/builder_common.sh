@@ -3117,11 +3117,11 @@ update_freebsd_sources_and_apply_patches() {
 			# Remove orphan files
 			(cd ${SRCDIR} && ${SVN_BIN} status --no-ignore | awk '{print $2}' | xargs rm -rf)
 			# Revert possible changed files
-			(cd ${SRCDIR} && ${SVN_BIN} revert -R . 2>&1) | grep -iv 'error'
+			(cd ${SRCDIR} && ${SVN_BIN} revert -R . 2>&1) | grep -i 'error'
 			# Update src
-			(cd ${SRCDIR} && ${SVN_BIN} up 2>&1) | grep -iv 'error'
+			(cd ${SRCDIR} && ${SVN_BIN} up 2>&1) | grep -i 'error'
 		else
-			(${SVN_BIN} co ${SVN_BASE}/${SVN_BRANCH} ${SRCDIR} 2>&1) | grep -iv 'error'
+			(${SVN_BIN} co ${SVN_BASE}/${SVN_BRANCH} ${SRCDIR} 2>&1) | grep -i 'error'
 		fi
 	else
 		# CVSUp freebsd version -- this MUST be after Loop through and remove files
