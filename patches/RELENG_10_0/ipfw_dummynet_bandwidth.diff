@@ -1,5 +1,5 @@
 diff --git a/sbin/ipfw/dummynet.c b/sbin/ipfw/dummynet.c
-index e9ab242..d541638 100644
+index 28dc2c7..c5b5253 100644
 --- a/sbin/ipfw/dummynet.c
 +++ b/sbin/ipfw/dummynet.c
 @@ -538,10 +538,10 @@ read_bandwidth(char *arg, int *bandwidth, char *if_name, int namelen)

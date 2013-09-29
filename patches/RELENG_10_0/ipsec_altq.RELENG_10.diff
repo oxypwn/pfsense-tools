@@ -1,5 +1,5 @@
 diff --git a/sys/net/if_enc.c b/sys/net/if_enc.c
-index 60d4b28..d23f2ec 100644
+index dcb82f5..f3c34ad 100644
 --- a/sys/net/if_enc.c
 +++ b/sys/net/if_enc.c
 @@ -52,6 +52,9 @@
@@ -36,10 +36,10 @@ index 60d4b28..d23f2ec 100644
  
  bad:
 diff --git a/sys/netipsec/ipsec.h b/sys/netipsec/ipsec.h
-index 5046fca..7ebe04d 100644
+index 240083a..836a040 100644
 --- a/sys/netipsec/ipsec.h
 +++ b/sys/netipsec/ipsec.h
-@@ -443,7 +443,7 @@ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
+@@ -383,7 +383,7 @@ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
  #define	ENC_AFTER	0x0002
  #define	ENC_IN		0x0100
  #define	ENC_OUT		0x0200
@@ -49,7 +49,7 @@ index 5046fca..7ebe04d 100644
  #endif
  #endif /* _KERNEL */
 diff --git a/sys/netipsec/ipsec_input.c b/sys/netipsec/ipsec_input.c
-index 0da35d7..b6e7e3e 100644
+index 23a4a5c..13313a7 100644
 --- a/sys/netipsec/ipsec_input.c
 +++ b/sys/netipsec/ipsec_input.c
 @@ -475,7 +475,8 @@ ipsec4_common_input_cb(struct mbuf *m, struct secasvar *sav,
@@ -73,7 +73,7 @@ index 0da35d7..b6e7e3e 100644
  #endif
  
 diff --git a/sys/netipsec/ipsec_output.c b/sys/netipsec/ipsec_output.c
-index 4a95b19..d5d938d 100644
+index 19b27ec..5d5c2f6 100644
 --- a/sys/netipsec/ipsec_output.c
 +++ b/sys/netipsec/ipsec_output.c
 @@ -43,6 +43,11 @@
@@ -152,7 +152,7 @@ index 4a95b19..d5d938d 100644
  #endif
  
 diff --git a/sys/netipsec/keydb.h b/sys/netipsec/keydb.h
-index 8b7dab0..03c569b 100644
+index 7494f5f..f22230b 100644
 --- a/sys/netipsec/keydb.h
 +++ b/sys/netipsec/keydb.h
 @@ -58,6 +58,8 @@ struct secasindex {
@@ -165,7 +165,7 @@ index 8b7dab0..03c569b 100644
  
  /* 
 diff --git a/sys/netipsec/xform_ipip.c b/sys/netipsec/xform_ipip.c
-index 4553d74..bd681b0 100644
+index 1d2aff2..b630df4 100644
 --- a/sys/netipsec/xform_ipip.c
 +++ b/sys/netipsec/xform_ipip.c
 @@ -371,7 +371,7 @@ _ipip_input(struct mbuf *m, int iphlen, struct ifnet *gifp)

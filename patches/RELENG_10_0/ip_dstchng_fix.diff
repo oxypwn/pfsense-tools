@@ -1,8 +1,8 @@
 diff --git a/sys/netinet/ip_input.c b/sys/netinet/ip_input.c
-index dc83c35..fa5c88d 100644
+index ae87d62..c226f7d 100644
 --- a/sys/netinet/ip_input.c
 +++ b/sys/netinet/ip_input.c
-@@ -526,8 +526,7 @@ tooshort:
+@@ -536,8 +536,7 @@ tooshort:
  		goto ours;
  	}
  	if (m->m_flags & M_IP_NEXTHOP) {

@@ -1,5 +1,5 @@
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 18dd1e1..b63d670 100644
+index 1c58f23..c4d6adc 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -1570,6 +1570,8 @@ struct pfioc_trans {
@@ -12,7 +12,7 @@ index 18dd1e1..b63d670 100644
  struct pfioc_table {
  	struct pfr_table	 pfrio_table;
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index 1c9aeb9..efa4a77 100644
+index 2b0f2cd..1317477 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
 @@ -981,6 +981,8 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td

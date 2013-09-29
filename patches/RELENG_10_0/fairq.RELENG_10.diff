@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index fa21df0..66bcb5a 100644
+index 4c58219..f6a65b1 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
-@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/parse.y,v 1.2 2012/11/17 01:50:24 svnexp Exp
+@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD$");
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
  #include <altq/altq_hfsc.h>
@@ -158,10 +158,10 @@ index fa21df0..66bcb5a 100644
  		{ "icmp-type",		ICMPTYPE},
  		{ "icmp6-type",		ICMP6TYPE},
 diff --git a/sbin/pfctl/pfctl_altq.c b/sbin/pfctl/pfctl_altq.c
-index c74bf53..e92503c 100644
+index 6886974..58ea61e 100644
 --- a/sbin/pfctl/pfctl_altq.c
 +++ b/sbin/pfctl/pfctl_altq.c
-@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_altq.c,v 1.2 2012/11/17 01:50:24 svnexp
+@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD$");
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
  #include <altq/altq_hfsc.h>
@@ -478,7 +478,7 @@ index c74bf53..e92503c 100644
 +		printf(")");
 +}
 diff --git a/sbin/pfctl/pfctl_parser.h b/sbin/pfctl/pfctl_parser.h
-index fe0126d..ab7d0ed 100644
+index 4560d66..f2b0a9b 100644
 --- a/sbin/pfctl/pfctl_parser.h
 +++ b/sbin/pfctl/pfctl_parser.h
 @@ -150,12 +150,27 @@ struct node_hfsc_opts {
@@ -510,10 +510,10 @@ index fe0126d..ab7d0ed 100644
  };
  
 diff --git a/sbin/pfctl/pfctl_qstats.c b/sbin/pfctl/pfctl_qstats.c
-index 6b187b3..9dfaf37 100644
+index 95371e4..4087d71 100644
 --- a/sbin/pfctl/pfctl_qstats.c
 +++ b/sbin/pfctl/pfctl_qstats.c
-@@ -38,6 +38,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_qstats.c,v 1.2 2012/11/17 01:50:24 svne
+@@ -38,6 +38,7 @@ __FBSDID("$FreeBSD$");
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
  #include <altq/altq_hfsc.h>
@@ -586,7 +586,7 @@ index 6b187b3..9dfaf37 100644
  		b = 0;
  		p = 0;
 diff --git a/sys/conf/NOTES b/sys/conf/NOTES
-index b2766c4..8cc6722 100644
+index 975d3f4..bc64d32 100644
 --- a/sys/conf/NOTES
 +++ b/sys/conf/NOTES
 @@ -694,6 +694,7 @@ options 	ALTQ_CBQ	# Class Based Queueing
@@ -598,10 +598,10 @@ index b2766c4..8cc6722 100644
  options 	ALTQ_PRIQ	# Priority Queueing
  options 	ALTQ_NOPCC	# Required if the TSC is unusable
 diff --git a/sys/conf/files b/sys/conf/files
-index 0d895fa..ddbb8fa 100644
+index a370cfa..b72dbe8 100644
 --- a/sys/conf/files
 +++ b/sys/conf/files
-@@ -282,6 +282,7 @@ compat/freebsd32/freebsd32_sysent.c	optional compat_freebsd32
+@@ -284,6 +284,7 @@ compat/freebsd32/freebsd32_sysent.c	optional compat_freebsd32
  contrib/altq/altq/altq_cbq.c		optional altq
  contrib/altq/altq/altq_cdnr.c		optional altq
  contrib/altq/altq/altq_hfsc.c		optional altq
@@ -610,7 +610,7 @@ index 0d895fa..ddbb8fa 100644
  contrib/altq/altq/altq_red.c		optional altq
  contrib/altq/altq/altq_rio.c		optional altq
 diff --git a/sys/conf/options b/sys/conf/options
-index d77162b..8ff0adc 100644
+index 2c0a1835..dbfcdff 100644
 --- a/sys/conf/options
 +++ b/sys/conf/options
 @@ -377,6 +377,7 @@ ALTQ_CBQ		opt_altq.h
@@ -622,7 +622,7 @@ index d77162b..8ff0adc 100644
  ALTQ_PRIQ		opt_altq.h
  ALTQ_RED		opt_altq.h
 diff --git a/sys/contrib/altq/altq/altq.h b/sys/contrib/altq/altq/altq.h
-index 0edca5c..24c5c7b 100644
+index c740ed3..6200ac5 100644
 --- a/sys/contrib/altq/altq/altq.h
 +++ b/sys/contrib/altq/altq/altq.h
 @@ -63,7 +63,8 @@
@@ -637,7 +637,7 @@ index 0edca5c..24c5c7b 100644
  struct	altqreq {
 diff --git a/sys/contrib/altq/altq/altq_fairq.c b/sys/contrib/altq/altq/altq_fairq.c
 new file mode 100644
-index 0000000..b59d9e2
+index 0000000..2267bfd
 --- /dev/null
 +++ b/sys/contrib/altq/altq/altq_fairq.c
 @@ -0,0 +1,905 @@
@@ -1548,7 +1548,7 @@ index 0000000..b59d9e2
 +#endif /* ALTQ_FAIRQ */
 diff --git a/sys/contrib/altq/altq/altq_fairq.h b/sys/contrib/altq/altq/altq_fairq.h
 new file mode 100644
-index 0000000..a8e52c7
+index 0000000..e4675e0
 --- /dev/null
 +++ b/sys/contrib/altq/altq/altq_fairq.h
 @@ -0,0 +1,136 @@
@@ -1689,7 +1689,7 @@ index 0000000..a8e52c7
 +
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 diff --git a/sys/contrib/altq/altq/altq_subr.c b/sys/contrib/altq/altq/altq_subr.c
-index 2352c94..9e1c462 100644
+index 2d7ce75..0e0cc83 100644
 --- a/sys/contrib/altq/altq/altq_subr.c
 +++ b/sys/contrib/altq/altq/altq_subr.c
 @@ -535,6 +535,11 @@ altq_pfattach(struct pf_altq *a)
@@ -1765,7 +1765,7 @@ index 2352c94..9e1c462 100644
  		error = ENXIO;
  	}
 diff --git a/sys/contrib/altq/altq/altq_var.h b/sys/contrib/altq/altq/altq_var.h
-index 3ad0ad5..80361cb 100644
+index 956ee16..eb603ea 100644
 --- a/sys/contrib/altq/altq/altq_var.h
 +++ b/sys/contrib/altq/altq/altq_var.h
 @@ -257,5 +257,12 @@ int	hfsc_add_queue(struct pf_altq *);
@@ -1782,7 +1782,7 @@ index 3ad0ad5..80361cb 100644
  #endif /* _KERNEL */
  #endif /* _ALTQ_ALTQ_VAR_H_ */
 diff --git a/sys/net/pf_mtag.h b/sys/net/pf_mtag.h
-index 8b8639d..dff3f59 100644
+index baff00a..adb89d0 100644
 --- a/sys/net/pf_mtag.h
 +++ b/sys/net/pf_mtag.h
 @@ -43,9 +43,11 @@
@@ -1798,7 +1798,7 @@ index 8b8639d..dff3f59 100644
  
  static __inline struct pf_mtag *
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 892d537..0f1379c 100644
+index b96758e..c1a96dc 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -1389,6 +1389,20 @@ struct hfsc_opts {
@@ -1831,7 +1831,7 @@ index 892d537..0f1379c 100644
  
  	u_int32_t		 qid;		/* return value */
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 03be11d..de36173 100644
+index 4ce45d3..cdcab54 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -553,6 +553,21 @@ pf_hashsrc(struct pf_addr *addr, sa_family_t af)

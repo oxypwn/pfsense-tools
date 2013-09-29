@@ -1,5 +1,5 @@
 diff --git a/sbin/ifconfig/ifvlan.c b/sbin/ifconfig/ifvlan.c
-index 969d485..d528f00 100644
+index cefcbbc..6761ab2 100644
 --- a/sbin/ifconfig/ifvlan.c
 +++ b/sbin/ifconfig/ifvlan.c
 @@ -1,6 +1,10 @@
@@ -66,10 +66,10 @@ index 969d485..d528f00 100644
  	DEF_CMD_ARG("vlan",				setvlantag),
  	DEF_CMD_ARG("vlandev",				setvlandev),
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 0922ebc..0c1f12d 100644
+index 3a475a9..782ebb6 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
-@@ -37,6 +37,8 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/parse.y,v 1.2 2012/11/17 01:50:24 svnexp Exp
+@@ -37,6 +37,8 @@ __FBSDID("$FreeBSD$");
  #include <sys/sysctl.h>
  #endif
  #include <net/if.h>
@@ -231,10 +231,10 @@ index 0922ebc..0c1f12d 100644
  		{ "in",			IN},
  		{ "include",		INCLUDE},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index dce8539..fcb7931 100644
+index afc2b82..2612b11 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
-@@ -40,6 +40,8 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_parser.c,v 1.2 2012/11/17 01:50:24 svne
+@@ -40,6 +40,8 @@ __FBSDID("$FreeBSD$");
  #include <sys/param.h>
  #include <sys/proc.h>
  #include <net/if.h>
@@ -243,7 +243,7 @@ index dce8539..fcb7931 100644
  #include <netinet/in.h>
  #include <netinet/in_systm.h>
  #include <netinet/ip.h>
-@@ -65,6 +67,8 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_parser.c,v 1.2 2012/11/17 01:50:24 svne
+@@ -65,6 +67,8 @@ __FBSDID("$FreeBSD$");
  void		 print_op (u_int8_t, const char *, const char *);
  void		 print_port (u_int8_t, u_int16_t, u_int16_t, const char *, int);
  void		 print_ugid (u_int8_t, unsigned, unsigned, const char *, unsigned);
@@ -315,7 +315,7 @@ index dce8539..fcb7931 100644
  #ifdef __FreeBSD__
  		printf(" divert-to %u", ntohs(r->divert.port));
 diff --git a/sys/net/if.h b/sys/net/if.h
-index 9668c32..f5baf19 100644
+index ad4d730..16558ea 100644
 --- a/sys/net/if.h
 +++ b/sys/net/if.h
 @@ -385,6 +385,7 @@ struct	ifreq {
@@ -335,7 +335,7 @@ index 9668c32..f5baf19 100644
  
  #define	_SIZEOF_ADDR_IFREQ(ifr) \
 diff --git a/sys/net/if_vlan.c b/sys/net/if_vlan.c
-index 3858a61..0d3ffad 100644
+index b7f1197..916ca8c 100644
 --- a/sys/net/if_vlan.c
 +++ b/sys/net/if_vlan.c
 @@ -1,5 +1,9 @@
@@ -348,7 +348,7 @@ index 3858a61..0d3ffad 100644
   *
   * Permission to use, copy, modify, and distribute this software and
   * its documentation for any purpose and without fee is hereby
-@@ -51,6 +55,7 @@ __FBSDID("$FreeBSD: src/sys/net/if_vlan.c,v 1.170 2013/06/17 00:26:29 svnexp Exp
+@@ -51,6 +55,7 @@ __FBSDID("$FreeBSD$");
  #include <sys/mbuf.h>
  #include <sys/module.h>
  #include <sys/rwlock.h>
@@ -544,7 +544,7 @@ index 3858a61..0d3ffad 100644
  		error = EINVAL;
  		break;
 diff --git a/sys/net/if_vlan_var.h b/sys/net/if_vlan_var.h
-index 50ae2ab..9ae939c 100644
+index 4eb3b09..b1950e1 100644
 --- a/sys/net/if_vlan_var.h
 +++ b/sys/net/if_vlan_var.h
 @@ -89,6 +89,23 @@ struct	vlanreq {
@@ -589,7 +589,7 @@ index 50ae2ab..9ae939c 100644
  	if ((_ifp)->if_vlantrunk != NULL) 			\
  		(*vlan_trunk_cap_p)(_ifp);			\
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 50fa8ea..4bc9484 100644
+index 57ca93c..89200d8 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -402,6 +402,14 @@ struct pf_rule_gid {
@@ -625,10 +625,10 @@ index 50fa8ea..4bc9484 100644
  void	pf_normalize_init(void);
  void	pf_normalize_cleanup(void);
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 8757198..abaa972 100644
+index 3e3f7e1..2f95c09 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -62,6 +62,8 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf.c,v 1.21 2013/06/14 00:31:34 svnexp Ex
+@@ -62,6 +62,8 @@ __FBSDID("$FreeBSD$");
  
  #include <net/if.h>
  #include <net/if_types.h>
@@ -749,10 +749,10 @@ index 8757198..abaa972 100644
  	if (action == PF_PASS && r->qid) {
  		if (pd.pf_mtag == NULL &&
 diff --git a/sys/sys/priv.h b/sys/sys/priv.h
-index 6beb17e..b276611 100644
+index 18d17af..65f151d 100644
 --- a/sys/sys/priv.h
 +++ b/sys/sys/priv.h
-@@ -338,6 +338,7 @@
+@@ -339,6 +339,7 @@
  #define	PRIV_NET_SETIFVNET	417	/* Move interface to vnet. */
  #define	PRIV_NET_SETIFDESCR	418	/* Set interface description. */
  #define	PRIV_NET_SETIFFIB	419	/* Set interface fib. */

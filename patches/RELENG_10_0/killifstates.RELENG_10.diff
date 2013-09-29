@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/pfctl.c b/sbin/pfctl/pfctl.c
-index 208fc34..432803f 100644
+index 377e0ae..5cfcc9d 100644
 --- a/sbin/pfctl/pfctl.c
 +++ b/sbin/pfctl/pfctl.c
 @@ -123,6 +123,8 @@ int		 src_node_killers;
@@ -89,7 +89,7 @@ index 208fc34..432803f 100644
  			loadopt |= PFCTL_FLAG_ALTQ;
  			break;
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 54e99d5..c89741c 100644
+index 182f1ef..6e0146d 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -338,8 +338,8 @@ VNET_DEFINE(struct pf_limit, pf_limits[PF_LIMIT_MAX]);
@@ -104,10 +104,10 @@ index 54e99d5..c89741c 100644
  #define	STATE_INC_COUNTERS(s)				\
  	do {						\
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index f0748b2..4e07b12 100644
+index f52cd1a..6cefe22 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
-@@ -66,6 +66,8 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf_ioctl.c,v 1.12 2013/05/12 00:33:36 svn
+@@ -66,6 +66,8 @@ __FBSDID("$FreeBSD$");
  #include <net/route.h>
  #include <net/pfil.h>
  #include <net/pfvar.h>

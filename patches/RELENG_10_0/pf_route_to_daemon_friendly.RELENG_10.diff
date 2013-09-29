@@ -1,5 +1,5 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index abaa972..54e99d5 100644
+index 2f95c09..182f1ef 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -5611,6 +5611,13 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,

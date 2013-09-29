@@ -1,5 +1,5 @@
 diff --git a/sys/netinet/if_ether.c b/sys/netinet/if_ether.c
-index 899b9c7..09910fb 100644
+index 9660edc..bfb6e14 100644
 --- a/sys/netinet/if_ether.c
 +++ b/sys/netinet/if_ether.c
 @@ -80,6 +80,8 @@ SYSCTL_DECL(_net_link_ether);
@@ -28,7 +28,7 @@ index 899b9c7..09910fb 100644
  SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, max_age, CTLFLAG_RW,
  	&VNET_NAME(arpt_keep), 0,
  	"ARP entry lifetime in seconds");
-@@ -879,6 +885,29 @@ reply:
+@@ -882,6 +888,29 @@ reply:
  		/* default behaviour; never reply by broadcast. */
  		m->m_flags &= ~(M_BCAST|M_MCAST);
  	}
@@ -58,12 +58,12 @@ index 899b9c7..09910fb 100644
  	(void)memcpy(ar_tpa(ah), ar_spa(ah), ah->ar_pln);
  	(void)memcpy(ar_spa(ah), &itaddr, ah->ar_pln);
  	ah->ar_op = htons(ARPOP_REPLY);
-@@ -886,8 +915,6 @@ reply:
+@@ -889,8 +918,6 @@ reply:
  	m->m_len = sizeof(*ah) + (2 * ah->ar_pln) + (2 * ah->ar_hln);
  	m->m_pkthdr.len = m->m_len;
  	m->m_pkthdr.rcvif = NULL;
 -	sa.sa_family = AF_ARP;
 -	sa.sa_len = 2;
+ 	m_clrprotoflags(m);	/* Avoid confusing lower layers. */
  	(*ifp->if_output)(ifp, m, &sa, NULL);
  	ARPSTAT_INC(txreplies);
- 	return;

@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 2bdc64e..215a0c6 100644
+index 99c26c0..90e0959 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
 @@ -215,6 +215,7 @@ struct filter_opts {
@@ -134,7 +134,7 @@ index 2bdc64e..215a0c6 100644
  		{ "fastroute",		FASTROUTE},
  		{ "file",		FILENAME},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index 1c2768b..c8d2e68 100644
+index f248995..544bc22 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -847,8 +847,10 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -151,7 +151,7 @@ index 1c2768b..c8d2e68 100644
  		printf(" no state");
  	else if (r->keep_state == PF_STATE_NORMAL)
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index da96fd2..65b57fe 100644
+index c16591b..8ac2659 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -643,6 +643,28 @@ struct pf_rule {
@@ -198,7 +198,7 @@ index da96fd2..65b57fe 100644
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
  #define PFRULE_STATESLOPPY	0x00020000	/* sloppy state tracking */
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index d3ba935..be5db46 100644
+index 2de8c40..5786066b 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -3216,8 +3216,11 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,

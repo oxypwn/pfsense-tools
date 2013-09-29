@@ -1,8 +1,8 @@
 diff --git a/sys/netinet/ip_output.c b/sys/netinet/ip_output.c
-index f4cecce..810d0d2 100644
+index 464c852..c0b0411 100644
 --- a/sys/netinet/ip_output.c
 +++ b/sys/netinet/ip_output.c
-@@ -130,10 +130,9 @@ ip_output(struct mbuf *m, struct mbuf *opt, struct route *ro, int flags,
+@@ -133,10 +133,9 @@ ip_output(struct mbuf *m, struct mbuf *opt, struct route *ro, int flags,
  	struct route iproute;
  	struct rtentry *rte;	/* cache for ro->ro_rt */
  	struct in_addr odst;
@@ -15,7 +15,7 @@ index f4cecce..810d0d2 100644
  	M_ASSERTPKTHDR(m);
  
  	if (inp != NULL) {
-@@ -285,10 +284,11 @@ again:
+@@ -288,10 +287,11 @@ again:
  			 * There is no route for this packet, but it is
  			 * possible that a matching SPD entry exists.
  			 */
@@ -29,7 +29,7 @@ index f4cecce..810d0d2 100644
  			IPSTAT_INC(ips_noroute);
  			error = EHOSTUNREACH;
  			goto bad;
-@@ -479,28 +479,34 @@ sendit:
+@@ -482,28 +482,34 @@ sendit:
  	default:
  		break;	/* Continue with packet processing. */
  	}

@@ -1,8 +1,8 @@
 diff --git a/sbin/pfctl/pfctl_altq.c b/sbin/pfctl/pfctl_altq.c
-index e92503c..2ad1b46 100644
+index 58ea61e..9a33c01 100644
 --- a/sbin/pfctl/pfctl_altq.c
 +++ b/sbin/pfctl/pfctl_altq.c
-@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD: src/sbin/pfctl/pfctl_altq.c,v 1.2 2012/11/17 01:50:24 svnexp
+@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD$");
  #include <errno.h>
  #include <limits.h>
  #include <math.h>

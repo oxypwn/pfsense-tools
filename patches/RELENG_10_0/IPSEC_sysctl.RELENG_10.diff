@@ -1,5 +1,5 @@
 diff --git a/sys/netinet/in.h b/sys/netinet/in.h
-index c2a0a89..f708842 100644
+index db9a590..69a7bbe 100644
 --- a/sys/netinet/in.h
 +++ b/sys/netinet/in.h
 @@ -697,7 +697,8 @@ int	getsourcefilter(int, uint32_t, struct sockaddr *, socklen_t,
@@ -10,21 +10,13 @@ index c2a0a89..f708842 100644
 +#define	IPCTL_IPSEC_INUSE	17
 +#define	IPCTL_MAXID		18
  
- #define	IPCTL_NAMES { \
- 	{ 0, 0 }, \
-@@ -715,6 +716,7 @@ int	getsourcefilter(int, uint32_t, struct sockaddr *, socklen_t,
- 	{ "stats", CTLTYPE_STRUCT }, \
- 	{ "accept_sourceroute", CTLTYPE_INT }, \
- 	{ "fastforwarding", CTLTYPE_INT }, \
-+	{ "ipsec_in_use", CTLTPE_INT }, \
- }
- 
  #endif /* __BSD_VISIBLE */
+ 
 diff --git a/sys/netinet/ip_input.c b/sys/netinet/ip_input.c
-index 4e2c500..dc83c35 100644
+index 818e417..ae87d62 100644
 --- a/sys/netinet/ip_input.c
 +++ b/sys/netinet/ip_input.c
-@@ -95,6 +95,11 @@ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_FORWARDING, forwarding, CTLFLAG_RW,
+@@ -98,6 +98,11 @@ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_FORWARDING, forwarding, CTLFLAG_RW,
      &VNET_NAME(ipforwarding), 0,
      "Enable IP forwarding between interfaces");
  
@@ -36,7 +28,7 @@ index 4e2c500..dc83c35 100644
  static VNET_DEFINE(int, ipsendredirects) = 1;	/* XXX */
  #define	V_ipsendredirects	VNET(ipsendredirects)
  SYSCTL_VNET_INT(_net_inet_ip, IPCTL_SENDREDIRECTS, redirect, CTLFLAG_RW,
-@@ -490,7 +495,7 @@ tooshort:
+@@ -500,7 +505,7 @@ tooshort:
  	/*
  	 * Bypass packet filtering for packets previously handled by IPsec.
  	 */
@@ -45,7 +37,7 @@ index 4e2c500..dc83c35 100644
  		goto passin;
  #endif /* IPSEC */
  
-@@ -697,7 +702,7 @@ passin:
+@@ -707,7 +712,7 @@ passin:
  		m_freem(m);
  	} else {
  #ifdef IPSEC
@@ -54,7 +46,7 @@ index 4e2c500..dc83c35 100644
  			goto bad;
  #endif /* IPSEC */
  		ip_forward(m, dchg);
-@@ -743,7 +748,7 @@ ours:
+@@ -753,7 +758,7 @@ ours:
  	 * note that we do not visit this with protocols with pcb layer
  	 * code - like udp/tcp/raw ip.
  	 */
@@ -63,7 +55,7 @@ index 4e2c500..dc83c35 100644
  		goto bad;
  #endif /* IPSEC */
  
-@@ -1537,7 +1542,8 @@ ip_forward(struct mbuf *m, int srcrt)
+@@ -1547,7 +1552,8 @@ ip_forward(struct mbuf *m, int srcrt)
  		 * If IPsec is configured for this path,
  		 * override any possibly mtu value set by ip_output.
  		 */ 
@@ -74,10 +66,10 @@ index 4e2c500..dc83c35 100644
  		/*
  		 * If the MTU was set before make sure we are below the
 diff --git a/sys/netinet/ip_output.c b/sys/netinet/ip_output.c
-index 810d0d2..50e8f77 100644
+index c0b0411..bbba536 100644
 --- a/sys/netinet/ip_output.c
 +++ b/sys/netinet/ip_output.c
-@@ -470,18 +470,20 @@ again:
+@@ -473,18 +473,20 @@ again:
  
  sendit:
  #ifdef IPSEC
@@ -109,29 +101,11 @@ index 810d0d2..50e8f77 100644
  #endif /* IPSEC */
  
  	/* Jump over all PFIL processing if hooks are not active. */
-@@ -1115,7 +1117,7 @@ ip_ctloutput(struct socket *so, struct sockopt *sopt)
- 		{
- 			caddr_t req;
- 			struct mbuf *m;
--
-+			
- 			if ((error = soopt_getm(sopt, &m)) != 0) /* XXX */
- 				break;
- 			if ((error = soopt_mcopyin(sopt, m)) != 0) /* XXX */
-@@ -1245,7 +1247,7 @@ ip_ctloutput(struct socket *so, struct sockopt *sopt)
- 			struct mbuf *m = NULL;
- 			caddr_t req = NULL;
- 			size_t len = 0;
--
-+			
- 			if (m != 0) {
- 				req = mtod(m, caddr_t);
- 				len = m->m_len;
 diff --git a/sys/netinet/ip_var.h b/sys/netinet/ip_var.h
-index a914691..802caf0 100644
+index 519f9cd..bde2f1f 100644
 --- a/sys/netinet/ip_var.h
 +++ b/sys/netinet/ip_var.h
-@@ -182,6 +182,7 @@ struct sockopt;
+@@ -185,6 +185,7 @@ struct sockopt;
  VNET_DECLARE(u_short, ip_id);			/* ip packet ctr, for ids */
  VNET_DECLARE(int, ip_defttl);			/* default IP ttl */
  VNET_DECLARE(int, ipforwarding);		/* ip forwarding */
@@ -139,7 +113,7 @@ index a914691..802caf0 100644
  #ifdef IPSTEALTH
  VNET_DECLARE(int, ipstealth);			/* stealth forwarding */
  #endif
-@@ -197,6 +198,7 @@ extern struct	pr_usrreqs rip_usrreqs;
+@@ -200,6 +201,7 @@ extern struct	pr_usrreqs rip_usrreqs;
  #define	V_ip_id			VNET(ip_id)
  #define	V_ip_defttl		VNET(ip_defttl)
  #define	V_ipforwarding		VNET(ipforwarding)
@@ -148,10 +122,10 @@ index a914691..802caf0 100644
  #define	V_ipstealth		VNET(ipstealth)
  #endif
 diff --git a/sys/netinet6/ip6_input.c b/sys/netinet6/ip6_input.c
-index f75ac83..589d190 100644
+index 1d983da..25de3df 100644
 --- a/sys/netinet6/ip6_input.c
 +++ b/sys/netinet6/ip6_input.c
-@@ -136,6 +136,7 @@ static struct netisr_handler ip6_nh = {
+@@ -139,6 +139,7 @@ static struct netisr_handler ip6_nh = {
  	.nh_policy = NETISR_POLICY_FLOW,
  };
  
@@ -159,7 +133,7 @@ index f75ac83..589d190 100644
  VNET_DECLARE(struct callout, in6_tmpaddrtimer_ch);
  #define	V_in6_tmpaddrtimer_ch		VNET(in6_tmpaddrtimer_ch)
  
-@@ -1008,6 +1009,7 @@ passin:
+@@ -1017,6 +1018,7 @@ passin:
  		}
  
  #ifdef IPSEC
@@ -167,7 +141,7 @@ index f75ac83..589d190 100644
  		/*
  		 * enforce IPsec policy checking if we are seeing last header.
  		 * note that we do not visit this with protocols with pcb layer
-@@ -1015,6 +1017,7 @@ passin:
+@@ -1024,6 +1026,7 @@ passin:
  		 */
  		if (ip6_ipsec_input(m, nxt))
  			goto bad;
@@ -176,7 +150,7 @@ index f75ac83..589d190 100644
  
  		/*
 diff --git a/sys/netinet6/ip6_output.c b/sys/netinet6/ip6_output.c
-index 9b3dbb9..c02494e 100644
+index 0d55b66..1044992 100644
 --- a/sys/netinet6/ip6_output.c
 +++ b/sys/netinet6/ip6_output.c
 @@ -147,6 +147,7 @@ static int ip6_getpmtu(struct route_in6 *, struct route_in6 *,
@@ -510,10 +484,10 @@ index 9b3dbb9..c02494e 100644
  #endif /* IPSEC */
  
 diff --git a/sys/netinet6/ip6_var.h b/sys/netinet6/ip6_var.h
-index 0408982..703785b 100644
+index 1c22cc9..a6fa65a 100644
 --- a/sys/netinet6/ip6_var.h
 +++ b/sys/netinet6/ip6_var.h
-@@ -316,6 +316,7 @@ VNET_DECLARE(int, ip6_v6only);
+@@ -321,6 +321,7 @@ VNET_DECLARE(int, ip6_v6only);
  #define	V_ip6_rr_prune			VNET(ip6_rr_prune)
  #define	V_ip6_mcast_pmtu		VNET(ip6_mcast_pmtu)
  #define	V_ip6_v6only			VNET(ip6_v6only)

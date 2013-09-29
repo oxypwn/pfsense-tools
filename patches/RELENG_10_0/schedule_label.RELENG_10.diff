@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 4d32616..fa21df0 100644
+index b2a37a6..4c58219 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
 @@ -235,6 +235,7 @@ struct filter_opts {
@@ -138,7 +138,7 @@ index 4d32616..fa21df0 100644
  parseicmpspec(char *w, sa_family_t af)
  {
 diff --git a/sbin/pfctl/pfctl.c b/sbin/pfctl/pfctl.c
-index 13581ea..208fc34 100644
+index 90a2bb5..377e0ae 100644
 --- a/sbin/pfctl/pfctl.c
 +++ b/sbin/pfctl/pfctl.c
 @@ -77,6 +77,7 @@ void	 pfctl_addrprefix(char *, struct pf_addr *);
@@ -216,7 +216,7 @@ index 13581ea..208fc34 100644
  		error = pfctl_command_tables(argc, argv, tableopt,
  		    tblcmdopt, rulesopt, anchorname, opts);
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index b63d670..892d537 100644
+index c4d6adc..b96758e 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -564,6 +564,7 @@ struct pf_rule {
@@ -248,7 +248,7 @@ index b63d670..892d537 100644
  struct pfioc_table {
  	struct pfr_table	 pfrio_table;
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index efa4a77..edfb8b6 100644
+index 1317477..cdea717 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
 @@ -1682,6 +1682,30 @@ relock_DIOCKILLSTATES:

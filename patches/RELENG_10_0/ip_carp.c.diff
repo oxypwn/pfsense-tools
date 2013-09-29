@@ -1,8 +1,8 @@
 diff --git a/sys/netinet/ip_carp.c b/sys/netinet/ip_carp.c
-index d1d0e1a..73024b6 100644
+index a170e34..0a3607e 100644
 --- a/sys/netinet/ip_carp.c
 +++ b/sys/netinet/ip_carp.c
-@@ -521,8 +521,8 @@ carp6_input(struct mbuf **mp, int *offp, int proto)
+@@ -532,8 +532,8 @@ carp6_input(struct mbuf **mp, int *offp, int proto)
  	/* check if received on a valid carp interface */
  	if (m->m_pkthdr.rcvif->if_carp == NULL) {
  		CARPSTATS_INC(carps_badif);

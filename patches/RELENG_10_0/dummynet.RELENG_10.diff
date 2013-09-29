@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 215a0c6..ada100b 100644
+index 90e0959..f555eae 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
 @@ -239,6 +239,9 @@ struct filter_opts {
@@ -118,7 +118,7 @@ index 215a0c6..ada100b 100644
  		{ "divert-to",		DIVERTTO},
  		{ "drop",		DROP},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index c8d2e68..be0b907 100644
+index 544bc22..8f23a7b 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -1001,6 +1001,14 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -137,7 +137,7 @@ index c8d2e68..be0b907 100644
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 65b57fe..18dd1e1 100644
+index 8ac2659..1c58f23 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -603,6 +603,11 @@ struct pf_rule {
@@ -153,7 +153,7 @@ index 65b57fe..18dd1e1 100644
  	u_int32_t		 nr;
  	u_int32_t		 prob;
 diff --git a/sys/netpfil/ipfw/ip_dn_io.c b/sys/netpfil/ipfw/ip_dn_io.c
-index fbe69f2..7bb8d50 100644
+index 9a4b486..c842ce0 100644
 --- a/sys/netpfil/ipfw/ip_dn_io.c
 +++ b/sys/netpfil/ipfw/ip_dn_io.c
 @@ -651,6 +651,7 @@ dummynet_send(struct mbuf *m)
@@ -165,10 +165,10 @@ index fbe69f2..7bb8d50 100644
  			tag->m_tag_cookie = MTAG_IPFW_RULE;
  			tag->m_tag_id = 0;
 diff --git a/sys/netpfil/ipfw/ip_dummynet.c b/sys/netpfil/ipfw/ip_dummynet.c
-index c0457e4..12361bb 100644
+index 4de2156..b4b87c7 100644
 --- a/sys/netpfil/ipfw/ip_dummynet.c
 +++ b/sys/netpfil/ipfw/ip_dummynet.c
-@@ -2288,7 +2288,6 @@ static moduledata_t dummynet_mod = {
+@@ -2290,7 +2290,6 @@ static moduledata_t dummynet_mod = {
  #define	DN_SI_SUB	SI_SUB_PROTO_IFATTACHDOMAIN
  #define	DN_MODEV_ORD	(SI_ORDER_ANY - 128) /* after ipfw */
  DECLARE_MODULE(dummynet, dummynet_mod, DN_SI_SUB, DN_MODEV_ORD);
@@ -177,10 +177,10 @@ index c0457e4..12361bb 100644
  
  /*
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index be5db46..86121ee 100644
+index 5786066b..d4561bb 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -87,6 +87,8 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf.c,v 1.21 2013/06/14 00:31:34 svnexp Ex
+@@ -87,6 +87,8 @@ __FBSDID("$FreeBSD$");
  #include <netinet/udp_var.h>
  
  #include <netpfil/ipfw/ip_fw_private.h> /* XXX: only for DIR_IN/DIR_OUT */

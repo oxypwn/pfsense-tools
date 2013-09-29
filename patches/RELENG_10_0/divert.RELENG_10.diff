@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 685f209..e5e5b4a 100644
+index cefdeb0..c7ae808 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
 @@ -162,6 +162,7 @@ struct node_icmp {
@@ -51,7 +51,7 @@ index 685f209..e5e5b4a 100644
  		{ "max-src-conn-rate",	MAXSRCCONNRATE},
  		{ "max-src-nodes",	MAXSRCNODES},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index fcb7931..292e71f 100644
+index 2612b11..735db95 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -969,6 +969,12 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -68,7 +68,7 @@ index fcb7931..292e71f 100644
  			if (!opts)
  				printf(", ");
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 1841f4b..57426fc 100644
+index 763b79a..cff9e85 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -832,7 +832,13 @@ struct pf_state {
@@ -122,7 +122,7 @@ index 1841f4b..57426fc 100644
  }
  
 diff --git a/sys/netinet/ip_divert.c b/sys/netinet/ip_divert.c
-index 96653cb..83d2744 100644
+index e698035..b74d60d 100644
 --- a/sys/netinet/ip_divert.c
 +++ b/sys/netinet/ip_divert.c
 @@ -267,8 +267,7 @@ divert_packet(struct mbuf *m, int incoming)
@@ -174,10 +174,10 @@ index 96653cb..83d2744 100644
 -MODULE_DEPEND(ipdivert, ipfw, 2, 2, 2);
  MODULE_VERSION(ipdivert, 1);
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index c89741c..4894fb7 100644
+index 6e0146d..8ae4182 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -91,6 +91,7 @@ __FBSDID("$FreeBSD: src/sys/netpfil/pf/pf.c,v 1.21 2013/06/14 00:31:34 svnexp Ex
+@@ -91,6 +91,7 @@ __FBSDID("$FreeBSD$");
  #include <netpfil/ipfw/ip_fw_private.h> /* XXX: only for DIR_IN/DIR_OUT */
  #include <netinet/ip_fw.h>
  #include <netinet/ip_dummynet.h>

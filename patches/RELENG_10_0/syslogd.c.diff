@@ -57,10 +57,10 @@ index 0000000..1a937fb
 +
 +#endif  /* _CLOG_H_ */
 diff --git a/usr.sbin/syslogd/syslogd.c b/usr.sbin/syslogd/syslogd.c
-index 9f91db1..3653e4c 100644
+index 8fc2678..d97d85b 100644
 --- a/usr.sbin/syslogd/syslogd.c
 +++ b/usr.sbin/syslogd/syslogd.c
-@@ -88,6 +88,7 @@ __FBSDID("$FreeBSD: src/usr.sbin/syslogd/syslogd.c,v 1.174 2013/04/28 00:36:03 s
+@@ -88,6 +88,7 @@ __FBSDID("$FreeBSD$");
  #include <sys/resource.h>
  #include <sys/syslimits.h>
  #include <sys/types.h>
@@ -68,7 +68,7 @@ index 9f91db1..3653e4c 100644
  
  #include <netinet/in.h>
  #include <netdb.h>
-@@ -109,6 +110,8 @@ __FBSDID("$FreeBSD: src/usr.sbin/syslogd/syslogd.c,v 1.174 2013/04/28 00:36:03 s
+@@ -109,6 +110,8 @@ __FBSDID("$FreeBSD$");
  #include <utmpx.h>
  
  #include "pathnames.h"
@@ -77,7 +77,7 @@ index 9f91db1..3653e4c 100644
  #include "ttymsg.h"
  
  #define SYSLOG_NAMES
-@@ -117,6 +120,7 @@ __FBSDID("$FreeBSD: src/usr.sbin/syslogd/syslogd.c,v 1.174 2013/04/28 00:36:03 s
+@@ -117,6 +120,7 @@ __FBSDID("$FreeBSD$");
  const char	*ConfFile = _PATH_LOGCONF;
  const char	*PidFile = _PATH_LOGPID;
  const char	ctty[] = _PATH_CONSOLE;
