@@ -322,5 +322,14 @@ else
 	export BUILD_KERNELS=${BUILD_KERNELS:-"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"}
 fi
 
+if [ ${FREEBSD_VERSION} -ge 10 ]; then
+	USE_PKGNG=yes
+	PKG_INFO="pkg info"
+	PKG_QUERY="pkg query %n"
+else
+	PKG_INFO="pkg_info"
+	PKG_QUERY="pkg_info -e"
+fi
+
 # This needs to be at the very end of the file.
 IFS=$OIFS

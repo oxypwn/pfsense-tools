@@ -3429,41 +3429,22 @@ install_pkg_install_ports_build() {
                                 echo "Done!"
                         fi
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
-			if [ ${FREEBSD_VERSION} -gt 9 ]; then
-				if [ `pkg query %n $_BUILT_PKGNAME` ]; then
-					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-					script /tmp/pfPort/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/d ev/null || true 2>&1 >/dev/null
-					if [ "$?" != "0" ]; then
-						echo
-						echo
-						echo "!!! Something went wrong while building ${EXTRAPORT}"
-						echo "    Press RETURN/ENTER to view the log from this build."
-						read inputline
-						more /tmp/pfPorts/${PORTNAME}.txt
-					else
-						echo "Done!"
-					fi
+			if [ `${PKG_QUERY} $_BUILT_PKGNAME` ]; then
+				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
+				script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
+				if [ "$?" != "0" ]; then
+					echo
+					echo
+					echo "!!! Something went wrong while building ${EXTRAPORT}"
+					echo "    Press RETURN/ENTER to view the log from this build."
+					read inputline
+					more /tmp/pfPorts/${PORTNAME}.txt
 				else
-					echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) as build dependency of ($PORTNAME)...already installed...skipping."
+					echo "Done!"
 				fi
 			else
-				if [ `pkg_info -e $_BUILT_PKGNAME` ]; then
-					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
-					if [ "$?" != "0" ]; then
-						echo
-						echo
-						echo "!!! Something went wrong while building ${EXTRAPORT}"
-						echo "    Press RETURN/ENTER to view the log from this build."
-						read inputline
-						more /tmp/pfPorts/${PORTNAME}.txt
-					else
-						echo "Done!"
-					fi
-				else
-					echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) as build dependency of ($PORTNAME)...already installed...skipping."
-				fi
-                        fi
+				echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) as build dependency of ($PORTNAME)...already installed...skipping."
+			fi
                 done
                         
                 # Package up what's needed to execute and run

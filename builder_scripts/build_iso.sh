@@ -140,8 +140,8 @@ if [ "$PFSPKGFILE" = "" ]; then
 	PFSPKGFILE=/tmp/pfspackages
 fi
 rm -f $PFSPKGFILE
-(pkg_info | grep bsdinstaller) > $PFSPKGFILE
-(pkg_info | grep lua) >> $PFSPKGFILE
+(${PKG_INFO} | grep bsdinstaller) > $PFSPKGFILE
+(${PKG_INFO} | grep lua) >> $PFSPKGFILE
 set -e
 
 # Install packages needed for livecd
