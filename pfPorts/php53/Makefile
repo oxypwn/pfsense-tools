@@ -8,7 +8,6 @@ CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
 DISTNAME=	php-${PORTVERSION}
-NO_STAGE=	yes
 
 MAINTAINER=	flo@FreeBSD.org
 COMMENT=	PHP Scripting Language
@@ -16,7 +15,6 @@ COMMENT=	PHP Scripting Language
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
 USE_BZIP2=	yes
-MAKE_JOBS_SAFE=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf
 
@@ -56,6 +54,7 @@ CONFLICTS=	php52-5* php5-5*
 
 MAN1=		php-config.1 phpize.1
 
+NO_STAGE=	yes
 .include <bsd.port.pre.mk>
 
 PATCH_DIST_STRIP=	-p1
