@@ -30,7 +30,7 @@ index 44373ee..81d2918 100644
 +	struct pfil_head *ph;
 +	struct packet_filter_hook *pfh, *pfhtmp;
 +	struct sbuf *sb;
-+	pfil_list_t npfl, *pfl;
++	pfil_chain_t npfl, *pfl;
 +	char *new_order, *elm, *parse;
 +	int i = 0, err = 0, hintlen, reqlen;
 +
@@ -56,7 +56,7 @@ index 44373ee..81d2918 100644
 +	 * NOTE: This is needed to avoid witness(4) warnings.
 +	 */
 +	PFIL_RLOCK(ph, &rmpt);
-+	TAILQ_FOREACH(pfh, pfl, pfil_link) {
++	TAILQ_FOREACH(pfh, pfl, pfil_chain) {
 +		if (pfh->pfil_name != NULL)
 +			hintlen = strlen(pfh->pfil_name);
 +		else
@@ -69,7 +69,7 @@ index 44373ee..81d2918 100644
 +		return (EINVAL);
 +
 +	PFIL_RLOCK(ph, &rmpt);
-+	TAILQ_FOREACH(pfh, pfl, pfil_link) {
++	TAILQ_FOREACH(pfh, pfl, pfil_chain) {
 +		if (i > 0)
 +			sbuf_printf(sb, ", ");
 +		if (pfh->pfil_name != NULL)
@@ -107,18 +107,18 @@ index 44373ee..81d2918 100644
 +	while ((elm = strsep(&parse, " \t,")) != NULL) {
 +		if (*elm == '\0')
 +			continue;
-+		TAILQ_FOREACH_SAFE(pfh, pfl, pfil_link, pfhtmp) {
++		TAILQ_FOREACH_SAFE(pfh, pfl, pfil_chain, pfhtmp) {
 +			if (pfh->pfil_name != NULL) {
 +				if (!strcmp(pfh->pfil_name, elm)) {
-+					TAILQ_REMOVE(pfl, pfh, pfil_link);
-+					TAILQ_INSERT_TAIL(&npfl, pfh, pfil_link);
++					TAILQ_REMOVE(pfl, pfh, pfil_chain);
++					TAILQ_INSERT_TAIL(&npfl, pfh, pfil_chain);
 +					pfh->pfil_flags &= ~PFIL_DISABLED;
 +					break;
 +				}
 +			} else {
 +				if (!strcmp(elm, "NA")) {
-+					TAILQ_REMOVE(pfl, pfh, pfil_link);
-+					TAILQ_INSERT_TAIL(&npfl, pfh, pfil_link);
++					TAILQ_REMOVE(pfl, pfh, pfil_chain);
++					TAILQ_INSERT_TAIL(&npfl, pfh, pfil_chain);
 +					pfh->pfil_flags &= ~PFIL_DISABLED;
 +					break;
 +				}
@@ -126,13 +126,13 @@ index 44373ee..81d2918 100644
 +		}
 +	}
 +
-+	TAILQ_FOREACH_SAFE(pfh, pfl, pfil_link, pfhtmp) {
++	TAILQ_FOREACH_SAFE(pfh, pfl, pfil_chain, pfhtmp) {
 +		pfh->pfil_flags |= PFIL_DISABLED;
-+		TAILQ_REMOVE(pfl, pfh, pfil_link);
-+		TAILQ_INSERT_TAIL(&npfl, pfh, pfil_link);
++		TAILQ_REMOVE(pfl, pfh, pfil_chain);
++		TAILQ_INSERT_TAIL(&npfl, pfh, pfil_chain);
 +	}
 +
-+	TAILQ_CONCAT(pfl, &npfl, pfil_link);
++	TAILQ_CONCAT(pfl, &npfl, pfil_chain);
 +
 +error:
 +	PFIL_WUNLOCK(ph);

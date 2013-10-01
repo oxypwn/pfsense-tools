@@ -60,14 +60,12 @@ index 3045e95..015b840 100644
  	nwsp = DPCPU_ID_PTR(nws_array[0], nws);
  	NWS_SIGNAL(nwsp);
  }
-@@ -1128,7 +1141,9 @@ netisr_init(void *arg)
+@@ -1128,7 +1141,7 @@ netisr_init(void *arg)
  
  	NETISR_LOCK_INIT();
  	if (netisr_maxthreads < 1)
 -		netisr_maxthreads = 1;
 +		netisr_maxthreads = mp_ncpus;
-+	if (mp_ncpus <= 4)
-+		netisr_direct_force = 1;
  	if (netisr_maxthreads > mp_ncpus) {
  		printf("netisr_init: forcing maxthreads from %d to %d\n",
  		    netisr_maxthreads, mp_ncpus);
