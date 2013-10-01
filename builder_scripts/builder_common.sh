@@ -91,11 +91,11 @@ post_tweet() {
 handle_tools_stats_crypto() {
 	echo -n ">>> Building athstats..."
 	cd $SRCDIR/tools/tools/ath/athstats
-	(make clean && make && make install) | egrep -wi '(^>>>|error)'
+	(make clean && make && make install) 2>&1 | egrep -wi '(^>>>|error)'
 	echo "Done!" 	
 	echo -n ">>> Building tools/crytpo..."
 	cd $SRCDIR/tools/tools/crypto/
-	(make clean && make && make install) | egrep -wi '(^>>>|error)'
+	(make clean && make && make install) 2>&1 | egrep -wi '(^>>>|error)'
 	echo "Done!"
 
 }
