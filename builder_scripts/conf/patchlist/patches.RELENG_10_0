@@ -47,3 +47,4 @@
 -p1~~pf_route_to_daemon_friendly.RELENG_10.diff~
 -p1~~killifstates.RELENG_10.diff~
 -p1~~divert.RELENG_10.diff~
+-p1~~CP_speedup.diff~
