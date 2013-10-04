@@ -63,7 +63,7 @@ else
 	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"
 fi
 
-export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_SMP.8}
+export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_SMP.${FREEBSD_VERSION}}
 
 # This should be run first
 launch
