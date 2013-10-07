@@ -1,16 +1,11 @@
-# New ports collection makefile for:	unbound
-# Date created:				25 Apr 2008
-# Whom:					Sergey Matveychuk <sem@FreeBSD.org>
-#
-# $FreeBSD: head/dns/unbound/Makefile 315236 2013-03-25 16:03:53Z sem $
-#
+# Created by: Sergey Matveychuk <sem@FreeBSD.org>
+# $FreeBSD: dns/unbound/Makefile 329167 2013-10-03 11:02:37Z bdrewery $
 
 PORTNAME=	unbound
-PORTVERSION=	1.4.20
-PORTREVISION=	0
+PORTVERSION=	1.4.21
+PORTREVISION=	1
 CATEGORIES=	dns
 MASTER_SITES=	http://unbound.net/downloads/
-NO_STAGE=	yes
 
 MAINTAINER=	sem@FreeBSD.org
 COMMENT=	A validating, recursive, and caching DNS resolver
@@ -25,6 +20,7 @@ CONFIGURE_ARGS+=--with-ssl=${OPENSSLBASE}
 USE_LDCONFIG=	yes
 
 USERS=		${PORTNAME}
+GROUPS=		${PORTNAME}
 
 USE_RC_SUBR=	unbound
 
@@ -39,21 +35,28 @@ MAN3=		libunbound.3 ub_cancel.3 ub_ctx.3 ub_ctx_add_ta.3 \
 		ub_fd.3 ub_poll.3 ub_process.3 ub_resolve.3 ub_resolve_async.3 \
 		ub_resolve_free.3 ub_result.3 ub_strerror.3 ub_wait.3
 MAN5=		unbound.conf.5
-MAN8=		unbound.8 unbound-anchor.8 unbound-control.8 unbound-checkconf.8
+MAN8=		unbound.8 unbound-anchor.8 unbound-control.8 \
+		unbound-checkconf.8 unbound-control-setup.8
 
 PORTDOCS=	CREDITS Changelog FEATURES LICENSE README README.svn \
 		README.tests TODO control_proto_spec.txt ietf67-design-02.odp \
 		ietf67-design-02.pdf requirements.txt
 PLIST_SUB+=	PYTHON=${PYTHON} MUNIN=${MUNIN}
 
-OPTIONS_DEFINE=	LIBEVENT THREADS PYTHON GOST ECDSA MUNIN
-OPTIONS_DEFAULT=THREADS
+OPTIONS_DEFINE=	THREADS PYTHON GOST ECDSA MUNIN
+OPTIONS_DEFAULT=THREADS ECDSA
+
+OPTIONS_RADIO=	LIBEVENT
+OPTIONS_RADIO_LIBEVENT=	LIBEVENT14 LIBEVENT20
 
 LIBEVENT_DESC=	Enable whenever using many (10000) outgoing ports
-GOST_DESC=	Enable GOST support (requires OpenSSL from ports)
-ECDSA_DESC=	Enable ECDSA (elliptic curve) support
+LIBEVENT14_DESC=Build against libevent-1.4 (devel/libevent)
+LIBEVENT20_DESC=Build against libevent-2.0 (devel/libevent2)
+GOST_DESC=	Enable GOST support (requires OpenSSL >= 1.0)
+ECDSA_DESC=	Enable ECDSA (elliptic curve) support (OpenSSL >= 1.0)
 MUNIN_DESC=	Install Munin plugin
 
+NO_STAGE=	yes
 .include <bsd.port.options.mk>
 
 LIB_DEPENDS+=	expat:${PORTSDIR}/textproc/expat2 \
@@ -69,14 +72,15 @@ PYTHON=		"@comment "
 .endif
 
 .if ${PORT_OPTIONS:MGOST}
+. if ${OSVERSION} < 1000015
 WITH_OPENSSL_PORT=	yes
+. endif
 DEPENDS_ARGS+=	WITH_GOST=yes
 .else
 CONFIGURE_ARGS+=--disable-gost
 .endif
 
 .if ${PORT_OPTIONS:MECDSA}
-WITH_OPENSSL_PORT=yes
 DEPENDS_ARGS+=	WITH_ECDSA=yes
 .else
 CONFIGURE_ARGS+=--disable-ecdsa
@@ -91,9 +95,16 @@ MUNIN=
 MUNIN=		"@comment "
 .endif
 
-.if ${PORT_OPTIONS:MLIBEVENT}
+.if ${PORT_OPTIONS:MLIBEVENT14}
 LIB_DEPENDS+=	event-1:${PORTSDIR}/devel/libevent
 CONFIGURE_ARGS+=--with-libevent=${LOCALBASE}
+.elif ${PORT_OPTIONS:MLIBEVENT20}
+LIB_DEPENDS+=	event-2:${PORTSDIR}/devel/libevent2
+USES+=		pkgconfig
+CONFIGURE_ARGS+=--with-libevent=${NONEXISTENT}
+CONFIGURE_ENV+=	found_libevent=yes
+CPPFLAGS+=	$$(pkg-config libevent --cflags-only-I)
+LDFLAGS+=	$$(pkg-config libevent --libs-only-L)
 .else
 CONFIGURE_ARGS+=--with-libevent=no
 .endif
@@ -122,7 +133,7 @@ post-install:
 	@${CAT} ${WRKDIR}/pkg-message
 	@${ECHO_MSG} "============================================================="
 .endif
-.if !defined(NOPORTDOCS)
+.if ${PORT_OPTIONS:MDOCS}
 	@${MKDIR} ${DOCSDIR}; \
 	for f in ${PORTDOCS}; do \
 		cd ${WRKSRC}/doc && ${INSTALL_DATA} $${f} ${DOCSDIR}/; \
