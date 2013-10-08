@@ -1,6 +1,6 @@
 Index: sys/conf/files
 ===================================================================
---- sys/conf/files	(revision 253890)
+--- sys/conf/files	(revision 255674)
 +++ sys/conf/files	(working copy)
 @@ -1250,6 +1250,12 @@
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
@@ -17,7 +17,7 @@ Index: sys/conf/files
  dev/joy/joy_isa.c		optional joy isa
 Index: sys/dev/ixgbe/LICENSE
 ===================================================================
---- sys/dev/ixgbe/LICENSE	(revision 253890)
+--- sys/dev/ixgbe/LICENSE	(revision 255674)
 +++ sys/dev/ixgbe/LICENSE	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -29,7 +29,7 @@ Index: sys/dev/ixgbe/LICENSE
    Redistribution and use in source and binary forms, with or without 
 Index: sys/dev/ixgbe/README
 ===================================================================
---- sys/dev/ixgbe/README	(revision 253890)
+--- sys/dev/ixgbe/README	(revision 255674)
 +++ sys/dev/ixgbe/README	(working copy)
 @@ -2,7 +2,7 @@
  ============================================================================
@@ -119,7 +119,7 @@ Index: sys/dev/ixgbe/README
    slot is required."
 Index: sys/dev/ixgbe/ixgbe.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -529,7 +529,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	/* Which queue to use */
  	if ((m->m_flags & M_FLOWID) != 0)
-@@ -793,72 +809,64 @@
+@@ -793,72 +809,63 @@
  	txr = &adapter->tx_rings[i];
  	que = &adapter->queues[i];
  
@@ -621,7 +621,6 @@ Index: sys/dev/ixgbe/ixgbe.c
 +#if __FreeBSD_version < 901504
  		next = drbr_dequeue(ifp, txr->br);
 +#endif
-+		next = drbr_dequeue(ifp, txr->br);
  	}
  
  	if (enqueued > 0) {
@@ -631,7 +630,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		txr->watchdog_time = ticks;
  	}
  
-@@ -869,6 +877,22 @@
+@@ -869,6 +876,22 @@
  }
  
  /*
@@ -654,7 +653,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  ** Flush all ring buffers
  */
  static void
-@@ -886,7 +910,7 @@
+@@ -886,7 +909,7 @@
  	}
  	if_qflush(ifp);
  }
@@ -663,7 +662,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  /*********************************************************************
   *  Ioctl entry point
-@@ -901,6 +925,7 @@
+@@ -901,6 +924,7 @@
  ixgbe_ioctl(struct ifnet * ifp, u_long command, caddr_t data)
  {
  	struct adapter	*adapter = ifp->if_softc;
@@ -671,7 +670,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	struct ifreq	*ifr = (struct ifreq *) data;
  #if defined(INET) || defined(INET6)
  	struct ifaddr *ifa = (struct ifaddr *)data;
-@@ -988,6 +1013,8 @@
+@@ -988,6 +1012,8 @@
  			ifp->if_capenable ^= IFCAP_HWCSUM;
  		if (mask & IFCAP_TSO4)
  			ifp->if_capenable ^= IFCAP_TSO4;
@@ -680,7 +679,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		if (mask & IFCAP_LRO)
  			ifp->if_capenable ^= IFCAP_LRO;
  		if (mask & IFCAP_VLAN_HWTAGGING)
-@@ -1004,7 +1031,22 @@
+@@ -1004,7 +1030,22 @@
  		VLAN_CAPABILITIES(ifp);
  		break;
  	}
@@ -704,7 +703,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	default:
  		IOCTL_DEBUGOUT1("ioctl: UNKNOWN (0x%X)\n", (int)command);
  		error = ether_ioctl(ifp, command, data);
-@@ -1036,7 +1078,7 @@
+@@ -1036,7 +1077,7 @@
  	u32		rxdctl, rxctrl;
  
  	mtx_assert(&adapter->core_mtx, MA_OWNED);
@@ -713,7 +712,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	hw->adapter_stopped = FALSE;
  	ixgbe_stop_adapter(hw);
          callout_stop(&adapter->timer);
-@@ -1052,7 +1094,7 @@
+@@ -1052,7 +1093,7 @@
  
  	/* Set the various hardware offload abilities */
  	ifp->if_hwassist = 0;
@@ -722,7 +721,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		ifp->if_hwassist |= CSUM_TSO;
  	if (ifp->if_capenable & IFCAP_TXCSUM) {
  		ifp->if_hwassist |= (CSUM_TCP | CSUM_UDP);
-@@ -1077,7 +1119,7 @@
+@@ -1077,7 +1118,7 @@
  
  	/*
  	** Determine the correct mbuf pool
@@ -731,7 +730,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	*/
  	if (adapter->max_frame_size <= 2048)
  		adapter->rx_mbuf_sz = MCLBYTES;
-@@ -1134,6 +1176,14 @@
+@@ -1134,6 +1175,14 @@
  		txdctl |= IXGBE_TXDCTL_ENABLE;
  		/* Set WTHRESH to 8, burst writeback */
  		txdctl |= (8 << 16);
@@ -746,7 +745,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		IXGBE_WRITE_REG(hw, IXGBE_TXDCTL(i), txdctl);
  	}
  
-@@ -1158,6 +1208,31 @@
+@@ -1158,6 +1207,31 @@
  				msec_delay(1);
  		}
  		wmb();
@@ -778,7 +777,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		IXGBE_WRITE_REG(hw, IXGBE_RDT(i), adapter->num_rx_desc - 1);
  	}
  
-@@ -1192,7 +1267,7 @@
+@@ -1192,7 +1266,7 @@
  #ifdef IXGBE_FDIR
  	/* Init Flow director */
  	if (hw->mac.type != ixgbe_mac_82598EB) {
@@ -787,7 +786,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  		hw->mac.ops.setup_rxpba(hw, 0, hdrm, PBA_STRATEGY_EQUAL);
  		ixgbe_init_fdir_signature_82599(&adapter->hw, fdir_pballoc);
-@@ -1218,12 +1293,40 @@
+@@ -1218,12 +1292,40 @@
  	/* Config/Enable Link */
  	ixgbe_config_link(adapter);
  
@@ -829,7 +828,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	return;
  }
-@@ -1286,23 +1389,6 @@
+@@ -1286,23 +1388,6 @@
  	}
  }
  
@@ -853,7 +852,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  static void
  ixgbe_handle_que(void *context, int pending)
  {
-@@ -1313,25 +1399,24 @@
+@@ -1313,25 +1398,24 @@
  	bool		more;
  
  	if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
@@ -886,7 +885,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	return;
  }
  
-@@ -1348,9 +1433,10 @@
+@@ -1348,9 +1432,10 @@
  	struct ix_queue *que = arg;
  	struct adapter	*adapter = que->adapter;
  	struct ixgbe_hw	*hw = &adapter->hw;
@@ -899,7 +898,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  
  	reg_eicr = IXGBE_READ_REG(hw, IXGBE_EICR);
-@@ -1361,17 +1447,19 @@
+@@ -1361,17 +1446,19 @@
  		return;
  	}
  
@@ -926,7 +925,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	/* Check for fan failure */
  	if ((hw->phy.media_type == ixgbe_media_type_copper) &&
  	    (reg_eicr & IXGBE_EICR_GPI_SDP1)) {
-@@ -1384,7 +1472,10 @@
+@@ -1384,7 +1471,10 @@
  	if (reg_eicr & IXGBE_EICR_LSC)
  		taskqueue_enqueue(adapter->tq, &adapter->link_task);
  
@@ -938,7 +937,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	return;
  }
  
-@@ -1399,29 +1490,30 @@
+@@ -1399,29 +1489,30 @@
  {
  	struct ix_queue	*que = arg;
  	struct adapter  *adapter = que->adapter;
@@ -981,7 +980,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	IXGBE_TX_UNLOCK(txr);
  
  	/* Do AIM now? */
-@@ -1475,9 +1567,9 @@
+@@ -1475,9 +1566,9 @@
          rxr->packets = 0;
  
  no_calc:
@@ -993,16 +992,16 @@ Index: sys/dev/ixgbe/ixgbe.c
  		ixgbe_enable_queue(adapter, que->msix);
  	return;
  }
-@@ -1494,6 +1586,8 @@
+@@ -1494,6 +1585,8 @@
  
  	/* First get the cause */
  	reg_eicr = IXGBE_READ_REG(hw, IXGBE_EICS);
 +	/* Be sure the queue bits are not cleared */
-+	reg_eicr = ~IXGBE_EICR_RTX_QUEUE;
++	reg_eicr &= ~IXGBE_EICR_RTX_QUEUE;
  	/* Clear interrupt with write */
  	IXGBE_WRITE_REG(hw, IXGBE_EICR, reg_eicr);
  
-@@ -1507,10 +1601,8 @@
+@@ -1507,10 +1600,8 @@
  			/* This is probably overkill :) */
  			if (!atomic_cmpset_int(&adapter->fdir_reinit, 0, 1))
  				return;
@@ -1015,7 +1014,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			taskqueue_enqueue(adapter->tq, &adapter->fdir_task);
  		} else
  #endif
-@@ -1541,11 +1633,11 @@
+@@ -1541,11 +1632,11 @@
  
  	/* Check for over temp condition */
  	if ((hw->mac.type == ixgbe_mac_X540) &&
@@ -1029,7 +1028,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  
  	IXGBE_WRITE_REG(&adapter->hw, IXGBE_EIMS, IXGBE_EIMS_OTHER);
-@@ -1584,7 +1676,7 @@
+@@ -1584,7 +1675,7 @@
  			ifmr->ifm_active |= IFM_100_TX | IFM_FDX;
  			break;
  		case IXGBE_LINK_SPEED_1GB_FULL:
@@ -1038,7 +1037,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			break;
  		case IXGBE_LINK_SPEED_10GB_FULL:
  			ifmr->ifm_active |= adapter->optics | IFM_FDX;
-@@ -1643,9 +1735,9 @@
+@@ -1643,9 +1734,9 @@
  {
  	struct adapter  *adapter = txr->adapter;
  	u32		olinfo_status = 0, cmd_type_len;
@@ -1050,7 +1049,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	struct mbuf	*m_head;
  	bus_dma_segment_t segs[adapter->num_segs];
  	bus_dmamap_t	map;
-@@ -1673,75 +1765,59 @@
+@@ -1673,75 +1764,59 @@
  	/*
  	 * Map the packet for DMA.
  	 */
@@ -1157,7 +1156,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  #ifdef IXGBE_FDIR
  	/* Do the flow director magic */
  	if ((txr->atr_sample) && (!adapter->fdir_reinit)) {
-@@ -1752,10 +1828,6 @@
+@@ -1752,10 +1827,6 @@
  		}
  	}
  #endif
@@ -1168,7 +1167,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	i = txr->next_avail_desc;
  	for (j = 0; j < nsegs; j++) {
-@@ -1771,13 +1843,9 @@
+@@ -1771,13 +1842,9 @@
  		txd->read.cmd_type_len = htole32(txr->txd_cmd |
  		    cmd_type_len |seglen);
  		txd->read.olinfo_status = htole32(olinfo_status);
@@ -1183,7 +1182,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  
  	txd->read.cmd_type_len |=
-@@ -1786,14 +1854,19 @@
+@@ -1786,14 +1853,19 @@
  	txr->next_avail_desc = i;
  
  	txbuf->m_head = m_head;
@@ -1206,7 +1205,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
          bus_dmamap_sync(txr->txdma.dma_tag, txr->txdma.dma_map,
              BUS_DMASYNC_PREREAD | BUS_DMASYNC_PREWRITE);
-@@ -1806,10 +1879,6 @@
+@@ -1806,10 +1878,6 @@
  
  	return (0);
  
@@ -1217,7 +1216,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  static void
-@@ -1817,10 +1886,34 @@
+@@ -1817,10 +1885,34 @@
  {
  	u_int32_t       reg_rctl;
  	struct ifnet   *ifp = adapter->ifp;
@@ -1253,7 +1252,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	IXGBE_WRITE_REG(&adapter->hw, IXGBE_FCTRL, reg_rctl);
  
  	if (ifp->if_flags & IFF_PROMISC) {
-@@ -1859,18 +1952,6 @@
+@@ -1859,18 +1951,6 @@
  	bzero(mta, sizeof(u8) * IXGBE_ETH_LENGTH_OF_ADDRESS *
  	    MAX_NUM_MULTICAST_ADDRESSES);
  
@@ -1272,7 +1271,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  #if __FreeBSD_version < 800000
  	IF_ADDR_LOCK(ifp);
  #else
-@@ -1879,6 +1960,8 @@
+@@ -1879,6 +1959,8 @@
  	TAILQ_FOREACH(ifma, &ifp->if_multiaddrs, ifma_link) {
  		if (ifma->ifma_addr->sa_family != AF_LINK)
  			continue;
@@ -1281,7 +1280,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		bcopy(LLADDR((struct sockaddr_dl *) ifma->ifma_addr),
  		    &mta[mcnt * IXGBE_ETH_LENGTH_OF_ADDRESS],
  		    IXGBE_ETH_LENGTH_OF_ADDRESS);
-@@ -1890,10 +1973,25 @@
+@@ -1890,10 +1972,25 @@
  	if_maddr_runlock(ifp);
  #endif
  
@@ -1310,7 +1309,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	return;
  }
  
-@@ -1928,13 +2026,11 @@
+@@ -1928,13 +2025,11 @@
  {
  	struct adapter	*adapter = arg;
  	device_t	dev = adapter->dev;
@@ -1325,7 +1324,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	/* Check for pluggable optics */
  	if (adapter->sfp_probe)
-@@ -1953,30 +2049,20 @@
+@@ -1953,30 +2048,20 @@
  
  	/*
  	** Check the TX queues status
@@ -1359,7 +1358,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	callout_reset(&adapter->timer, hz, ixgbe_local_timer, adapter);
  	return;
  
-@@ -2002,7 +2088,6 @@
+@@ -2002,7 +2087,6 @@
  ixgbe_update_link_status(struct adapter *adapter)
  {
  	struct ifnet	*ifp = adapter->ifp;
@@ -1367,7 +1366,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	device_t dev = adapter->dev;
  
  
-@@ -2013,6 +2098,8 @@
+@@ -2013,6 +2097,8 @@
  				    ((adapter->link_speed == 128)? 10:1),
  				    "Full Duplex");
  			adapter->link_active = TRUE;
@@ -1376,7 +1375,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			if_link_state_change(ifp, LINK_STATE_UP);
  		}
  	} else { /* Link down */
-@@ -2021,9 +2108,6 @@
+@@ -2021,9 +2107,6 @@
  				device_printf(dev,"Link is Down\n");
  			if_link_state_change(ifp, LINK_STATE_DOWN);
  			adapter->link_active = FALSE;
@@ -1386,7 +1385,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		}
  	}
  
-@@ -2054,15 +2138,19 @@
+@@ -2054,15 +2137,19 @@
  
  	/* Let the stack know...*/
  	ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
@@ -1410,7 +1409,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	/* reprogram the RAR[0] in case user changed it. */
  	ixgbe_set_rar(&adapter->hw, 0, adapter->hw.mac.addr, 0, IXGBE_RAH_AV);
  
-@@ -2113,7 +2201,7 @@
+@@ -2113,7 +2200,7 @@
  {
  	struct ixgbe_hw *hw = &adapter->hw;
  	int		layer;
@@ -1419,7 +1418,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	layer = ixgbe_get_supported_physical_layer(hw);
  
  	if (layer & IXGBE_PHYSICAL_LAYER_10GBASE_T) {
-@@ -2126,6 +2214,11 @@
+@@ -2126,6 +2213,11 @@
  		return;
  	}
  
@@ -1431,7 +1430,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	if (layer & (IXGBE_PHYSICAL_LAYER_10GBASE_LR |
  	    IXGBE_PHYSICAL_LAYER_10GBASE_LRM)) {
  		adapter->optics = IFM_10G_LR;
-@@ -2161,9 +2254,12 @@
+@@ -2161,9 +2253,12 @@
  static int
  ixgbe_allocate_legacy(struct adapter *adapter)
  {
@@ -1446,7 +1445,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	/* MSI RID at 1 */
  	if (adapter->msix == 1)
-@@ -2182,6 +2278,9 @@
+@@ -2182,6 +2277,9 @@
  	 * Try allocating a fast interrupt and the associated deferred
  	 * processing contexts.
  	 */
@@ -1456,7 +1455,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	TASK_INIT(&que->que_task, 0, ixgbe_handle_que, que);
  	que->tq = taskqueue_create_fast("ixgbe_que", M_NOWAIT,
              taskqueue_thread_enqueue, &que->tq);
-@@ -2228,9 +2327,10 @@
+@@ -2228,9 +2326,10 @@
  {
  	device_t        dev = adapter->dev;
  	struct 		ix_queue *que = adapter->queues;
@@ -1468,7 +1467,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		rid = vector + 1;
  		que->res = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid,
  		    RF_SHAREABLE | RF_ACTIVE);
-@@ -2260,6 +2360,9 @@
+@@ -2260,6 +2359,9 @@
  		if (adapter->num_queues > 1)
  			bus_bind_intr(dev, que->res, i);
  
@@ -1478,7 +1477,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		TASK_INIT(&que->que_task, 0, ixgbe_handle_que, que);
  		que->tq = taskqueue_create_fast("ixgbe_que", M_NOWAIT,
  		    taskqueue_thread_enqueue, &que->tq);
-@@ -2318,29 +2421,24 @@
+@@ -2318,29 +2420,24 @@
  		goto msi;
  
  	/* First try MSI/X */
@@ -1513,7 +1512,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	/* Figure out a reasonable auto config value */
  	queues = (mp_ncpus > (msgs-1)) ? (msgs-1) : mp_ncpus;
  
-@@ -2362,21 +2460,27 @@
+@@ -2362,21 +2459,27 @@
  		    "MSIX Configuration Problem, "
  		    "%d vectors but %d queues wanted!\n",
  		    msgs, want);
@@ -1548,7 +1547,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  
-@@ -2498,18 +2602,24 @@
+@@ -2498,18 +2601,24 @@
  		return (-1);
  	}
  	if_initname(ifp, device_get_name(dev), device_get_unit(dev));
@@ -1577,7 +1576,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	ether_ifattach(ifp, adapter->hw.mac.addr);
  
-@@ -2521,16 +2631,14 @@
+@@ -2521,16 +2630,14 @@
  	 */
  	ifp->if_data.ifi_hdrlen = sizeof(struct ether_vlan_header);
  
@@ -1596,7 +1595,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	/*
  	** Don't turn this on by default, if vlans are
  	** created on another pseudo device (eg. lagg)
-@@ -2579,7 +2687,7 @@
+@@ -2579,7 +2686,7 @@
  			taskqueue_enqueue(adapter->tq, &adapter->mod_task);
  	} else {
  		if (hw->mac.ops.check_link)
@@ -1605,7 +1604,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			    &adapter->link_up, FALSE);
  		if (err)
  			goto out;
-@@ -2590,8 +2698,8 @@
+@@ -2590,8 +2697,8 @@
  		if (err)
  			goto out;
  		if (hw->mac.ops.setup_link)
@@ -1616,7 +1615,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  out:
  	return;
-@@ -2730,6 +2838,7 @@
+@@ -2730,6 +2837,7 @@
  		txr = &adapter->tx_rings[i];
  		txr->adapter = adapter;
  		txr->me = i;
@@ -1624,7 +1623,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  		/* Initialize the TX side lock */
  		snprintf(txr->mtx_name, sizeof(txr->mtx_name), "%s:tx(%d)",
-@@ -2753,7 +2862,7 @@
+@@ -2753,7 +2861,7 @@
  			error = ENOMEM;
  			goto err_tx_desc;
          	}
@@ -1633,7 +1632,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		/* Allocate a buf ring */
  		txr->br = buf_ring_alloc(IXGBE_BR_SIZE, M_DEVBUF,
  		    M_WAITOK, &txr->tx_mtx);
-@@ -2776,6 +2885,7 @@
+@@ -2776,6 +2884,7 @@
  		/* Set up some basics */
  		rxr->adapter = adapter;
  		rxr->me = i;
@@ -1641,7 +1640,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  		/* Initialize the RX side lock */
  		snprintf(rxr->mtx_name, sizeof(rxr->mtx_name), "%s:rx(%d)",
-@@ -2898,9 +3008,20 @@
+@@ -2898,9 +3007,20 @@
  	struct adapter *adapter = txr->adapter;
  	struct ixgbe_tx_buf *txbuf;
  	int i;
@@ -1662,7 +1661,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	bzero((void *)txr->tx_base,
  	      (sizeof(union ixgbe_adv_tx_desc)) * adapter->num_tx_desc);
  	/* Reset indices */
-@@ -2909,7 +3030,7 @@
+@@ -2909,7 +3029,7 @@
  
  	/* Free any existing tx buffers. */
          txbuf = txr->tx_buffers;
@@ -1671,7 +1670,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		if (txbuf->m_head != NULL) {
  			bus_dmamap_sync(txr->txtag, txbuf->map,
  			    BUS_DMASYNC_POSTWRITE);
-@@ -2917,8 +3038,24 @@
+@@ -2917,8 +3037,24 @@
  			m_freem(txbuf->m_head);
  			txbuf->m_head = NULL;
  		}
@@ -1698,7 +1697,7 @@ Index: sys/dev/ixgbe/ixgbe.c
          }
  
  #ifdef IXGBE_FDIR
-@@ -2972,7 +3109,7 @@
+@@ -2972,7 +3108,7 @@
  		       (tdba & 0x00000000ffffffffULL));
  		IXGBE_WRITE_REG(hw, IXGBE_TDBAH(i), (tdba >> 32));
  		IXGBE_WRITE_REG(hw, IXGBE_TDLEN(i),
@@ -1707,7 +1706,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  		/* Setup the HW Tx Head and Tail descriptor pointers */
  		IXGBE_WRITE_REG(hw, IXGBE_TDH(i), 0);
-@@ -2982,6 +3119,9 @@
+@@ -2982,6 +3118,9 @@
  		txr->txd_cmd = IXGBE_TXD_CMD_IFCS;
  		txr->queue_status = IXGBE_QUEUE_IDLE;
  
@@ -1717,7 +1716,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		/* Disable Head Writeback */
  		switch (hw->mac.type) {
  		case ixgbe_mac_82598EB:
-@@ -2993,7 +3133,7 @@
+@@ -2993,7 +3132,7 @@
  			txctrl = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL_82599(i));
  			break;
                  }
@@ -1726,7 +1725,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		switch (hw->mac.type) {
  		case ixgbe_mac_82598EB:
  			IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL(i), txctrl);
-@@ -3056,7 +3196,7 @@
+@@ -3056,7 +3195,7 @@
  	struct ixgbe_tx_buf *tx_buffer;
  	int             i;
  
@@ -1735,7 +1734,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	if (txr->tx_buffers == NULL)
  		return;
-@@ -3083,7 +3223,7 @@
+@@ -3083,7 +3222,7 @@
  			tx_buffer->map = NULL;
  		}
  	}
@@ -1744,7 +1743,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	if (txr->br != NULL)
  		buf_ring_free(txr->br, M_DEVBUF);
  #endif
-@@ -3100,43 +3240,49 @@
+@@ -3100,43 +3239,49 @@
  
  /*********************************************************************
   *
@@ -1808,7 +1807,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	/*
  	 * Determine where frame payload starts.
-@@ -3198,22 +3344,22 @@
+@@ -3198,22 +3343,22 @@
  			break;
  	}
  
@@ -1838,7 +1837,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  /**********************************************************************
-@@ -3222,16 +3368,15 @@
+@@ -3222,16 +3367,15 @@
   *  adapters using advanced tx descriptors
   *
   **********************************************************************/
@@ -1860,7 +1859,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	struct ether_vlan_header *eh;
  	struct ip *ip;
  	struct tcphdr *th;
-@@ -3242,32 +3387,30 @@
+@@ -3242,32 +3386,30 @@
  	 * Jump over vlan headers if already present
  	 */
  	eh = mtod(mp, struct ether_vlan_header *);
@@ -1903,7 +1902,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	/* VLAN MACLEN IPLEN */
  	if (mp->m_flags & M_VLANTAG) {
-@@ -3277,30 +3420,30 @@
+@@ -3277,30 +3419,30 @@
  
  	vlan_macip_lens |= ehdrlen << IXGBE_ADVTXD_MACLEN_SHIFT;
  	vlan_macip_lens |= ip_hlen;
@@ -1942,7 +1941,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  #ifdef IXGBE_FDIR
-@@ -3386,95 +3529,139 @@
+@@ -3386,95 +3528,139 @@
   *  tx_buffer is put back on the free queue.
   *
   **********************************************************************/
@@ -2148,7 +2147,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	/*
  	** Watchdog calculation, we know there's
-@@ -3485,16 +3672,10 @@
+@@ -3485,16 +3671,10 @@
  	if ((!processed) && ((ticks - txr->watchdog_time) > IXGBE_WATCHDOG))
  		txr->queue_status = IXGBE_QUEUE_HUNG;
  
@@ -2167,7 +2166,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  /*********************************************************************
-@@ -3510,80 +3691,60 @@
+@@ -3510,80 +3690,60 @@
  ixgbe_refresh_mbufs(struct rx_ring *rxr, int limit)
  {
  	struct adapter		*adapter = rxr->adapter;
@@ -2281,7 +2280,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			j = 0;
  	}
  update:
-@@ -3609,7 +3770,7 @@
+@@ -3609,7 +3769,7 @@
  	struct ixgbe_rx_buf 	*rxbuf;
  	int             	i, bsize, error;
  
@@ -2290,7 +2289,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	if (!(rxr->rx_buffers =
  	    (struct ixgbe_rx_buf *) malloc(bsize,
  	    M_DEVBUF, M_NOWAIT | M_ZERO))) {
-@@ -3623,22 +3784,6 @@
+@@ -3623,22 +3783,6 @@
  				   BUS_SPACE_MAXADDR,	/* lowaddr */
  				   BUS_SPACE_MAXADDR,	/* highaddr */
  				   NULL, NULL,		/* filter, filterarg */
@@ -2313,7 +2312,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  				   MJUM16BYTES,		/* maxsize */
  				   1,			/* nsegments */
  				   MJUM16BYTES,		/* maxsegsize */
-@@ -3650,18 +3795,12 @@
+@@ -3650,18 +3794,12 @@
  		goto fail;
  	}
  
@@ -2334,7 +2333,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			goto fail;
  		}
  	}
-@@ -3691,6 +3830,10 @@
+@@ -3691,6 +3829,10 @@
   *  for an RX ring, this is toggled by the LRO capability
   *  even though it is transparent to the stack.
   *
@@ -2345,7 +2344,7 @@ Index: sys/dev/ixgbe/ixgbe.c
   **********************************************************************/
  static void
  ixgbe_setup_hw_rsc(struct rx_ring *rxr)
-@@ -3699,8 +3842,18 @@
+@@ -3699,8 +3841,18 @@
  	struct	ixgbe_hw	*hw = &adapter->hw;
  	u32			rscctrl, rdrxctl;
  
@@ -2364,7 +2363,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	rdrxctl |= IXGBE_RDRXCTL_CRCSTRIP;
  	rdrxctl |= IXGBE_RDRXCTL_RSCACKC;
  	IXGBE_WRITE_REG(hw, IXGBE_RDRXCTL, rdrxctl);
-@@ -3711,11 +3864,11 @@
+@@ -3711,11 +3863,11 @@
  	** Limit the total number of descriptors that
  	** can be combined, so it does not exceed 64K
  	*/
@@ -2379,7 +2378,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		rscctrl |= IXGBE_RSCCTL_MAXDESC_4;
  	else  /* Using 16K cluster */
  		rscctrl |= IXGBE_RSCCTL_MAXDESC_1;
-@@ -3738,29 +3891,20 @@
+@@ -3738,29 +3890,20 @@
  static void     
  ixgbe_free_receive_ring(struct rx_ring *rxr)
  { 
@@ -2415,7 +2414,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  }
  
-@@ -3777,9 +3921,13 @@
+@@ -3777,9 +3920,13 @@
  	struct ifnet		*ifp;
  	device_t		dev;
  	struct ixgbe_rx_buf	*rxbuf;
@@ -2430,7 +2429,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	adapter = rxr->adapter;
  	ifp = adapter->ifp;
-@@ -3787,70 +3935,65 @@
+@@ -3787,70 +3934,65 @@
  
  	/* Clear the ring contents */
  	IXGBE_RX_LOCK(rxr);
@@ -2536,7 +2535,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  
  
-@@ -3858,7 +4001,7 @@
+@@ -3858,7 +4000,7 @@
  	rxr->next_to_check = 0;
  	rxr->next_to_refresh = 0;
  	rxr->lro_enabled = FALSE;
@@ -2545,7 +2544,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	rxr->rx_bytes = 0;
  	rxr->discard = FALSE;
  	rxr->vtag_strip = FALSE;
-@@ -3868,12 +4011,8 @@
+@@ -3868,12 +4010,8 @@
  
  	/*
  	** Now set up the LRO interface:
@@ -2559,7 +2558,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		ixgbe_setup_hw_rsc(rxr);
  	else if (ifp->if_capenable & IFCAP_LRO) {
  		int err = tcp_lro_init(lro);
-@@ -3965,6 +4104,13 @@
+@@ -3965,6 +4103,13 @@
  		hlreg |= IXGBE_HLREG0_JUMBOEN;
  	else
  		hlreg &= ~IXGBE_HLREG0_JUMBOEN;
@@ -2573,7 +2572,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	IXGBE_WRITE_REG(hw, IXGBE_HLREG0, hlreg);
  
  	bufsz = (adapter->rx_mbuf_sz +
-@@ -3985,19 +4131,15 @@
+@@ -3985,19 +4130,15 @@
  		srrctl &= ~IXGBE_SRRCTL_BSIZEHDR_MASK;
  		srrctl &= ~IXGBE_SRRCTL_BSIZEPKT_MASK;
  		srrctl |= bufsz;
@@ -2597,7 +2596,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  
  	if (adapter->hw.mac.type != ixgbe_mac_82598EB) {
-@@ -4068,6 +4210,8 @@
+@@ -4068,6 +4209,8 @@
  {
  	struct rx_ring *rxr = adapter->rx_rings;
  
@@ -2606,7 +2605,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	for (int i = 0; i < adapter->num_queues; i++, rxr++) {
  		struct lro_ctrl		*lro = &rxr->lro;
  		ixgbe_free_receive_buffers(rxr);
-@@ -4092,32 +4236,20 @@
+@@ -4092,32 +4235,20 @@
  	struct adapter		*adapter = rxr->adapter;
  	struct ixgbe_rx_buf	*rxbuf;
  
@@ -2644,7 +2643,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			if (rxbuf->pmap != NULL) {
  				bus_dmamap_destroy(rxr->ptag, rxbuf->pmap);
  				rxbuf->pmap = NULL;
-@@ -4129,10 +4261,6 @@
+@@ -4129,10 +4260,6 @@
  		}
  	}
  
@@ -2655,7 +2654,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	if (rxr->ptag != NULL) {
  		bus_dma_tag_destroy(rxr->ptag);
  		rxr->ptag = NULL;
-@@ -4146,15 +4274,17 @@
+@@ -4146,15 +4273,17 @@
  {
                   
          /*
@@ -2677,7 +2676,7 @@ Index: sys/dev/ixgbe/ixgbe.c
              (m->m_pkthdr.csum_flags & (CSUM_DATA_VALID | CSUM_PSEUDO_HDR)) ==
              (CSUM_DATA_VALID | CSUM_PSEUDO_HDR)) {
                  /*
-@@ -4192,16 +4322,13 @@
+@@ -4192,16 +4321,13 @@
  	** the normal refresh path to get new buffers
  	** and mapping.
  	*/
@@ -2699,7 +2698,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	return;
  }
  
-@@ -4218,7 +4345,7 @@
+@@ -4218,7 +4344,7 @@
   *  Return TRUE for more work, FALSE for all clean.
   *********************************************************************/
  static bool
@@ -2708,7 +2707,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  {
  	struct adapter		*adapter = que->adapter;
  	struct rx_ring		*rxr = que->rxr;
-@@ -4227,15 +4354,22 @@
+@@ -4227,15 +4353,22 @@
  	struct lro_entry	*queued;
  	int			i, nextp, processed = 0;
  	u32			staterr = 0;
@@ -2733,7 +2732,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		u16		vtag = 0;
  		bool		eop;
   
-@@ -4257,23 +4391,16 @@
+@@ -4257,23 +4390,16 @@
  		rsc = 0;
  		cur->wb.upper.status_error = 0;
  		rbuf = &rxr->rx_buffers[i];
@@ -2759,7 +2758,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			rxr->rx_discarded++;
  			if (eop)
  				rxr->discard = FALSE;
-@@ -4317,108 +4444,71 @@
+@@ -4317,108 +4443,71 @@
  			prefetch(nbuf);
  		}
  		/*
@@ -2916,7 +2915,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			if ((ifp->if_capenable & IFCAP_RXCSUM) != 0)
  				ixgbe_rx_checksum(staterr, sendmp, ptype);
  #if __FreeBSD_version >= 800000
-@@ -4431,7 +4521,7 @@
+@@ -4431,7 +4520,7 @@
  		    BUS_DMASYNC_PREREAD | BUS_DMASYNC_PREWRITE);
  
  		/* Advance our pointers to the next descriptor. */
@@ -2925,7 +2924,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			i = 0;
  
  		/* Now send to the stack or do LRO */
-@@ -4465,15 +4555,12 @@
+@@ -4465,15 +4554,12 @@
  	IXGBE_RX_UNLOCK(rxr);
  
  	/*
@@ -2945,7 +2944,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  
-@@ -4628,22 +4715,37 @@
+@@ -4628,22 +4714,37 @@
  static void
  ixgbe_enable_intr(struct adapter *adapter)
  {
@@ -2993,7 +2992,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	}
  
  	IXGBE_WRITE_REG(hw, IXGBE_EIMS, mask);
-@@ -4707,6 +4809,111 @@
+@@ -4707,6 +4808,111 @@
  }
  
  /*
@@ -3105,7 +3104,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  ** Setup the correct IVAR register for a particular MSIX interrupt
  **   (yes this is all very magic and confusing :)
  **  - entry is the register array entry
-@@ -4763,7 +4970,7 @@
+@@ -4763,7 +4969,7 @@
  	u32 newitr;
  
  	if (ixgbe_max_interrupt_rate > 0)
@@ -3114,7 +3113,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	else
  		newitr = 0;
  
-@@ -4871,7 +5078,7 @@
+@@ -4871,7 +5077,7 @@
  	if ((!autoneg) && (hw->mac.ops.get_link_capabilities))
  		hw->mac.ops.get_link_capabilities(hw, &autoneg, &negotiate);
  	if (hw->mac.ops.setup_link)
@@ -3123,7 +3122,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	return;
  }
  
-@@ -4889,6 +5096,8 @@
+@@ -4889,6 +5095,8 @@
  		return;
  	ixgbe_reinit_fdir_tables_82599(&adapter->hw);
  	adapter->fdir_reinit = 0;
@@ -3132,7 +3131,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	/* Restart the interface */
  	ifp->if_drv_flags |= IFF_DRV_RUNNING;
  	return;
-@@ -4913,6 +5122,11 @@
+@@ -4913,6 +5121,11 @@
  	adapter->stats.errbc += IXGBE_READ_REG(hw, IXGBE_ERRBC);
  	adapter->stats.mspdc += IXGBE_READ_REG(hw, IXGBE_MSPDC);
  
@@ -3144,7 +3143,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	for (int i = 0; i < 8; i++) {
  		u32 mp;
  		mp = IXGBE_READ_REG(hw, IXGBE_MPC(i));
-@@ -4922,13 +5136,20 @@
+@@ -4922,13 +5135,20 @@
          	adapter->stats.mpc[i] += mp;
  		/* Running comprehensive total for stats display */
  		total_missed_rx += adapter->stats.mpc[i];
@@ -3168,7 +3167,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		adapter->stats.pxofftxc[i] +=
  		    IXGBE_READ_REG(hw, IXGBE_PXOFFTXC(i));
  		adapter->stats.pxoffrxc[i] +=
-@@ -4939,12 +5160,6 @@
+@@ -4939,12 +5159,6 @@
  	for (int i = 0; i < 16; i++) {
  		adapter->stats.qprc[i] += IXGBE_READ_REG(hw, IXGBE_QPRC(i));
  		adapter->stats.qptc[i] += IXGBE_READ_REG(hw, IXGBE_QPTC(i));
@@ -3181,7 +3180,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		adapter->stats.qprdc[i] += IXGBE_READ_REG(hw, IXGBE_QPRDC(i));
  	}
  	adapter->stats.mlfc += IXGBE_READ_REG(hw, IXGBE_MLFC);
-@@ -5037,11 +5252,12 @@
+@@ -5037,11 +5251,12 @@
  	ifp->if_ibytes = adapter->stats.gorc;
  	ifp->if_obytes = adapter->stats.gotc;
  	ifp->if_imcasts = adapter->stats.mprc;
@@ -3196,7 +3195,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  /** ixgbe_sysctl_tdh_handler - Handler function
-@@ -5126,12 +5342,21 @@
+@@ -5126,12 +5341,21 @@
  	reg = IXGBE_READ_REG(&que->adapter->hw, IXGBE_EITR(que->msix));
  	usec = ((reg & 0x0FF8) >> 3);
  	if (usec > 0)
@@ -3219,7 +3218,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	return 0;
  }
  
-@@ -5165,15 +5390,9 @@
+@@ -5165,15 +5389,9 @@
  	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "mbuf_defrag_failed",
  			CTLFLAG_RD, &adapter->mbuf_defrag_failed,
  			"m_defrag() failed");
@@ -3235,7 +3234,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "link_irq",
  			CTLFLAG_RD, &adapter->link_irq,
  			"Link MSIX IRQ Handled");
-@@ -5185,17 +5404,27 @@
+@@ -5185,17 +5403,27 @@
  		queue_list = SYSCTL_CHILDREN(queue_node);
  
  		SYSCTL_ADD_PROC(ctx, queue_list, OID_AUTO, "interrupt_rate",
@@ -3266,7 +3265,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		SYSCTL_ADD_UQUAD(ctx, queue_list, OID_AUTO, "no_desc_avail",
  				CTLFLAG_RD, &txr->no_desc_avail,
  				"Queue No Descriptor Available");
-@@ -5218,11 +5447,11 @@
+@@ -5218,11 +5446,11 @@
  		queue_list = SYSCTL_CHILDREN(queue_node);
  
  		SYSCTL_ADD_PROC(ctx, queue_list, OID_AUTO, "rxd_head", 
@@ -3280,7 +3279,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  				ixgbe_sysctl_rdt_handler, "IU",
  				"Receive Descriptor Tail");
  		SYSCTL_ADD_UQUAD(ctx, queue_list, OID_AUTO, "rx_packets",
-@@ -5231,6 +5460,9 @@
+@@ -5231,6 +5459,9 @@
  		SYSCTL_ADD_UQUAD(ctx, queue_list, OID_AUTO, "rx_bytes",
  				CTLFLAG_RD, &rxr->rx_bytes,
  				"Queue Bytes Received");
@@ -3290,7 +3289,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  		SYSCTL_ADD_INT(ctx, queue_list, OID_AUTO, "lro_queued",
  				CTLFLAG_RD, &lro->lro_queued, 0,
  				"LRO Queued");
-@@ -5266,16 +5498,18 @@
+@@ -5266,16 +5497,18 @@
  	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rec_len_errs",
  			CTLFLAG_RD, &stats->rlec,
  			"Receive Length Errors");
@@ -3313,7 +3312,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  			CTLFLAG_RD, &stats->lxoffrxc,
  			"Link XOFF Received");
  
-@@ -5375,29 +5609,6 @@
+@@ -5375,29 +5608,6 @@
  	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_1024_1522",
  			CTLFLAG_RD, &stats->ptc1522,
  			"1024-1522 byte frames transmitted");
@@ -3343,7 +3342,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  }
  
  /*
-@@ -5428,31 +5639,29 @@
+@@ -5428,31 +5638,29 @@
  		case ixgbe_fc_tx_pause:
  		case ixgbe_fc_full:
  			adapter->hw.fc.requested_mode = adapter->fc;
@@ -3387,7 +3386,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  */
  static int
  ixgbe_set_advertise(SYSCTL_HANDLER_ARGS)
-@@ -5466,35 +5675,38 @@
+@@ -5466,35 +5674,38 @@
  	adapter = (struct adapter *) arg1;
  	dev = adapter->dev;
  	hw = &adapter->hw;
@@ -3436,7 +3435,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  
  	return (error);
  }
-@@ -5502,6 +5714,7 @@
+@@ -5502,6 +5713,7 @@
  /*
  ** Thermal Shutdown Trigger
  **   - cause a Thermal Overtemp IRQ
@@ -3444,7 +3443,7 @@ Index: sys/dev/ixgbe/ixgbe.c
  */
  static int
  ixgbe_set_thermal_test(SYSCTL_HANDLER_ARGS)
-@@ -5526,3 +5739,34 @@
+@@ -5526,3 +5738,34 @@
  
  	return (0);
  }
@@ -3479,10 +3478,9 @@ Index: sys/dev/ixgbe/ixgbe.c
 +        	IXGBE_WRITE_REG(hw, IXGBE_SRRCTL(i), srrctl);
 +	}
 +}
-
 Index: sys/dev/ixgbe/ixgbe.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -3742,7 +3740,7 @@ Index: sys/dev/ixgbe/ixgbe.h
  
 Index: sys/dev/ixgbe/ixgbe_82598.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_82598.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_82598.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_82598.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -4131,7 +4129,7 @@ Index: sys/dev/ixgbe/ixgbe_82598.c
  
 Index: sys/dev/ixgbe/ixgbe_82598.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_82598.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_82598.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_82598.h	(working copy)
 @@ -36,7 +36,7 @@
  #define _IXGBE_82598_H_
@@ -4142,10 +4140,9 @@ Index: sys/dev/ixgbe/ixgbe_82598.h
  s32 ixgbe_start_hw_82598(struct ixgbe_hw *hw);
  void ixgbe_enable_relaxed_ordering_82598(struct ixgbe_hw *hw);
  s32 ixgbe_set_vmdq_82598(struct ixgbe_hw *hw, u32 rar, u32 vmdq);
-
 Index: sys/dev/ixgbe/ixgbe_82599.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_82599.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_82599.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_82599.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -5072,7 +5069,7 @@ Index: sys/dev/ixgbe/ixgbe_82599.c
 +
 Index: sys/dev/ixgbe/ixgbe_82599.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_82599.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_82599.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_82599.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -5107,10 +5104,9 @@ Index: sys/dev/ixgbe/ixgbe_82599.h
  s32 ixgbe_enable_rx_dma_82599(struct ixgbe_hw *hw, u32 regval);
 -bool ixgbe_verify_lesm_fw_enabled_82599(struct ixgbe_hw *hw);
  #endif /* _IXGBE_82599_H_ */
-
 Index: sys/dev/ixgbe/ixgbe_api.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_api.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_api.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_api.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -5342,7 +5338,7 @@ Index: sys/dev/ixgbe/ixgbe_api.c
   *
 Index: sys/dev/ixgbe/ixgbe_api.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_api.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_api.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_api.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -5411,7 +5407,7 @@ Index: sys/dev/ixgbe/ixgbe_api.h
  s32 ixgbe_write_i2c_byte(struct ixgbe_hw *hw, u8 byte_offset, u8 dev_addr,
 Index: sys/dev/ixgbe/ixgbe_common.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_common.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_common.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_common.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -7273,7 +7269,7 @@ Index: sys/dev/ixgbe/ixgbe_common.c
 +}
 Index: sys/dev/ixgbe/ixgbe_common.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_common.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_common.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_common.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -8074,7 +8070,6 @@ Index: sys/dev/ixgbe/ixgbe_dcb.c
 +	}
 +	return 0;
 +}
-
 Index: sys/dev/ixgbe/ixgbe_dcb.h
 ===================================================================
 --- sys/dev/ixgbe/ixgbe_dcb.h	(revision 0)
@@ -8256,7 +8251,6 @@ Index: sys/dev/ixgbe/ixgbe_dcb.h
 +s32 ixgbe_dcb_hw_config(struct ixgbe_hw *, u16 *, u16 *, u8 *, u8 *, u8 *);
 +s32 ixgbe_dcb_hw_config_cee(struct ixgbe_hw *, struct ixgbe_dcb_config *);
 +#endif /* _IXGBE_DCB_H_ */
-
 Index: sys/dev/ixgbe/ixgbe_dcb_82598.c
 ===================================================================
 --- sys/dev/ixgbe/ixgbe_dcb_82598.c	(revision 0)
@@ -8621,7 +8615,6 @@ Index: sys/dev/ixgbe/ixgbe_dcb_82598.c
 +
 +	return IXGBE_SUCCESS;
 +}
-
 Index: sys/dev/ixgbe/ixgbe_dcb_82598.h
 ===================================================================
 --- sys/dev/ixgbe/ixgbe_dcb_82598.h	(revision 0)
@@ -8727,7 +8720,6 @@ Index: sys/dev/ixgbe/ixgbe_dcb_82598.h
 +/* DCB initialization */
 +s32 ixgbe_dcb_hw_config_82598(struct ixgbe_hw *, int, u16 *, u16 *, u8 *, u8 *);
 +#endif /* _IXGBE_DCB_82958_H_ */
-
 Index: sys/dev/ixgbe/ixgbe_dcb_82599.c
 ===================================================================
 --- sys/dev/ixgbe/ixgbe_dcb_82599.c	(revision 0)
@@ -9319,7 +9311,6 @@ Index: sys/dev/ixgbe/ixgbe_dcb_82599.c
 +	return IXGBE_SUCCESS;
 +}
 +
-
 Index: sys/dev/ixgbe/ixgbe_dcb_82599.h
 ===================================================================
 --- sys/dev/ixgbe/ixgbe_dcb_82599.h	(revision 0)
@@ -9479,10 +9470,9 @@ Index: sys/dev/ixgbe/ixgbe_dcb_82599.h
 +s32 ixgbe_dcb_hw_config_82599(struct ixgbe_hw *, int, u16 *, u16 *, u8 *,
 +			      u8 *, u8 *);
 +#endif /* _IXGBE_DCB_82959_H_ */
-
 Index: sys/dev/ixgbe/ixgbe_mbx.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_mbx.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_mbx.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_mbx.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -9516,7 +9506,7 @@ Index: sys/dev/ixgbe/ixgbe_mbx.h
  /* word in permanent address message with the current multicast type */
 Index: sys/dev/ixgbe/ixgbe_osdep.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_osdep.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_osdep.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_osdep.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -9616,7 +9606,7 @@ Index: sys/dev/ixgbe/ixgbe_osdep.h
  	bus_space_tag_t    mem_bus_space_tag;
 Index: sys/dev/ixgbe/ixgbe_phy.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_phy.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_phy.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_phy.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -10406,7 +10396,7 @@ Index: sys/dev/ixgbe/ixgbe_phy.c
  }
 Index: sys/dev/ixgbe/ixgbe_phy.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_phy.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_phy.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_phy.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -10483,7 +10473,7 @@ Index: sys/dev/ixgbe/ixgbe_phy.h
  					       ixgbe_link_speed *speed,
 Index: sys/dev/ixgbe/ixgbe_type.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_type.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_type.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_type.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -11125,7 +11115,7 @@ Index: sys/dev/ixgbe/ixgbe_type.h
  #endif /* _IXGBE_TYPE_H_ */
 Index: sys/dev/ixgbe/ixgbe_vf.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_vf.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_vf.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_vf.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -11393,7 +11383,7 @@ Index: sys/dev/ixgbe/ixgbe_vf.c
  
 Index: sys/dev/ixgbe/ixgbe_vf.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_vf.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_vf.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_vf.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -11434,7 +11424,7 @@ Index: sys/dev/ixgbe/ixgbe_vf.h
  #endif /* __IXGBE_VF_H__ */
 Index: sys/dev/ixgbe/ixgbe_x540.c
 ===================================================================
---- sys/dev/ixgbe/ixgbe_x540.c	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_x540.c	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_x540.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -11741,10 +11731,9 @@ Index: sys/dev/ixgbe/ixgbe_x540.c
  }
  
 +
-
 Index: sys/dev/ixgbe/ixgbe_x540.h
 ===================================================================
---- sys/dev/ixgbe/ixgbe_x540.h	(revision 253890)
+--- sys/dev/ixgbe/ixgbe_x540.h	(revision 255674)
 +++ sys/dev/ixgbe/ixgbe_x540.h	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -11776,10 +11765,9 @@ Index: sys/dev/ixgbe/ixgbe_x540.h
  s32 ixgbe_blink_led_stop_X540(struct ixgbe_hw *hw, u32 index);
  #endif /* _IXGBE_X540_H_ */
 +
-
 Index: sys/dev/ixgbe/ixv.c
 ===================================================================
---- sys/dev/ixgbe/ixv.c	(revision 253890)
+--- sys/dev/ixgbe/ixv.c	(revision 255674)
 +++ sys/dev/ixgbe/ixv.c	(working copy)
 @@ -1,6 +1,6 @@
  /******************************************************************************
@@ -11986,7 +11974,7 @@ Index: sys/dev/ixgbe/ixv.c
  
 Index: sys/modules/ixgbe/Makefile
 ===================================================================
---- sys/modules/ixgbe/Makefile	(revision 253890)
+--- sys/modules/ixgbe/Makefile	(revision 255674)
 +++ sys/modules/ixgbe/Makefile	(working copy)
 @@ -5,6 +5,7 @@
  SRCS    += ixgbe.c ixv.c
