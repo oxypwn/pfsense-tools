@@ -223,7 +223,7 @@ index 2d73edb..456670e 100644
 -	carp_send_ad_locked(sc);
 -	CURVNET_RESTORE();
 -	CARP_UNLOCK(sc);
-+	CARP_LOCK_ASSERT(sc)
++	CARP_LOCK_ASSERT(sc);
 +
 +	if (sc->sc_carpdev != NULL)
 +		CURVNET_SET(SC2IFP(sc)->if_vnet);
