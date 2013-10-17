@@ -1,0 +1,10 @@
+Index: etc/pam.d/passwd
+===================================================================
+--- etc/pam.d/passwd	(revision 256690)
++++ etc/pam.d/passwd	(working copy)
+@@ -8,4 +8,4 @@
+ 
+ # password
+ #password	requisite	pam_passwdqc.so		enforce=users
+-password	required	pam_unix.so		no_warn try_first_pass nullok
++password	required	pam_unix.so		no_warn try_first_pass
