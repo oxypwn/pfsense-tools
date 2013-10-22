@@ -49,3 +49,8 @@
 -p1~~divert.RELENG_10.diff~
 -p1~~CP_speedup.diff~
 ~~pam_remove_nullok.diff~
+~~beastie.4th.diff~
+~~menu-commands.4th.diff~
+~~menu.4th.diff~
+~~brand.4th.diff~
+~~loader.conf.diff~
