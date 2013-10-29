@@ -13,7 +13,7 @@ index b25f38c..bd0b38b 100644
  LDADD=	-lutil
 diff --git a/sbin/ipfw/context.c b/sbin/ipfw/context.c
 new file mode 100644
-index 0000000..ddd5eb7
+index 0000000..357cc9e
 --- /dev/null
 +++ b/sbin/ipfw/context.c
 @@ -0,0 +1,135 @@
@@ -153,7 +153,7 @@ index 0000000..ddd5eb7
 +	return (error);
 +}
 diff --git a/sbin/ipfw/ipfw2.c b/sbin/ipfw/ipfw2.c
-index 619b036..38828b2 100644
+index 1eafccb..ace37c1 100644
 --- a/sbin/ipfw/ipfw2.c
 +++ b/sbin/ipfw/ipfw2.c
 @@ -420,6 +420,7 @@ safe_realloc(void *ptr, size_t size)
@@ -187,7 +187,7 @@ index 619b036..38828b2 100644
  
  	return setsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, op3, len);
  }
-@@ -4434,6 +4444,7 @@ table_list(uint16_t num, int need_header)
+@@ -4435,6 +4445,7 @@ table_list(uint16_t num, int need_header)
  	a = (uint32_t *)(op3 + 1);
  	*a = num;
  	op3->opcode = IP_FW_TABLE_XGETSIZE;
@@ -218,7 +218,7 @@ index d592930..65006f3 100644
  void print_unreach6_code(uint16_t code);
  void print_ip6(struct _ipfw_insn_ip6 *cmd, char const *s);
 diff --git a/sbin/ipfw/main.c b/sbin/ipfw/main.c
-index 82a299b..aaed2fc 100644
+index 82a299b..ab75a1b 100644
 --- a/sbin/ipfw/main.c
 +++ b/sbin/ipfw/main.c
 @@ -262,7 +262,7 @@ ipfw_main(int oldac, char **oldav)
@@ -287,7 +287,7 @@ index 82a299b..aaed2fc 100644
  			errx(EX_USAGE, "bad arguments, for usage"
  			     " summary ``ipfw''");
 diff --git a/sys/netinet/ip_fw.h b/sys/netinet/ip_fw.h
-index 70ab5b2..b29a6af 100644
+index b14f653..c6c1791 100644
 --- a/sys/netinet/ip_fw.h
 +++ b/sys/netinet/ip_fw.h
 @@ -65,7 +65,8 @@
@@ -314,7 +314,7 @@ index 70ab5b2..b29a6af 100644
  /*
   * The kernel representation of ipfw rules is made of a list of
 diff --git a/sys/netpfil/ipfw/ip_fw2.c b/sys/netpfil/ipfw/ip_fw2.c
-index e0a879d..9b4e57b 100644
+index be095e1..ba23098 100644
 --- a/sys/netpfil/ipfw/ip_fw2.c
 +++ b/sys/netpfil/ipfw/ip_fw2.c
 @@ -139,8 +139,7 @@ VNET_DEFINE(int, fw_verbose);
@@ -325,9 +325,9 @@ index e0a879d..9b4e57b 100644
 -VNET_DEFINE(struct ip_fw_chain, layer3_chain);
 +VNET_DEFINE(struct ip_fw_contextes, ipfw_contexts);
  
- ipfw_nat_t *ipfw_nat_ptr = NULL;
- struct cfg_nat *(*lookup_nat_ptr)(struct nat_list *, int);
-@@ -179,9 +178,6 @@ SYSCTL_INT(_net_inet_ip_fw, OID_AUTO, default_to_accept, CTLFLAG_RDTUN,
+ VNET_DEFINE(int, ipfw_nat_ready) = 0;
+ 
+@@ -181,9 +180,6 @@ SYSCTL_INT(_net_inet_ip_fw, OID_AUTO, default_to_accept, CTLFLAG_RDTUN,
      "Make the default rule accept all packets.");
  TUNABLE_INT("net.inet.ip.fw.default_to_accept", &default_to_accept);
  TUNABLE_INT("net.inet.ip.fw.tables_max", (int *)&default_fw_tables);
@@ -337,7 +337,7 @@ index e0a879d..9b4e57b 100644
  
  #ifdef INET6
  SYSCTL_DECL(_net_inet6_ip6);
-@@ -901,6 +897,9 @@ ipfw_chk(struct ip_fw_args *args)
+@@ -903,6 +899,9 @@ ipfw_chk(struct ip_fw_args *args)
  	 */
  	struct ifnet *oif = args->oif;
  
@@ -347,7 +347,7 @@ index e0a879d..9b4e57b 100644
  	int f_pos = 0;		/* index of current rule in the array */
  	int retval = 0;
  
-@@ -951,9 +950,15 @@ ipfw_chk(struct ip_fw_args *args)
+@@ -953,9 +952,15 @@ ipfw_chk(struct ip_fw_args *args)
  	 */
  	int dyn_dir = MATCH_UNKNOWN;
  	ipfw_dyn_rule *q = NULL;
@@ -364,7 +364,7 @@ index e0a879d..9b4e57b 100644
  	/*
  	 * We store in ulp a pointer to the upper layer protocol header.
  	 * In the ipv4 case this is easy to determine from the header,
-@@ -2499,7 +2504,7 @@ do {								\
+@@ -2501,7 +2506,7 @@ do {								\
  				    set_match(args, f_pos, chain);
  				    /* Check if this is 'global' nat rule */
  				    if (cmd->arg1 == 0) {
@@ -373,7 +373,7 @@ index e0a879d..9b4e57b 100644
  					    l = 0;
  					    done = 1;
  					    break;
-@@ -2627,7 +2632,9 @@ sysctl_ipfw_table_num(SYSCTL_HANDLER_ARGS)
+@@ -2629,7 +2634,9 @@ sysctl_ipfw_table_num(SYSCTL_HANDLER_ARGS)
  	if ((error != 0) || (req->newptr == NULL))
  		return (error);
  
@@ -384,7 +384,7 @@ index e0a879d..9b4e57b 100644
  }
  #endif
  /*
-@@ -2705,11 +2712,6 @@ ipfw_destroy(void)
+@@ -2707,11 +2714,6 @@ ipfw_destroy(void)
  static int
  vnet_ipfw_init(const void *unused)
  {
@@ -396,7 +396,7 @@ index e0a879d..9b4e57b 100644
  
  	/* First set up some values that are compile time options */
  	V_autoinc_step = 100;	/* bounded to 1..1000 in add_rule() */
-@@ -2720,39 +2722,16 @@ vnet_ipfw_init(const void *unused)
+@@ -2722,39 +2724,16 @@ vnet_ipfw_init(const void *unused)
  #ifdef IPFIREWALL_VERBOSE_LIMIT
  	V_verbose_limit = IPFIREWALL_VERBOSE_LIMIT;
  #endif
@@ -442,7 +442,7 @@ index e0a879d..9b4e57b 100644
  
  	/* First set up some values that are compile time options */
  	V_ipfw_vnet_ready = 1;		/* Open for business */
-@@ -2775,17 +2754,61 @@ vnet_ipfw_init(const void *unused)
+@@ -2777,17 +2756,61 @@ vnet_ipfw_init(const void *unused)
  	return (error);
  }
  
@@ -507,7 +507,7 @@ index e0a879d..9b4e57b 100644
  	/*
  	 * disconnect from ipv4, ipv6, layer2 and sockopt.
  	 * Then grab, release and grab again the WLOCK so we make
-@@ -2793,14 +2816,45 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2795,14 +2818,45 @@ vnet_ipfw_uninit(const void *unused)
  	 */
  	(void)ipfw_attach_hooks(0 /* detach */);
  	V_ip_fw_ctl_ptr = NULL;
@@ -557,7 +557,7 @@ index e0a879d..9b4e57b 100644
  	ipfw_destroy_tables(chain);
  	reap = NULL;
  	IPFW_WLOCK(chain);
-@@ -2816,7 +2870,9 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2818,7 +2872,9 @@ vnet_ipfw_uninit(const void *unused)
  	if (reap != NULL)
  		ipfw_reap_rules(reap);
  	IPFW_LOCK_DESTROY(chain);
@@ -624,19 +624,20 @@ index b0456d3..44e4343 100644
  
  void
 diff --git a/sys/netpfil/ipfw/ip_fw_nat.c b/sys/netpfil/ipfw/ip_fw_nat.c
-index 84852db..51f8856 100644
+index 155eddd..3c3b007 100644
 --- a/sys/netpfil/ipfw/ip_fw_nat.c
 +++ b/sys/netpfil/ipfw/ip_fw_nat.c
-@@ -63,26 +63,33 @@ ifaddr_change(void *arg __unused, struct ifnet *ifp)
- 	struct ifaddr *ifa;
- 	struct ip_fw_chain *chain;
+@@ -64,26 +64,33 @@ ifaddr_change(void *arg __unused, struct ifnet *ifp)
  
+ 	KASSERT(curvnet == ifp->if_vnet,
+ 	    ("curvnet(%p) differs from iface vnet(%p)", curvnet, ifp->if_vnet));
 -	chain = &V_layer3_chain;
 -	IPFW_WLOCK(chain);
 -	/* Check every nat entry... */
 -	LIST_FOREACH(ptr, &chain->nat, _next) {
 -		/* ...using nic 'ifp->if_xname' as dynamic alias address. */
 -		if (strncmp(ptr->if_name, ifp->if_xname, IF_NAMESIZE) != 0)
++
 +	IPFW_CTX_RLOCK();
 +	for (int i = 1; i < IP_FW_MAXCTX; i++) {
 +		chain = &V_ip_fw_contexts.chain[i];
@@ -647,7 +648,6 @@ index 84852db..51f8856 100644
 -			if (ifa->ifa_addr == NULL)
 -				continue;
 -			if (ifa->ifa_addr->sa_family != AF_INET)
-+
 +		IPFW_WLOCK(chain);
 +		/* Check every nat entry... */
 +		LIST_FOREACH(ptr, &chain->nat, _next) {
@@ -677,7 +677,7 @@ index 84852db..51f8856 100644
  }
  
  /*
-@@ -205,18 +212,18 @@ add_redir_spool_cfg(char *buf, struct cfg_nat *ptr)
+@@ -206,18 +213,18 @@ add_redir_spool_cfg(char *buf, struct cfg_nat *ptr)
  /*
   * ipfw_nat - perform mbuf header translation.
   *
@@ -699,7 +699,7 @@ index 84852db..51f8856 100644
  	char *c;
  
  	ldt = 0;
-@@ -275,7 +282,6 @@ ipfw_nat(struct ip_fw_args *args, struct cfg_nat *t, struct mbuf *m)
+@@ -276,7 +283,6 @@ ipfw_nat(struct ip_fw_args *args, struct cfg_nat *t, struct mbuf *m)
  		}
  
  		found = 0;
@@ -707,7 +707,7 @@ index 84852db..51f8856 100644
  		IPFW_RLOCK_ASSERT(chain);
  		/* Check every nat entry... */
  		LIST_FOREACH(t, &chain->nat, _next) {
-@@ -390,11 +396,10 @@ lookup_nat(struct nat_list *l, int nat_id)
+@@ -391,11 +397,10 @@ lookup_nat(struct nat_list *l, int nat_id)
  }
  
  static int
@@ -720,7 +720,7 @@ index 84852db..51f8856 100644
  	size_t len;
  	int gencnt, error = 0;
  
-@@ -467,10 +472,9 @@ out:
+@@ -468,10 +473,9 @@ out:
  }
  
  static int
@@ -732,7 +732,7 @@ index 84852db..51f8856 100644
  	int i;
  
  	sooptcopyin(sopt, &i, sizeof i, sizeof i);
-@@ -491,9 +495,8 @@ ipfw_nat_del(struct sockopt *sopt)
+@@ -492,9 +496,8 @@ ipfw_nat_del(struct sockopt *sopt)
  }
  
  static int
@@ -743,7 +743,7 @@ index 84852db..51f8856 100644
  	struct cfg_nat *n;
  	struct cfg_redir *r;
  	struct cfg_spool *s;
-@@ -551,14 +554,11 @@ retry:
+@@ -552,14 +555,11 @@ retry:
  }
  
  static int
@@ -759,23 +759,7 @@ index 84852db..51f8856 100644
  
  	IPFW_RLOCK(chain);
  	/* one pass to count, one to copy the data */
-@@ -593,7 +593,6 @@ static void
- ipfw_nat_init(void)
- {
- 
--	IPFW_WLOCK(&V_layer3_chain);
- 	/* init ipfw hooks */
- 	ipfw_nat_ptr = ipfw_nat;
- 	lookup_nat_ptr = lookup_nat;
-@@ -601,7 +600,6 @@ ipfw_nat_init(void)
- 	ipfw_nat_del_ptr = ipfw_nat_del;
- 	ipfw_nat_get_cfg_ptr = ipfw_nat_get_cfg;
- 	ipfw_nat_get_log_ptr = ipfw_nat_get_log;
--	IPFW_WUNLOCK(&V_layer3_chain);
- 	V_ifaddr_event_tag = EVENTHANDLER_REGISTER(
- 	    ifaddr_event, ifaddr_change,
- 	    NULL, EVENTHANDLER_PRI_ANY);
-@@ -613,16 +611,21 @@ ipfw_nat_destroy(void)
+@@ -604,17 +604,22 @@ vnet_ipfw_nat_uninit(const void *arg __unused)
  	struct cfg_nat *ptr, *ptr_temp;
  	struct ip_fw_chain *chain;
  
@@ -797,24 +781,19 @@ index 84852db..51f8856 100644
 +			free(ptr, M_IPFW);
 +		}
 +		flush_nat_ptrs(chain, -1 /* flush all */);
++		V_ipfw_nat_ready = 0;
 +		IPFW_WUNLOCK(chain);
  	}
-+	IPFW_CTX_RUNLOCK();
- 	EVENTHANDLER_DEREGISTER(ifaddr_event, V_ifaddr_event_tag);
 -	flush_nat_ptrs(chain, -1 /* flush all */);
- 	/* deregister ipfw_nat */
- 	ipfw_nat_ptr = NULL;
- 	lookup_nat_ptr = NULL;
-@@ -630,7 +633,6 @@ ipfw_nat_destroy(void)
- 	ipfw_nat_del_ptr = NULL;
- 	ipfw_nat_get_cfg_ptr = NULL;
- 	ipfw_nat_get_log_ptr = NULL;
+-	V_ipfw_nat_ready = 0;
 -	IPFW_WUNLOCK(chain);
++	IPFW_CTX_RUNLOCK();
++
+ 	return (0);
  }
  
- static int
 diff --git a/sys/netpfil/ipfw/ip_fw_private.h b/sys/netpfil/ipfw/ip_fw_private.h
-index c08161b..d7ef166 100644
+index b0b88db..d3c630d 100644
 --- a/sys/netpfil/ipfw/ip_fw_private.h
 +++ b/sys/netpfil/ipfw/ip_fw_private.h
 @@ -190,7 +190,7 @@ ipfw_dyn_rule *ipfw_lookup_dyn_rule(struct ipfw_flow_id *pkt,
@@ -880,10 +859,10 @@ index c08161b..d7ef166 100644
 +			struct ip_fw_chain *);
 +typedef int ipfw_nat_cfg_t(struct sockopt *, struct ip_fw_chain *);
  
- extern ipfw_nat_t *ipfw_nat_ptr;
- #define IPFW_NAT_LOADED (ipfw_nat_ptr != NULL)
+ VNET_DECLARE(int, ipfw_nat_ready);
+ #define	V_ipfw_nat_ready	VNET(ipfw_nat_ready)
 diff --git a/sys/netpfil/ipfw/ip_fw_sockopt.c b/sys/netpfil/ipfw/ip_fw_sockopt.c
-index 15d22b2..7a6ab96 100644
+index 15d22b2..2d95c82 100644
 --- a/sys/netpfil/ipfw/ip_fw_sockopt.c
 +++ b/sys/netpfil/ipfw/ip_fw_sockopt.c
 @@ -943,12 +943,15 @@ ipfw_ctl(struct sockopt *sopt)
