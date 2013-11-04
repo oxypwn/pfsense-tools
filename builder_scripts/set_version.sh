@@ -218,7 +218,7 @@ HEAD)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_10_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_1"	
 	export PFSPORTSFILE=buildports.RELENG_2_1
-	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn"}
 	set_items
 ;;
 

@@ -178,6 +178,8 @@ else
 fi
 if [ ${FREEBSD_VERSION} -gt 7 -a "$FREEBSD_BRANCH" != "RELENG_8_1" ]; then
 	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf virtio coretemp amdtemp aesni sfxge mps ahci"}
+elif [ ${FREEBSD_VERSION} -eq 10 ]; then
+	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb if_stf virtio coretemp amdtemp aesni sfxge mps ahci"}
 else
 	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf coretemp amdtemp"}
 fi
