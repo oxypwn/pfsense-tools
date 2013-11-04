@@ -262,7 +262,7 @@ index 6317013..e0a879d 100644
 +							dst_ip.s_addr : src_ip.s_addr;
 +						mix.mac = (cmd->opcode == O_IP_DST_LOOKUP) ?
 +							args->eh->ether_dhost :
-+							args->eh->ether_shost);
++							args->eh->ether_shost;
 +						tblent = ipfw_lookup_table_extended(chain,
 +								cmd->arg1, pkey, &v,
 +								IPFW_TABLE_MIX);
@@ -380,7 +380,7 @@ index 6317013..e0a879d 100644
 +						bcopy(sin6, (fwd_tag+1), sizeof(struct sockaddr_in6));
 +						m_tag_prepend(m, fwd_tag);
 +
-+						if (in6_localip(sin6->sin6_addr))
++						if (in6_localip(&sin6->sin6_addr))
 +							m->m_flags |= M_FASTFWD_OURS;
 +						m->m_flags |= M_IP6_NEXTHOP;
 +					}
