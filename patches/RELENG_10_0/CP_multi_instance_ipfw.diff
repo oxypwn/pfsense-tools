@@ -433,7 +433,7 @@ index be095e1..ba23098 100644
 -	rule->cmd[0].opcode = default_to_accept ? O_ACCEPT : O_DENY;
 -	chain->rules = chain->default_rule = chain->map[0] = rule;
 -	chain->id = rule->id = 1;
-+	V_ipfw_context.ifnet_arrival = EVENTHANDLER_REGISTER(ifnet_arrival_event,
++	V_ip_fw_contexts.ifnet_arrival = EVENTHANDLER_REGISTER(ifnet_arrival_event,
 +		ipfw_attach_ifnet_event, NULL, EVENTHANDLER_PRI_ANY);
  
 -	IPFW_LOCK_INIT(chain);

@@ -310,7 +310,7 @@ index 6317013..e0a879d 100644
 +				} else if (args->eh) {
 +					struct m_tag *fwd_tag;
 +					struct sockaddr_in *sa;
-+					u_short sum;
++					//u_short sum;
 +
 +					/*
 +					* Checksum correct? (from ip_fastfwd.c)
