@@ -1,9 +1,9 @@
 diff --git a/sbin/ipfw/Makefile b/sbin/ipfw/Makefile
-index b25f38c..bd0b38b 100644
+index 1acd4b7..7c83361 100644
 --- a/sbin/ipfw/Makefile
 +++ b/sbin/ipfw/Makefile
 @@ -1,7 +1,7 @@
- # $FreeBSD$
+ # $FreeBSD: stable/10/sbin/ipfw/Makefile 204869 2010-03-08 14:43:55Z luigi $
  
  PROG=	ipfw
 -SRCS=	ipfw2.c dummynet.c ipv6.c main.c nat.c altq.c
@@ -153,7 +153,7 @@ index 0000000..357cc9e
 +	return (error);
 +}
 diff --git a/sbin/ipfw/ipfw2.c b/sbin/ipfw/ipfw2.c
-index 1eafccb..ace37c1 100644
+index a8fb846..a1bd3db 100644
 --- a/sbin/ipfw/ipfw2.c
 +++ b/sbin/ipfw/ipfw2.c
 @@ -420,6 +420,7 @@ safe_realloc(void *ptr, size_t size)
@@ -196,7 +196,7 @@ index 1eafccb..ace37c1 100644
  		err(EX_OSERR, "getsockopt(IP_FW_TABLE_XGETSIZE)");
  
 diff --git a/sbin/ipfw/ipfw2.h b/sbin/ipfw/ipfw2.h
-index d592930..65006f3 100644
+index 07fb8b9..b242ce4 100644
 --- a/sbin/ipfw/ipfw2.h
 +++ b/sbin/ipfw/ipfw2.h
 @@ -54,6 +54,7 @@ struct cmdline_opts {
@@ -218,7 +218,7 @@ index d592930..65006f3 100644
  void print_unreach6_code(uint16_t code);
  void print_ip6(struct _ipfw_insn_ip6 *cmd, char const *s);
 diff --git a/sbin/ipfw/main.c b/sbin/ipfw/main.c
-index 82a299b..ab75a1b 100644
+index 1096298..33fef9c 100644
 --- a/sbin/ipfw/main.c
 +++ b/sbin/ipfw/main.c
 @@ -262,7 +262,7 @@ ipfw_main(int oldac, char **oldav)
@@ -287,7 +287,7 @@ index 82a299b..ab75a1b 100644
  			errx(EX_USAGE, "bad arguments, for usage"
  			     " summary ``ipfw''");
 diff --git a/sys/netinet/ip_fw.h b/sys/netinet/ip_fw.h
-index b14f653..c6c1791 100644
+index f064dd2..77d7a15 100644
 --- a/sys/netinet/ip_fw.h
 +++ b/sys/netinet/ip_fw.h
 @@ -65,7 +65,8 @@
@@ -314,7 +314,7 @@ index b14f653..c6c1791 100644
  /*
   * The kernel representation of ipfw rules is made of a list of
 diff --git a/sys/netpfil/ipfw/ip_fw2.c b/sys/netpfil/ipfw/ip_fw2.c
-index be095e1..ba23098 100644
+index 0c4f493..133410b 100644
 --- a/sys/netpfil/ipfw/ip_fw2.c
 +++ b/sys/netpfil/ipfw/ip_fw2.c
 @@ -139,8 +139,7 @@ VNET_DEFINE(int, fw_verbose);
@@ -364,7 +364,7 @@ index be095e1..ba23098 100644
  	/*
  	 * We store in ulp a pointer to the upper layer protocol header.
  	 * In the ipv4 case this is easy to determine from the header,
-@@ -2501,7 +2506,7 @@ do {								\
+@@ -2500,7 +2505,7 @@ do {								\
  				    set_match(args, f_pos, chain);
  				    /* Check if this is 'global' nat rule */
  				    if (cmd->arg1 == 0) {
@@ -373,7 +373,16 @@ index be095e1..ba23098 100644
  					    l = 0;
  					    done = 1;
  					    break;
-@@ -2629,7 +2634,9 @@ sysctl_ipfw_table_num(SYSCTL_HANDLER_ARGS)
+@@ -2519,7 +2524,7 @@ do {								\
+ 					if (cmd->arg1 != IP_FW_TABLEARG)
+ 					    ((ipfw_insn_nat *)cmd)->nat = t;
+ 				    }
+-				    retval = ipfw_nat_ptr(args, t, m);
++				    retval = ipfw_nat_ptr(args, t, m, chain);
+ 				}
+ 				l = 0;          /* exit inner loop */
+ 				done = 1;       /* exit outer loop */
+@@ -2628,7 +2633,9 @@ sysctl_ipfw_table_num(SYSCTL_HANDLER_ARGS)
  	if ((error != 0) || (req->newptr == NULL))
  		return (error);
  
@@ -384,7 +393,7 @@ index be095e1..ba23098 100644
  }
  #endif
  /*
-@@ -2707,11 +2714,6 @@ ipfw_destroy(void)
+@@ -2706,11 +2713,6 @@ ipfw_destroy(void)
  static int
  vnet_ipfw_init(const void *unused)
  {
@@ -396,62 +405,49 @@ index be095e1..ba23098 100644
  
  	/* First set up some values that are compile time options */
  	V_autoinc_step = 100;	/* bounded to 1..1000 in add_rule() */
-@@ -2722,39 +2724,16 @@ vnet_ipfw_init(const void *unused)
+@@ -2721,10 +2723,55 @@ vnet_ipfw_init(const void *unused)
  #ifdef IPFIREWALL_VERBOSE_LIMIT
  	V_verbose_limit = IPFIREWALL_VERBOSE_LIMIT;
  #endif
--#ifdef IPFIREWALL_NAT
--	LIST_INIT(&chain->nat);
--#endif
- 
--	/* insert the default rule and create the initial map */
--	chain->n_rules = 1;
--	chain->static_len = sizeof(struct ip_fw);
--	chain->map = malloc(sizeof(struct ip_fw *), M_IPFW, M_WAITOK | M_ZERO);
--	if (chain->map)
--		rule = malloc(chain->static_len, M_IPFW, M_WAITOK | M_ZERO);
++
 +	for (int i = 0; i < IP_FW_MAXCTX; i++)
 +		V_ip_fw_contexts.chain[i] = NULL;
- 
--	/* Set initial number of tables */
--	V_fw_tables_max = default_fw_tables;
--	error = ipfw_init_tables(chain);
--	if (error) {
--		printf("ipfw2: setting up tables failed\n");
--		free(chain->map, M_IPFW);
--		free(rule, M_IPFW);
--		return (ENOSPC);
--	}
++
 +	IPFW_CTX_LOCK_INIT();
- 
--	/* fill and insert the default rule */
--	rule->act_ofs = 0;
--	rule->rulenum = IPFW_DEFAULT_RULE;
--	rule->cmd_len = 1;
--	rule->set = RESVD_SET;
--	rule->cmd[0].len = 1;
--	rule->cmd[0].opcode = default_to_accept ? O_ACCEPT : O_DENY;
--	chain->rules = chain->default_rule = chain->map[0] = rule;
--	chain->id = rule->id = 1;
++
 +	V_ip_fw_contexts.ifnet_arrival = EVENTHANDLER_REGISTER(ifnet_arrival_event,
 +		ipfw_attach_ifnet_event, NULL, EVENTHANDLER_PRI_ANY);
- 
--	IPFW_LOCK_INIT(chain);
--	ipfw_dyn_init(chain);
++
 +	ipfw_dyn_init();
- 
- 	/* First set up some values that are compile time options */
- 	V_ipfw_vnet_ready = 1;		/* Open for business */
-@@ -2777,17 +2756,61 @@ vnet_ipfw_init(const void *unused)
- 	return (error);
- }
- 
++
++	/* First set up some values that are compile time options */
++	V_ipfw_vnet_ready = 1;		/* Open for business */
++
++	/*
++	 * Hook the sockopt handler and pfil hooks for ipv4 and ipv6.
++	 * Even if the latter two fail we still keep the module alive
++	 * because the sockopt and layer2 paths are still useful.
++	 * ipfw[6]_hook return 0 on success, ENOENT on failure,
++	 * so we can ignore the exact return value and just set a flag.
++	 *
++	 * Note that V_fw[6]_enable are manipulated by a SYSCTL_PROC so
++	 * changes in the underlying (per-vnet) variables trigger
++	 * immediate hook()/unhook() calls.
++	 * In layer2 we have the same behaviour, except that V_ether_ipfw
++	 * is checked on each packet because there are no pfil hooks.
++	 */
++	V_ip_fw_ctl_ptr = ipfw_ctl;
++	return ipfw_attach_hooks(1);
++}
++
 +int
 +ipfw_context_init(int index)
 +{
 +	struct ip_fw_chain *chain;
 +	struct ip_fw *rule = NULL;
-+	int error;
++
++	if (index > IP_FW_MAXCTX)
++		return (-1);
 +
 +	TAILQ_INIT(&V_ip_fw_contexts.iflist[index]);
 +
@@ -459,55 +455,77 @@ index be095e1..ba23098 100644
 +
 +	IPFW_LOCK_INIT(chain);
 +
-+#ifdef IPFIREWALL_NAT
-+	LIST_INIT(&chain->nat);
-+#endif
-+	/* insert the default rule and create the initial map */
-+	chain->n_rules = 1;
-+	chain->static_len = sizeof(struct ip_fw);
-+	chain->map = malloc(sizeof(struct ip_fw *), M_IPFW, M_WAITOK | M_ZERO);
-+	if (chain->map)
-+		rule = malloc(chain->static_len, M_IPFW, M_WAITOK | M_ZERO);
-+
-+	/* Set initial number of tables */
-+	V_fw_tables_max = default_fw_tables;
+ #ifdef IPFIREWALL_NAT
+ 	LIST_INIT(&chain->nat);
+ #endif
+-
+ 	/* insert the default rule and create the initial map */
+ 	chain->n_rules = 1;
+ 	chain->static_len = sizeof(struct ip_fw);
+@@ -2734,13 +2781,7 @@ vnet_ipfw_init(const void *unused)
+ 
+ 	/* Set initial number of tables */
+ 	V_fw_tables_max = default_fw_tables;
+-	error = ipfw_init_tables(chain);
+-	if (error) {
+-		printf("ipfw2: setting up tables failed\n");
+-		free(chain->map, M_IPFW);
+-		free(rule, M_IPFW);
+-		return (ENOSPC);
+-	}
 +	ipfw_init_tables(chain);
-+
-+	/* fill and insert the default rule */
-+	rule->act_ofs = 0;
-+	rule->rulenum = IPFW_DEFAULT_RULE;
-+	rule->cmd_len = 1;
-+	rule->set = RESVD_SET;
-+	rule->cmd[0].len = 1;
-+	rule->cmd[0].opcode = default_to_accept ? O_ACCEPT : O_DENY;
-+	chain->rules = chain->default_rule = chain->map[0] = rule;
-+	chain->id = rule->id = 1;
-+
+ 
+ 	/* fill and insert the default rule */
+ 	rule->act_ofs = 0;
+@@ -2752,28 +2793,13 @@ vnet_ipfw_init(const void *unused)
+ 	chain->rules = chain->default_rule = chain->map[0] = rule;
+ 	chain->id = rule->id = 1;
+ 
+-	IPFW_LOCK_INIT(chain);
+-	ipfw_dyn_init(chain);
+-
+-	/* First set up some values that are compile time options */
+-	V_ipfw_vnet_ready = 1;		/* Open for business */
 +        /*
 +         * This can potentially be done on first dynamic rule
 +         * being added to chain.
 +         */
 +        resize_dynamic_table(chain, V_curr_dyn_buckets);
-+}
-+
+ 
+-	/*
+-	 * Hook the sockopt handler and pfil hooks for ipv4 and ipv6.
+-	 * Even if the latter two fail we still keep the module alive
+-	 * because the sockopt and layer2 paths are still useful.
+-	 * ipfw[6]_hook return 0 on success, ENOENT on failure,
+-	 * so we can ignore the exact return value and just set a flag.
+-	 *
+-	 * Note that V_fw[6]_enable are manipulated by a SYSCTL_PROC so
+-	 * changes in the underlying (per-vnet) variables trigger
+-	 * immediate hook()/unhook() calls.
+-	 * In layer2 we have the same behaviour, except that V_ether_ipfw
+-	 * is checked on each packet because there are no pfil hooks.
+-	 */
+-	V_ip_fw_ctl_ptr = ipfw_ctl;
+-	error = ipfw_attach_hooks(1);
+-	return (error);
++	return (0);
+ }
+ 
  /*
-  * Called for the removal of each instance.
-  */
+@@ -2782,11 +2808,9 @@ vnet_ipfw_init(const void *unused)
  static int
  vnet_ipfw_uninit(const void *unused)
  {
 -	struct ip_fw *reap, *rule;
 -	struct ip_fw_chain *chain = &V_layer3_chain;
 -	int i;
-+	struct ifnet *ifp;
-+	struct ip_fw_chain *chain;
  
  	V_ipfw_vnet_ready = 0; /* tell new callers to go away */
 +
  	/*
  	 * disconnect from ipv4, ipv6, layer2 and sockopt.
  	 * Then grab, release and grab again the WLOCK so we make
-@@ -2795,14 +2818,45 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2794,14 +2818,51 @@ vnet_ipfw_uninit(const void *unused)
  	 */
  	(void)ipfw_attach_hooks(0 /* detach */);
  	V_ip_fw_ctl_ptr = NULL;
@@ -523,6 +541,8 @@ index be095e1..ba23098 100644
 +	IPFW_CTX_LOCK_DESTROY();
 +
 +	ipfw_dyn_uninit(1);	/* free the remaining parts */
++
++	return (0);
 +}
 +
 +int
@@ -531,15 +551,19 @@ index be095e1..ba23098 100644
 +	struct ip_fw_chain *chain;
 +	struct ip_fw_ctx_iflist *ifl;
 +	struct ip_fw *reap, *rule;
++	struct ifnet *ifp;
 +	int i;
 +
-+	chain = V_ip_fw_contexts.chain[i];
-+	if (chain == NULL)
-+		return;
++	if (index > IP_FW_MAXCTX)
++		return (-1);
 +
-+	while (!TAILQ_EMPTY(&V_ip_fw_contexts.iflist[i])) {
-+		ifl = TAILQ_FIRST(&V_ip_fw_contexts.iflist[i]);
-+		TAILQ_REMOVE(&V_ip_fw_contexts.iflist[i], ifl, entry);
++	chain = V_ip_fw_contexts.chain[index];
++	if (chain == NULL)
++		return (0);
++
++	while (!TAILQ_EMPTY(&V_ip_fw_contexts.iflist[index])) {
++		ifl = TAILQ_FIRST(&V_ip_fw_contexts.iflist[index]);
++		TAILQ_REMOVE(&V_ip_fw_contexts.iflist[index], ifl, entry);
 +		ifp = ifunit(ifl->ifname);
 +		if (ifp != NULL)
 +			ifp->if_ispare[0] = 0;
@@ -557,22 +581,45 @@ index be095e1..ba23098 100644
  	ipfw_destroy_tables(chain);
  	reap = NULL;
  	IPFW_WLOCK(chain);
-@@ -2818,7 +2872,9 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2817,8 +2878,10 @@ vnet_ipfw_uninit(const void *unused)
  	if (reap != NULL)
  		ipfw_reap_rules(reap);
  	IPFW_LOCK_DESTROY(chain);
 -	ipfw_dyn_uninit(1);	/* free the remaining parts */
+-	return 0;
 +
 +	free(chain, M_IPFW);
 +
- 	return 0;
++	return (0);
  }
  
+ /*
 diff --git a/sys/netpfil/ipfw/ip_fw_dynamic.c b/sys/netpfil/ipfw/ip_fw_dynamic.c
-index b0456d3..44e4343 100644
+index 123558a..98b6c83 100644
 --- a/sys/netpfil/ipfw/ip_fw_dynamic.c
 +++ b/sys/netpfil/ipfw/ip_fw_dynamic.c
-@@ -970,7 +970,6 @@ ipfw_dyn_send_ka(struct mbuf **mtailp, ipfw_dyn_rule *q)
+@@ -121,11 +121,9 @@ struct ipfw_dyn_bucket {
+  */
+ static VNET_DEFINE(struct ipfw_dyn_bucket *, ipfw_dyn_v);
+ static VNET_DEFINE(u_int32_t, dyn_buckets_max);
+-static VNET_DEFINE(u_int32_t, curr_dyn_buckets);
+ static VNET_DEFINE(struct callout, ipfw_timeout);
+ #define	V_ipfw_dyn_v			VNET(ipfw_dyn_v)
+ #define	V_dyn_buckets_max		VNET(dyn_buckets_max)
+-#define	V_curr_dyn_buckets		VNET(curr_dyn_buckets)
+ #define V_ipfw_timeout                  VNET(ipfw_timeout)
+ 
+ static VNET_DEFINE(uma_zone_t, ipfw_dyn_rule_zone);
+@@ -470,7 +468,7 @@ ipfw_dyn_unlock(ipfw_dyn_rule *q)
+ 	IPFW_BUCK_UNLOCK(q->bucket);
+ }
+ 
+-static int
++int
+ resize_dynamic_table(struct ip_fw_chain *chain, int nbuckets)
+ {
+ 	int i, k, nbuckets_old;
+@@ -970,7 +968,6 @@ ipfw_dyn_send_ka(struct mbuf **mtailp, ipfw_dyn_rule *q)
  static void
  ipfw_dyn_tick(void * vnetx) 
  {
@@ -580,7 +627,7 @@ index b0456d3..44e4343 100644
  	int check_ka = 0;
  #ifdef VIMAGE
  	struct vnet *vp = vnetx;
-@@ -978,7 +977,6 @@ ipfw_dyn_tick(void * vnetx)
+@@ -978,7 +975,6 @@ ipfw_dyn_tick(void * vnetx)
  
  	CURVNET_SET(vp);
  
@@ -588,7 +635,7 @@ index b0456d3..44e4343 100644
  
  	/* Run keepalive checks every keepalive_period iff ka is enabled */
  	if ((V_dyn_keepalive_last + V_dyn_keepalive_period <= time_uptime) &&
-@@ -987,7 +985,11 @@ ipfw_dyn_tick(void * vnetx)
+@@ -987,7 +983,12 @@ ipfw_dyn_tick(void * vnetx)
  		check_ka = 1;
  	}
  
@@ -597,11 +644,12 @@ index b0456d3..44e4343 100644
 +	for (int i = 1; i < IP_FW_MAXCTX; i++) {
 +		if (V_ip_fw_contexts.chain[i] != NULL)
 +			check_dyn_rules(V_ip_fw_contexts.chain[i], NULL, RESVD_SET, check_ka, 1);
++	}
 +	IPFW_CTX_RUNLOCK();
  
  	callout_reset_on(&V_ipfw_timeout, hz, ipfw_dyn_tick, vnetx, 0);
  
-@@ -1303,7 +1305,7 @@ ipfw_expire_dyn_rules(struct ip_fw_chain *chain, struct ip_fw *rule, int set)
+@@ -1303,7 +1304,7 @@ ipfw_expire_dyn_rules(struct ip_fw_chain *chain, struct ip_fw *rule, int set)
  }
  
  void
@@ -610,7 +658,7 @@ index b0456d3..44e4343 100644
  {
  
          V_ipfw_dyn_v = NULL;
-@@ -1332,12 +1334,6 @@ ipfw_dyn_init(struct ip_fw_chain *chain)
+@@ -1332,12 +1333,6 @@ ipfw_dyn_init(struct ip_fw_chain *chain)
  	uma_zone_set_max(V_ipfw_dyn_rule_zone, V_dyn_max);
  
          callout_init(&V_ipfw_timeout, CALLOUT_MPSAFE);
@@ -624,7 +672,7 @@ index b0456d3..44e4343 100644
  
  void
 diff --git a/sys/netpfil/ipfw/ip_fw_nat.c b/sys/netpfil/ipfw/ip_fw_nat.c
-index 155eddd..3c3b007 100644
+index 98a533e..e16f844 100644
 --- a/sys/netpfil/ipfw/ip_fw_nat.c
 +++ b/sys/netpfil/ipfw/ip_fw_nat.c
 @@ -64,26 +64,33 @@ ifaddr_change(void *arg __unused, struct ifnet *ifp)
@@ -640,7 +688,7 @@ index 155eddd..3c3b007 100644
 +
 +	IPFW_CTX_RLOCK();
 +	for (int i = 1; i < IP_FW_MAXCTX; i++) {
-+		chain = &V_ip_fw_contexts.chain[i];
++		chain = V_ip_fw_contexts.chain[i];
 +		if (chain == NULL)
  			continue;
 -		if_addr_rlock(ifp);
@@ -748,7 +796,7 @@ index 155eddd..3c3b007 100644
  
  static int
 -ipfw_nat_get_log(struct sockopt *sopt)
-+ipfw_nat_get_log(struct sockopt *sopt, struct ip_fw_chain *chain;)
++ipfw_nat_get_log(struct sockopt *sopt, struct ip_fw_chain *chain)
  {
  	uint8_t *data;
  	struct cfg_nat *ptr;
@@ -770,7 +818,7 @@ index 155eddd..3c3b007 100644
 -		del_redir_spool_cfg(ptr, &ptr->redir_chain);
 -		LibAliasUninit(ptr->lib);
 -		free(ptr, M_IPFW);
-+	IPFW_CTX_RLOCK()
++	IPFW_CTX_RLOCK();
 +	for (int i = 1; i < IP_FW_MAXCTX; i++) {
 +		chain = V_ip_fw_contexts.chain[i];
 +		IPFW_WLOCK(chain);
@@ -793,10 +841,28 @@ index 155eddd..3c3b007 100644
  }
  
 diff --git a/sys/netpfil/ipfw/ip_fw_private.h b/sys/netpfil/ipfw/ip_fw_private.h
-index b0b88db..d3c630d 100644
+index 0d749c5..dda9fca 100644
 --- a/sys/netpfil/ipfw/ip_fw_private.h
 +++ b/sys/netpfil/ipfw/ip_fw_private.h
-@@ -190,7 +190,7 @@ ipfw_dyn_rule *ipfw_lookup_dyn_rule(struct ipfw_flow_id *pkt,
+@@ -171,6 +171,9 @@ enum { /* result for matching dynamic rules */
+ 	MATCH_UNKNOWN,
+ };
+ 
++VNET_DECLARE(u_int32_t, curr_dyn_buckets);
++#define V_curr_dyn_buckets              VNET(curr_dyn_buckets)
++
+ /*
+  * The lock for dynamic rules is only used once outside the file,
+  * and only to release the result of lookup_dyn_rule().
+@@ -179,6 +182,7 @@ enum { /* result for matching dynamic rules */
+ struct ip_fw_chain;
+ void ipfw_expire_dyn_rules(struct ip_fw_chain *, struct ip_fw *, int);
+ void ipfw_dyn_unlock(ipfw_dyn_rule *q);
++int resize_dynamic_table(struct ip_fw_chain *, int);
+ 
+ struct tcphdr;
+ struct mbuf *ipfw_send_pkt(struct mbuf *, struct ipfw_flow_id *,
+@@ -190,7 +194,7 @@ ipfw_dyn_rule *ipfw_lookup_dyn_rule(struct ipfw_flow_id *pkt,
  void ipfw_remove_dyn_children(struct ip_fw *rule);
  void ipfw_get_dynamic(struct ip_fw_chain *chain, char **bp, const char *ep);
  
@@ -805,7 +871,7 @@ index b0b88db..d3c630d 100644
  void ipfw_dyn_uninit(int);	/* per-vnet deinitialization */
  int ipfw_dyn_len(void);
  
-@@ -201,9 +201,6 @@ VNET_DECLARE(int, fw_one_pass);
+@@ -201,9 +205,6 @@ VNET_DECLARE(int, fw_one_pass);
  VNET_DECLARE(int, fw_verbose);
  #define	V_fw_verbose		VNET(fw_verbose)
  
@@ -815,7 +881,7 @@ index b0b88db..d3c630d 100644
  VNET_DECLARE(u_int32_t, set_disable);
  #define	V_set_disable		VNET(set_disable)
  
-@@ -235,6 +232,33 @@ struct ip_fw_chain {
+@@ -235,6 +236,33 @@ struct ip_fw_chain {
  	uint32_t	gencnt;		/* generation count */
  };
  
@@ -849,7 +915,7 @@ index b0b88db..d3c630d 100644
  struct sockopt;	/* used by tcp_var.h */
  
  /* Macro for working with various counters */
-@@ -325,8 +349,9 @@ int ipfw_resize_tables(struct ip_fw_chain *ch, unsigned int ntables);
+@@ -328,8 +356,9 @@ int ipfw_resize_tables(struct ip_fw_chain *ch, unsigned int ntables);
  
  extern struct cfg_nat *(*lookup_nat_ptr)(struct nat_list *, int);
  
@@ -862,7 +928,7 @@ index b0b88db..d3c630d 100644
  VNET_DECLARE(int, ipfw_nat_ready);
  #define	V_ipfw_nat_ready	VNET(ipfw_nat_ready)
 diff --git a/sys/netpfil/ipfw/ip_fw_sockopt.c b/sys/netpfil/ipfw/ip_fw_sockopt.c
-index 15d22b2..2d95c82 100644
+index 38d7776..c42ae82 100644
 --- a/sys/netpfil/ipfw/ip_fw_sockopt.c
 +++ b/sys/netpfil/ipfw/ip_fw_sockopt.c
 @@ -943,12 +943,15 @@ ipfw_ctl(struct sockopt *sopt)
@@ -926,8 +992,8 @@ index 15d22b2..2d95c82 100644
 +			return (ENOENT);
 +		}
 +
-+		ipfw_context_uninit(tmpctx->contextid);
-+		V_ip_fw_contexts.chain[tmpctx->contextid] = NULL;
++		ipfw_context_uninit(op3->ctxid);
++		V_ip_fw_contexts.chain[op3->ctxid] = NULL;
 +		IPFW_CTX_WUNLOCK();
 +		break;
 +
@@ -981,7 +1047,7 @@ index 15d22b2..2d95c82 100644
 +				for (i = 1; i < IP_FW_MAXCTX; i++) {
 +					sprintf(tmpbuf, "%d:", i);
 +					tmpbuf += strlen(tmpbuf);
-+					TAILQ_FOREACH(tmpifl, &tmpctx->iflist, entry) {
++					TAILQ_FOREACH(tmpifl, &V_ip_fw_contexts.iflist[i], entry) {
 +						sprintf(tmpbuf, "%s,", tmpifl->ifname);
 +						tmpbuf += strlen(tmpifl->ifname) + 1;
 +					}
@@ -1006,7 +1072,7 @@ index 15d22b2..2d95c82 100644
 +		break;
 +
 +	case IP_FW_CTX_ADDMEMBER:
-+		ifname = (op3 + 1);
++		ifname = (char *)(op3 + 1);
 +		ifp = ifunit(ifname);
 +		if (ifp == NULL)
 +			return (ENOENT);
@@ -1020,7 +1086,7 @@ index 15d22b2..2d95c82 100644
 +			return (ENOENT);
 +		}
 +
-+		TAILQ_FOREACH(tmpifl2, &V_ipfw_contexts.iflist[op3->ctxid], entry) {
++		TAILQ_FOREACH(tmpifl2, &V_ip_fw_contexts.iflist[op3->ctxid], entry) {
 +			if (strlen(tmpifl2->ifname) != strlen(ifname))
 +				continue;
 +			if (!strcmp(tmpifl2->ifname, ifname))
@@ -1033,7 +1099,7 @@ index 15d22b2..2d95c82 100644
 +		}
 +
 +		strlcpy(tmpifl->ifname, ifname, sizeof(tmpifl->ifname));
-+		TAILQ_INSERT_HEAD(&V_ipfw_contexts.iflist[op3->ctxid], tmpifl, entry);
++		TAILQ_INSERT_HEAD(&V_ip_fw_contexts.iflist[op3->ctxid], tmpifl, entry);
 +		ifp->if_ispare[0] = op3->ctxid;
 +		IPFW_CTX_WUNLOCK();
 +		break;
@@ -1045,8 +1111,8 @@ index 15d22b2..2d95c82 100644
 +			return (ENOENT);
 +		}
 +
-+		ifname = (op3 + 1);
-+		TAILQ_FOREACH(tmpifl2, &V_ipfw_contexts.iflist[op3->ctxid], entry) {
++		ifname = (char *)(op3 + 1);
++		TAILQ_FOREACH(tmpifl2, &V_ip_fw_contexts.iflist[op3->ctxid], entry) {
 +			if (strlen(tmpifl2->ifname) != strlen(ifname))
 +				continue;
 +			if (!strcmp(tmpifl2->ifname, ifname)) 
@@ -1057,7 +1123,7 @@ index 15d22b2..2d95c82 100644
 +			return (ENOENT);
 +		}
 +
-+		TAILQ_REMOVE(&tmpctx->iflist, tmpifl2, entry);
++		TAILQ_REMOVE(&V_ip_fw_contexts.iflist[op3->ctxid], tmpifl2, entry);
 +		free(tmpifl2, M_IPFW);
 +		IPFW_CTX_WUNLOCK();
 +
