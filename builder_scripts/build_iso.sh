@@ -154,7 +154,11 @@ cat $PFSPKGFILE
 cust_populate_installer_bits
 
 export PKGFILE=${PFSPKGFILE}
-freesbie_make pkginstall
+if [ ${FREEBSD_VERSION} -ge 10 ]; then
+	freesbie_make pkgnginstall
+else
+	freesbie_make pkginstall
+fi
 unset PKGFILE
 
 # Add extra files such as buildtime of version, bsnmpd, etc.

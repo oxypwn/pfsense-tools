@@ -2671,7 +2671,11 @@ pfsense_install_custom_packages_exec() {
 	#	Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
 	#   Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
 
-	PFSDESTNAME="pkginstall.sh"
+	if [ ${FREEBSD_VERSION} -ge 10 ]; then
+		PFSDESTNAME="pkgnginstall.sh"
+	else
+		PFSDESTNAME="pkginstall.sh"
+	fi
 	PFSTODIR="${PFSENSEBASEDIR}"
 
 	# Extra package list if defined.
