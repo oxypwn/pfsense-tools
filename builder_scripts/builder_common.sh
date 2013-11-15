@@ -812,7 +812,11 @@ install_custom_packages() {
 		mount -t devfs devfs ${BASEDIR}/dev
 	fi
 
-	PFSDESTNAME="pkginstall.sh"
+	if [ ${FREEBSD_VERSION} -ge 10 ]; then
+		PFSDESTNAME="pkgnginstall.sh"
+	else
+		PFSDESTNAME="pkginstall.sh"
+	fi
 
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then

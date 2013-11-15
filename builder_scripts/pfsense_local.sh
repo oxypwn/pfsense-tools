@@ -27,6 +27,11 @@ fi
 OIFS=$IFS
 IFS=%
 
+# FreeBSD version and build information
+export pfSense_version=${pfSense_version:-"8"}
+export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
+export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
+
 export PRODUCT_NAME=${PRODUCT_NAME:-pfSense}
 
 # Area that the final image will appear in
@@ -90,7 +95,7 @@ export PFSBUILDERREQUIREDPORTS=${PFSBUILDERREQUIREDPORTS:-${BUILDER_SCRIPTS}/con
 export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 
 # IMPORTANT NOTE: Maintain the order of EXTRAPLUGINS freesbie plugins!
-if [ ${FREEBSD_VERSION} -eq 10 ]; then
+if [ ${FREEBSD_VERSION} -ge 10 ]; then
 	export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkgnginstall"}"
 else
 	export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall"}"
@@ -132,11 +137,6 @@ export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
 #### User settable options follow ###
-
-# FreeBSD version and build information
-export pfSense_version=${pfSense_version:-"8"}
-export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
-export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
 
 # This is used for using svnup for retrieving src instead of csup
 # export USE_SVNUP=yes
@@ -180,7 +180,7 @@ else
 	export MAKEJ_WORLD=${MAKEJ_WORLD:-""}
 	export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
 fi
-if [ ${FREEBSD_VERSION} -eq 10 ]; then
+if [ ${FREEBSD_VERSION} -ge 10 ]; then
 	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb if_stf virtio coretemp amdtemp aesni sfxge mps ahci"}
 elif [ ${FREEBSD_VERSION} -gt 7 -a "$FREEBSD_BRANCH" != "RELENG_8_1" ]; then
 	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf virtio coretemp amdtemp aesni sfxge mps ahci"}
