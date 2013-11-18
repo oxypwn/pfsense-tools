@@ -1,12 +1,11 @@
 # Created by: Dirk Froemberg <dirk@FreeBSD.org>
-# $FreeBSD: security/snort/Makefile 313471 2013-03-05 19:44:01Z zi $
+# $FreeBSD: security/snort/Makefile 313471 2013-08-26 21:01:43Z zi $
 
 PORTNAME=	snort
-PORTVERSION=	2.9.4.6
+PORTVERSION=	2.9.5.5
 CATEGORIES=	security
 MASTER_SITES=	SF/snort/snort \
 		http://mirrors.rit.edu/zi/
-NO_STAGE=	yes
 
 PATCH_DIST_STRIP=	-p1
 
@@ -17,9 +16,9 @@ LICENSE=	GPLv2
 LICENSE_FILE=	${WRKSRC}/LICENSE
 
 LIB_DEPENDS=	pcre:${PORTSDIR}/devel/pcre
-BUILD_DEPENDS=	daq>=2.0.0:${PORTSDIR}/net/daq \
+BUILD_DEPENDS=	daq>=2.0.1:${PORTSDIR}/net/daq \
 		${LOCALBASE}/lib/libnet11/libnet.a:${PORTSDIR}/net/libnet
-RUN_DEPENDS=	daq>=2.0.0:${PORTSDIR}/net/daq \
+RUN_DEPENDS=	daq>=2.0.1:${PORTSDIR}/net/daq \
 		${LOCALBASE}/lib/libnet11/libnet.a:${PORTSDIR}/net/libnet
 
 OPTIONS_DEFINE=	IPV6 MPLS GRE TARGETBASED ZLIB NORMALIZER REACT \
@@ -72,8 +71,8 @@ LIBNET_INCDIR=	${LIBNET_CFLAGS:M-I*:S/-I//}
 LIBNET_LIBDIR=	${LIBNET_LIBS:M-L*:S/-L//}
 
 CFLAGS+=	-fstack-protector
-CONFIGURE_ARGS=	--enable-dynamicplugin --enable-build-dynamic-examples \
-		--enable-reload --enable-reload-error-restart \
+CONFIGURE_ARGS=	--enable-dynamicplugin --enable-reload \
+		--enable-reload-error-restart \
 		--disable-corefiles \
 		--with-dnet-includes=${LIBNET_INCDIR} \
 		--with-dnet-libraries=${LIBNET_LIBDIR}

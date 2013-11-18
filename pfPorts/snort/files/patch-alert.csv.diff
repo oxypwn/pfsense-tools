@@ -1,5 +1,5 @@
-diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/spo_csv.c
---- ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c	2012-07-14 05:12:03.000000000 +0000
+diff -ur ../snort-2.9.5.5.old/src/output-plugins/spo_csv.c ./src/output-plugins/spo_csv.c
+--- ../snort-2.9.5.5.old/src/output-plugins/spo_csv.c	2012-07-14 05:12:03.000000000 +0000
 +++ ./src/output-plugins/spo_csv.c	2012-07-14 05:25:31.000000000 +0000
 @@ -68,6 +68,7 @@
  #include "sfutil/sf_textlog.h"
