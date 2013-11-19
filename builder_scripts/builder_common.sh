@@ -3104,12 +3104,12 @@ update_freebsd_sources_and_apply_patches() {
 		cp ${SUPFILE} /usr/local/etc
 		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
 			(svnup $SVNUP_TARGET -l $SRCDIR -h ${OVERRIDE_FREEBSD_CVSUP_HOST} ${EXTRA_SVNUP_OPTIONS}) 2>&1 | \
-				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|connect)" \
 				| grep -v "error\." | grep -v "opensolaris" | \
 				grep -v "httpd-error"
 		else
 			(svnup $SVNUP_TARGET -l $SRCDIR ${EXTRA_SVNUP_OPTIONS}) 2>&1 | \
-				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|connect)" \
 				| grep -v "error\." | grep -v "opensolaris" | \
 				grep -v "httpd-error"
 		fi
