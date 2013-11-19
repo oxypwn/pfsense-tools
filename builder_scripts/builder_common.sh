@@ -3134,7 +3134,7 @@ update_freebsd_sources_and_apply_patches() {
 	else
 		# CVSUp freebsd version -- this MUST be after Loop through and remove files
 		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|try)" \
 			| grep -v "error\." | grep -v "opensolaris" | \
 			grep -v "httpd-error"
 	fi
