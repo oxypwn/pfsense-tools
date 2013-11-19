@@ -47,11 +47,20 @@ END_OF_USAGE
 	exit 127
 fi
 
+# Source pfsense-build.conf variables
+. ./pfsense_local.sh
+. ./pfsense-build.conf
+
 # Default SUPHOST
 if [ "$2" != "" ]; then 
 	SUPHOST="$2"
 else 
-	if [ -f /usr/local/bin/fastest_cvsup ]; then
+	if [ -n "${USE_SVNUP}" ]; then 
+		echo "WARNING: If /usr/local/etc/svnup.conf is not configured, svnup will fail!"
+		echo 
+		echo "Either set a server in /usr/local/etc/svnup.conf or pass in a svn server as the second parameter"
+		sleep 2
+	elif [ -f /usr/local/bin/fastest_cvsup ]; then
 		echo "One moment please, finding the best cvsup server to use..."
 		SUPHOST=`fastest_cvsup -c tld -q`
 	else 
@@ -94,10 +103,6 @@ touch pfsense-build.conf
 export BUILDER_SCRIPTS=`pwd`
 export BUILDER_TOOLS=${BUILDER_SCRIPTS}/..
 export BASE_DIR=${BUILDER_TOOLS}/..
-
-# Source pfsense-build.conf variables
-. ./pfsense_local.sh
-. ./pfsense-build.conf
 
 strip_pfsense_local() {
 	# Strip dynamic values
