@@ -3497,7 +3497,7 @@ install_pkg_install_ports_build() {
 		fi
 
 		if [ ${FREEBSD_VERSION} -gt 9 ]; then
-			script -a /tmp/pfPorts/${PORTNAME}.txt pkg create $BUILT_PKGNAME -f tbz -o $PFS_PKG_ALL
+			script -a /tmp/pfPorts/${PORTNAME}.txt pkg create -f tbz -o $PFS_PKG_ALL $BUILT_PKGNAME 
 		else
 			script -a /tmp/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
 		fi
