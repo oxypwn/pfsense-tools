@@ -1,11 +1,18 @@
 --- sys/netpfil/pf/pf.c.orig    2013-11-20 04:15:20.000000000 -0600
-+++ sys/netpfil/pf/pf.c 2013-11-20 04:16:18.000000000 -0600
-@@ -6082,7 +6082,7 @@
++++ sys/netpfil/pf/pf.c 2013-11-20 04:21:57.000000000 -0600
+@@ -6082,7 +6082,14 @@
         if (m->m_flags & M_SKIP_FIREWALL)
                 return (PF_PASS);
 
 -       pd.pf_mtag = pf_find_mtag(m);
 +       pd.pf_mtag = pf_get_mtag(m);
++       if (pd.pf_mtag == NULL) {
++               REASON_SET(&reason, PFRES_MEMORY);
++                log = 1;
++                DPFPRINTF(PF_DEBUG_MISC,
++                    ("pf: dropping packet due to failed memory allocation for tags\n"));
++               return PF_DROP;
++       }
 
         PF_RULES_RLOCK();
 
