@@ -3009,12 +3009,11 @@ install_required_builder_system_ports() {
 		PKG_STRING_T=`echo $PKG_STRING | sed "s/[ ]+/ /g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
+		UNSET_OPTS=`echo $PKG_STRING_T | awk '{ print $2 }' | sed 's/,/ /g`
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make BATCH=yes deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes ) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes install) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} OPTIONS_UNSET="X11 DOCS EXAMPLES MAN ${UNSET_OPTS}" BATCH=yes FORCE_PKG_REGISTER=yes install clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			echo "Done!"
 		fi
 	done
