@@ -41,6 +41,10 @@ cmd_names = cmd_names + {
 	DMESG_BOOT = "var/log/dmesg.boot"
 }
 
+mtrees_post_copy = {
+	["usr/local"] = "etc/mtree/BSD.local.dist",
+}
+
 install_items = {
         "boot",
         "COPYRIGHT",
