@@ -2418,51 +2418,8 @@ ova_setup_ovf_file() {
 
 # called from create_ova_image
 ova_prereq_check() {
-	if [ ! -f /usr/local/bin/VBoxManage ]; then
-		if [ ! -d /usr/ports ]; then
-			echo ">>> /usr/ports does not exist, fetching..."
-			portsnap fetch extract
-		fi		
-		BUILDPLATFORM=`uname -p`
-		if [ "$BUILDPLATFORM" = "amd64" ]; then
-			if [ ! -d /usr/lib32 ]; then
-				echo ">>> Building 32bit library compat support"
-				echo ">>> If this fails, run: cd /usr/src && make build32 install32 && /etc/rc.d/ldconfig restart"
-				cd /usr/src && make build32 install32 && /etc/rc.d/ldconfig restart
-			fi
-		fi
-		mkdir -p /var/db/ports/virtualbox-ose
-		cat <<EOF >/var/db/ports/virtualbox-ose/options
-# Options for virtualbox-ose-4.1.8_1
-_OPTIONS_READ=virtualbox-ose-4.1.8_1
-_FILE_COMPLETE_OPTIONS_LIST= QT4 DEBUG GUESTADDITIONS DBUS PULSEAUDIO X11 UDPTUNNEL VDE VNC WEBSERVICE NLS
-OPTIONS_FILE_UNSET+=QT4
-OPTIONS_FILE_UNSET+=DEBUG
-OPTIONS_FILE_UNSET+=GUESTADDITIONS
-OPTIONS_FILE_UNSET+=DBUS
-OPTIONS_FILE_UNSET+=PULSEAUDIO
-OPTIONS_FILE_UNSET+=X11
-OPTIONS_FILE_UNSET+=UDPTUNNEL
-OPTIONS_FILE_UNSET+=VDE
-OPTIONS_FILE_UNSET+=VNC
-OPTIONS_FILE_UNSET+=WEBSERVICE
-OPTIONS_FILE_UNSET+=NL
-EOF
-		echo ">>> Installing VirtualBOX from ports, one moment please..."
-		if [ "${FREEBSD_BRANCH}" = "RELENG_8_1" ]; then
-			/bin/rm -rf /usr/ports/emulators/virtualbox-ose.old
-			/bin/rm -rf /usr/ports/emulators/virtualbox-ose-kmod.old
-			/bin/mv /usr/ports/emulators/virtualbox-ose /usr/ports/emulators/virtualbox-ose.old
-			/bin/mv /usr/ports/emulators/virtualbox-ose-kmod /usr/ports/emulators/virtualbox-ose-kmod.old
-			/bin/cp -Rp ${BASE_DIR}/${TOOLS_DIR}/pfPorts/virtualbox-ose-freebsd81 /usr/ports/emulators/virtualbox-ose
-			/bin/cp -Rp ${BASE_DIR}/${TOOLS_DIR}/pfPorts/virtualbox-ose-kmod-freebsd81 /usr/ports/emulators/virtualbox-ose-kmod
-			( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
-		fi
-		( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes WITHOUT_NLS=true install clean ) >/dev/null
-	fi
-
-	if [ ! -f /usr/local/bin/VBoxManage ]; then
-		echo "VBoxManage is not present please check port emulators/virtualbox-ose[-legacy] installation"
+	if [ ! -f /usr/local/bin/qemu-img]; then
+		echo "qemu-img is not present please check port emulators/qemu installation"
 		exit
 	fi
 	sysctl kern.geom.debugflags=16
@@ -2553,9 +2510,9 @@ ova_set_default_network_interfaces() {
 # called from create_ova_image
 ova_create_vbox_image() {
 	# VirtualBox
-	echo ">>> Creating image using VBoxManage..."
+	echo ">>> Creating image using qemu-img..."
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
-	VBoxManage internalcommands converthd -srcformat RAW -dstformat VMDK ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
+	qemu-img convert -f raw -O vmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
 	rm -rf ${OVFPATH}/${OVFVMDK}.raw
 	echo ">>> ${OVFPATH}/${OVFVMDK} created."
 }
