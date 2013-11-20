@@ -28,8 +28,8 @@ OIFS=$IFS
 IFS=%
 
 # FreeBSD version and build information
-export pfSense_version=${pfSense_version:-"8"}
-export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
+export pfSense_version=${pfSense_version:-8}
+export FREEBSD_VERSION=${FREEBSD_VERSION:-8}
 export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
 
 export PRODUCT_NAME=${PRODUCT_NAME:-pfSense}
