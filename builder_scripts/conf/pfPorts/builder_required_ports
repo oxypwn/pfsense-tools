@@ -6,3 +6,4 @@
 /usr/local/bin/cpdup                            /usr/ports/sysutils/cpdup
 /usr/local/bin/git                              /usr/ports/devel/git
 /usr/local/bin/screen                           /usr/ports/sysutils/screen
+/usr/local/bin/VBoxManage			/usr/ports/emulators/virtualbox-ose-legacy
