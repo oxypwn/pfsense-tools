@@ -3394,7 +3394,8 @@ install_pkg_install_ports_build() {
                                 echo "Done!"
                         fi
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
-			if [ `${PKG_QUERY} $_BUILT_PKGNAME` ]; then
+			${PKG_QUERY} $_BUILT_PKGNAME
+			if [ $? -ne 0 ]; then
 				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
 				script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 				if [ "$?" != "0" ]; then
