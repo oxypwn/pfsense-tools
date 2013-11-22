@@ -166,7 +166,7 @@ index 0000000..f121b2e
 +	return (error);
 +}
 diff --git a/sbin/ipfw/ipfw2.c b/sbin/ipfw/ipfw2.c
-index a8fb846..9753a4d 100644
+index a8fb846..29b3a56 100644
 --- a/sbin/ipfw/ipfw2.c
 +++ b/sbin/ipfw/ipfw2.c
 @@ -54,7 +54,7 @@
@@ -186,13 +186,14 @@ index a8fb846..9753a4d 100644
  	int i;
  
  	if (co.test_only)
-@@ -430,6 +431,14 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
+@@ -430,6 +431,15 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
  	if (ipfw_socket < 0)
  		err(EX_UNAVAILABLE, "socket");
  
 +	if (optname != IP_FW3 && optname != IP_DUMMYNET3 && optname != -IP_DUMMYNET3) {
 +		memset(&op3, 0, sizeof op3);
 +		op3.ctxid = co.ctx;
++		op3.opcode = IP_FW_CTX_SET;
 +		i = setsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, &op3, sizeof(op3));
 +		if (i)
 +			errx(EX_OSERR, "setsockopt: choosing context");
@@ -201,7 +202,7 @@ index a8fb846..9753a4d 100644
  	if (optname == IP_FW_GET || optname == IP_DUMMYNET_GET ||
  	    optname == IP_FW_ADD || optname == IP_FW3 ||
  	    optname == IP_FW_NAT_GET_CONFIG ||
-@@ -475,6 +484,7 @@ do_setcmd3(int optname, void *optval, socklen_t optlen)
+@@ -475,6 +485,7 @@ do_setcmd3(int optname, void *optval, socklen_t optlen)
  	memset(op3, 0, sizeof(ip_fw3_opheader));
  	memcpy(op3 + 1, optval, optlen);
  	op3->opcode = optname;
@@ -209,7 +210,7 @@ index a8fb846..9753a4d 100644
  
  	return setsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, op3, len);
  }
-@@ -4435,6 +4445,7 @@ table_list(uint16_t num, int need_header)
+@@ -4435,6 +4446,7 @@ table_list(uint16_t num, int need_header)
  	a = (uint32_t *)(op3 + 1);
  	*a = num;
  	op3->opcode = IP_FW_TABLE_XGETSIZE;
@@ -959,7 +960,7 @@ index 0d749c5..dda9fca 100644
  VNET_DECLARE(int, ipfw_nat_ready);
  #define	V_ipfw_nat_ready	VNET(ipfw_nat_ready)
 diff --git a/sys/netpfil/ipfw/ip_fw_sockopt.c b/sys/netpfil/ipfw/ip_fw_sockopt.c
-index 38d7776..87458f2 100644
+index 38d7776..35b9af4 100644
 --- a/sys/netpfil/ipfw/ip_fw_sockopt.c
 +++ b/sys/netpfil/ipfw/ip_fw_sockopt.c
 @@ -943,12 +943,15 @@ ipfw_ctl(struct sockopt *sopt)
@@ -968,7 +969,8 @@ index 38d7776..87458f2 100644
  	size_t size, len, valsize;
 +	struct ifnet *ifp;
  	struct ip_fw *buf, *rule;
- 	struct ip_fw_chain *chain;
+-	struct ip_fw_chain *chain;
++	static struct ip_fw_chain *chain;
 +	struct ip_fw_ctx_iflist *tmpifl, *tmpifl2;
 +	ip_fw3_opheader *op3 = NULL;
  	u_int32_t rulenum[2];
@@ -987,22 +989,24 @@ index 38d7776..87458f2 100644
  	error = 0;
  
  	/* Save original valsize before it is altered via sooptcopyin() */
-@@ -982,7 +984,220 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -980,9 +982,224 @@ ipfw_ctl(struct sockopt *sopt)
+ 			return (error);
+ 		op3 = (ip_fw3_opheader *)xbuf;
  		opt = op3->opcode;
++
++		if (op3->ctxid > IP_FW_MAXCTX)
++			return (EINVAL);
++
++		if (opt != IP_FW_CTX_GET) {
++			if (opt != IP_FW_CTX_ADD) {
++				if (op3->ctxid == 0)
++					return (ENOENT);
++			} 
++
++			chain = V_ip_fw_contexts.chain[op3->ctxid];
++		}
  	}
  
-+	if (op3->ctxid > IP_FW_MAXCTX)
-+		return (EINVAL);
-+
-+	if (opt != IP_FW_CTX_GET) {
-+		if (opt != IP_FW_CTX_ADD) {
-+			if (op3->ctxid == 0)
-+				return (ENOENT);
-+		} 
-+
-+		chain = V_ip_fw_contexts.chain[op3->ctxid];
-+	}
-+
  	switch (opt) {
 +	case IP_FW_CTX_ADD:
 +		IPFW_CTX_WLOCK();
@@ -1131,6 +1135,8 @@ index 38d7776..87458f2 100644
 +		IPFW_CTX_RLOCK();
 +		if (V_ip_fw_contexts.chain[op3->ctxid] == NULL)
 +			error = ENOENT;
++		else
++			chain = V_ip_fw_contexts.chain[op3->ctxid];
 +		IPFW_CTX_RUNLOCK();
 +		break;
 +
@@ -1208,7 +1214,7 @@ index 38d7776..87458f2 100644
  	case IP_FW_GET:
  		/*
  		 * pass up a copy of the current rules. Static rules
-@@ -1321,7 +1536,7 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -1321,7 +1538,7 @@ ipfw_ctl(struct sockopt *sopt)
  	/*--- NAT operations are protected by the IPFW_LOCK ---*/
  	case IP_FW_NAT_CFG:
  		if (IPFW_NAT_LOADED)
@@ -1217,7 +1223,7 @@ index 38d7776..87458f2 100644
  		else {
  			printf("IP_FW_NAT_CFG: %s\n",
  			    "ipfw_nat not present, please load it");
-@@ -1331,7 +1546,7 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -1331,7 +1548,7 @@ ipfw_ctl(struct sockopt *sopt)
  
  	case IP_FW_NAT_DEL:
  		if (IPFW_NAT_LOADED)
@@ -1226,7 +1232,7 @@ index 38d7776..87458f2 100644
  		else {
  			printf("IP_FW_NAT_DEL: %s\n",
  			    "ipfw_nat not present, please load it");
-@@ -1341,7 +1556,7 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -1341,7 +1558,7 @@ ipfw_ctl(struct sockopt *sopt)
  
  	case IP_FW_NAT_GET_CONFIG:
  		if (IPFW_NAT_LOADED)
@@ -1235,7 +1241,7 @@ index 38d7776..87458f2 100644
  		else {
  			printf("IP_FW_NAT_GET_CFG: %s\n",
  			    "ipfw_nat not present, please load it");
-@@ -1351,7 +1566,7 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -1351,7 +1568,7 @@ ipfw_ctl(struct sockopt *sopt)
  
  	case IP_FW_NAT_GET_LOG:
  		if (IPFW_NAT_LOADED)
@@ -1244,7 +1250,7 @@ index 38d7776..87458f2 100644
  		else {
  			printf("IP_FW_NAT_GET_LOG: %s\n",
  			    "ipfw_nat not present, please load it");
-@@ -1368,6 +1583,33 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -1368,6 +1585,33 @@ ipfw_ctl(struct sockopt *sopt)
  #undef RULE_MAXSIZE
  }
  
