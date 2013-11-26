@@ -38,6 +38,7 @@ LRGPCAP_DESC=		Enable pcaps larger than 2GB
 SOURCEFIRE_DESC=	Enable Sourcefire-specific build options
 DBGSNORT_DESC=		Enable debugging symbols+core dumps
 
+NO_STAGE=	yes
 .include <bsd.port.options.mk>
 
 #USE_RC_SUBR=	snort
