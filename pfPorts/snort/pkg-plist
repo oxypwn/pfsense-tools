@@ -20,6 +20,9 @@ etc/snort/threshold.conf-sample
 @unexec if cmp  -s %D/etc/snort/unicode.map-sample %D/etc/snort/unicode.map; then rm -f %D/etc/snort/unicode.map; fi
 etc/snort/unicode.map-sample
 @exec if [ ! -f %D/etc/snort/unicode.map ] ; then cp -p %D/%F %B/unicode.map; fi
+@unexec if cmp  -s %D/etc/snort/attribute_table.dtd-sample %D/etc/snort/attribute_table.dtd; then rm -f %D/etc/snort/attribute_table.dtd; fi
+etc/snort/attribute_table.dtd-sample
+@exec if [ ! -f %D/etc/snort/attribute_table.dtd ] ; then cp -p %D/%F %B/attribute_table.dtd; fi
 @dirrmtry etc/snort/rules
 @unexec if cmp  -s %D/etc/snort/preproc_rules/decoder.rules %D/etc/snort/preproc_rules/decoder.rules; then rm -f %D/etc/snort/preproc_rules/decoder.rules;fi
 etc/snort/preproc_rules/decoder.rules-sample
