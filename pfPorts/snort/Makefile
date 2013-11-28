@@ -48,7 +48,7 @@ MAKE_JOBS_UNSAFE=	yes
 
 CONFIG_DIR?=	${PREFIX}/etc/snort
 CONFIG_FILES=	classification.config gen-msg.map reference.config \
-		snort.conf threshold.conf unicode.map
+		snort.conf threshold.conf unicode.map attribute_table.dtd
 RULES_DIR=	${PREFIX}/etc/snort/rules
 LOGS_DIR=	/var/log/snort
 
