@@ -14,7 +14,7 @@ index 0c6f98e..6c77e2d 100644
 +			if (local_inp == inp)
 +				continue;
 +
-+			if ((inp->inp_vflag & INP_IPV4) == 0)
++			if ((local_inp->inp_vflag & INP_IPV4) == 0)
 +                                continue;
 +			if (local_inp->inp_lport != uh->uh_dport)
 +				continue;
@@ -68,7 +68,7 @@ index e4963e2..cd1c9c1 100644
 +			if (local_inp == inp)
 +				continue;
 +
-+			if ((inp->inp_vflag & INP_IPV6) == 0)
++			if ((local_inp->inp_vflag & INP_IPV6) == 0)
 +				continue;
 +			if (local_inp->inp_lport != uh->uh_dport)
 +				continue;
