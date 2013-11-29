@@ -90,7 +90,7 @@ index e4963e2..cd1c9c1 100644
 +				 * Engage the tunneling protocol.
 +				 */
 +
-+				(*up->u_tun_func)(m, off, local_inp);
++				(*up->u_tun_func)(n, off, local_inp);
 +			}
 +			INP_RUNLOCK(local_inp);
 +			/*
