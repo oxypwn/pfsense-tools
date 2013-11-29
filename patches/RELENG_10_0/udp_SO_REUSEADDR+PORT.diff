@@ -19,7 +19,7 @@ index 0c6f98e..6c77e2d 100644
 +			if (local_inp->inp_lport != uh->uh_dport)
 +				continue;
 +			if (local_inp->inp_laddr.s_addr != INADDR_ANY &&
-+			    inp->inp_laddr.s_addr != ip->ip_dst.s_addr)
++			    local_inp->inp_laddr.s_addr != ip->ip_dst.s_addr)
 +				continue;
 +
 +			/*
