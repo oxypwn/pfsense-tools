@@ -1,8 +1,8 @@
 diff --git a/sys/netinet/udp_usrreq.c b/sys/netinet/udp_usrreq.c
-index 0c6f98e..b7e2f2f 100644
+index 0c6f98e..6c77e2d 100644
 --- a/sys/netinet/udp_usrreq.c
 +++ b/sys/netinet/udp_usrreq.c
-@@ -610,6 +610,48 @@ udp_input(struct mbuf *m, int off)
+@@ -610,6 +610,49 @@ udp_input(struct mbuf *m, int off)
  		return;
  	}
  
@@ -28,7 +28,8 @@ index 0c6f98e..b7e2f2f 100644
 +			if (local_inp->inp_ip_minttl && local_inp->inp_ip_minttl > ip->ip_ttl)
 +				continue;
 +
-+			n = m_copy(m, 0, M_COPYALL);
++			if ((n = m_copy(m, 0, M_COPYALL)) == NULL)
++				continue; /* XXX: Log about this? */
 +			INP_RLOCK(local_inp);
 +			UDP_PROBE(receive, NULL, local_inp, ip, local_inp, uh);
 +			udp_append(local_inp, ip, n, iphlen, &udp_in);
