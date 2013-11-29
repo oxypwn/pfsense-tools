@@ -6,7 +6,7 @@ CATEGORIES=	net
 MAINTAINER=	eri@FreeBSD.org
 COMMENT=	IKEv2 implementation daemon
 
-#LIB_DEPENDS+=	libevent-1.4*:${PORTSDIR}/devel/libevent
+LIB_DEPENDS+=	event-1.4:${PORTSDIR}/devel/libevent
 
 GNU_CONFIGURE=  yes
 CONFIGURE_ARGS+=	--with-bsd-auth --with-sock-dir=/var/run/ --with-libevent-dir=/usr/local
