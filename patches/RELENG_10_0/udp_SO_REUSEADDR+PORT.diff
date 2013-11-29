@@ -15,7 +15,7 @@ index 0c6f98e..b7e2f2f 100644
 +				continue;
 +
 +			if ((inp->inp_vflag & INP_IPV4) == 0)
-+                                continue
++                                continue;
 +			if (local_inp->inp_lport != uh->uh_dport)
 +				continue;
 +			if (local_inp->inp_laddr.s_addr != INADDR_ANY &&
