@@ -1,6 +1,6 @@
-diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/evt.c ./src/racoon/evt.c
---- ../ipsec-tools-0.8.1.orig/src/racoon/evt.c	2013-06-17 14:56:54.000000000 -0500
-+++ ./src/racoon/evt.c	2013-06-17 14:57:02.000000000 -0500
+diff -ur srcold/racoon/evt.c src/racoon/evt.c
+--- srcold/racoon/evt.c	2013-11-29 13:28:20.000000000 +0000
++++ src/racoon/evt.c	2013-11-29 13:28:32.000000000 +0000
 @@ -297,7 +297,7 @@
  		return;
  
@@ -28,9 +28,9 @@ diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/evt.c ./src/racoon/evt.c
  
  	racoon_free(e);
  }
-diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/grabmyaddr.c ./src/racoon/grabmyaddr.c
---- ../ipsec-tools-0.8.1.orig/src/racoon/grabmyaddr.c	2013-06-17 14:56:54.000000000 -0500
-+++ ./src/racoon/grabmyaddr.c	2013-06-17 14:57:02.000000000 -0500
+diff -ur srcold/racoon/grabmyaddr.c src/racoon/grabmyaddr.c
+--- srcold/racoon/grabmyaddr.c	2013-11-29 13:28:21.000000000 +0000
++++ src/racoon/grabmyaddr.c	2013-11-29 13:28:32.000000000 +0000
 @@ -741,12 +741,12 @@
  
  	switch (rtm->rtm_type) {
@@ -46,9 +46,9 @@ diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/grabmyaddr.c ./src/racoon/grabmyad
  				ifa->ifam_addrs, &addr);
  		myaddr_close_all_open((struct sockaddr *) &addr);
  		break;
-diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/ipsec_doi.c ./src/racoon/ipsec_doi.c
---- ../ipsec-tools-0.8.1.orig/src/racoon/ipsec_doi.c	2013-06-17 14:56:54.000000000 -0500
-+++ ./src/racoon/ipsec_doi.c	2013-06-17 14:57:02.000000000 -0500
+diff -ur srcold/racoon/ipsec_doi.c src/racoon/ipsec_doi.c
+--- srcold/racoon/ipsec_doi.c	2013-11-29 13:28:21.000000000 +0000
++++ src/racoon/ipsec_doi.c	2013-11-29 13:28:32.000000000 +0000
 @@ -1183,7 +1183,7 @@
  			"failed to get buffer.\n");
  		goto bad;
@@ -58,9 +58,9 @@ diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/ipsec_doi.c ./src/racoon/ipsec_doi
  
  	bp = (caddr_t)(sab + 1);
  	tlen = sa->l - sizeof(*sab);
-diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/isakmp.c ./src/racoon/isakmp.c
---- ../ipsec-tools-0.8.1.orig/src/racoon/isakmp.c	2013-06-17 14:56:54.000000000 -0500
-+++ ./src/racoon/isakmp.c	2013-06-17 14:57:02.000000000 -0500
+diff -ur srcold/racoon/isakmp.c src/racoon/isakmp.c
+--- srcold/racoon/isakmp.c	2013-11-29 13:28:20.000000000 +0000
++++ src/racoon/isakmp.c	2013-11-29 13:31:18.000000000 +0000
 @@ -1128,10 +1128,7 @@
  
  /* new negotiation of phase 1 for responder */
@@ -73,9 +73,23 @@ diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/isakmp.c ./src/racoon/isakmp.c
  {
  	struct isakmp *isakmp = (struct isakmp *)msg->v;
  	struct ph1handle *iph1;
-diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/racoonctl.c ./src/racoon/racoonctl.c
---- ../ipsec-tools-0.8.1.orig/src/racoon/racoonctl.c	2013-06-17 14:56:54.000000000 -0500
-+++ ./src/racoon/racoonctl.c	2013-06-17 14:57:02.000000000 -0500
+@@ -1621,6 +1618,13 @@
+ 		plog(LLV_WARNING, LOCATION, NULL,
+ 		     "failed to put socket in non-blocking mode\n");
+ 
++	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0)
++		plog(LLV_WARNING, LOCATION, NULL,
++		     "failed to put socket in reuseaddr mode\n");
++        if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes)) < 0)
++		plog(LLV_WARNING, LOCATION, NULL,
++		     "failed to put socket in reuseport mode\n");
++
+ 	/* receive my interface address on inbound packets. */
+ 	switch (addr->sa_family) {
+ 	case AF_INET:
+diff -ur srcold/racoon/racoonctl.c src/racoon/racoonctl.c
+--- srcold/racoon/racoonctl.c	2013-11-29 13:28:20.000000000 +0000
++++ src/racoon/racoonctl.c	2013-11-29 13:28:32.000000000 +0000
 @@ -1504,7 +1504,7 @@
  		else if (evt_quit_event == ec->ec_type) {
  			switch (ec->ec_type) {
