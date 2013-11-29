@@ -2,7 +2,7 @@ Index: udp_usrreq.c
 ===================================================================
 --- udp_usrreq.c	(revision 258712)
 +++ udp_usrreq.c	(working copy)
-@@ -610,6 +610,37 @@
+@@ -610,6 +610,35 @@
  		return;
  	}
  
@@ -23,10 +23,8 @@ Index: udp_usrreq.c
 +			/*
 +			 * Check the minimum TTL for socket.
 +			 */
-+			if (local_inp->inp_ip_minttl && local_inp->inp_ip_minttl > ip->ip_ttl) {
-+				INP_RUNLOCK(local_inp);
-+				continue;;
-+			}
++			if (local_inp->inp_ip_minttl && local_inp->inp_ip_minttl > ip->ip_ttl)
++				continue;
 +
 +			n = m_copy(m, 0, M_COPYALL);
 +			INP_RLOCK(local_inp);
