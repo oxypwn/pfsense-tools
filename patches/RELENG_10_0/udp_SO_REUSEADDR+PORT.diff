@@ -1,0 +1,42 @@
+Index: udp_usrreq.c
+===================================================================
+--- udp_usrreq.c	(revision 258712)
++++ udp_usrreq.c	(working copy)
+@@ -610,6 +610,37 @@
+ 		return;
+ 	}
+ 
++	if (inp->inp_phd != NULL) {
++		struct inpcb *local_inp;
++		struct mbuf *n;
++
++		LIST_FOREACH(local_inp, &inp->inp_phd->phd_pcblist, inp_portlist) {
++			if (local_inp == inp)
++				continue;
++
++			if (local_inp->inp_lport != uh->uh_dport)
++				continue;
++			if (local_inp->inp_laddr.s_addr != INADDR_ANY &&
++			    inp->inp_laddr.s_addr != ip->ip_dst.s_addr)
++				continue;
++
++			/*
++			 * Check the minimum TTL for socket.
++			 */
++			if (local_inp->inp_ip_minttl && local_inp->inp_ip_minttl > ip->ip_ttl) {
++				INP_RUNLOCK(local_inp);
++				continue;;
++			}
++
++			n = m_copy(m, 0, M_COPYALL);
++			INP_RLOCK(local_inp);
++			UDP_PROBE(receive, NULL, local_inp, ip, local_inp, uh);
++			udp_append(local_inp, ip, n, iphlen, &udp_in);
++			INP_RUNLOCK(local_inp);
++		}
++
++	}
++
+ 	/*
+ 	 * Check the minimum TTL for socket.
+ 	 */
