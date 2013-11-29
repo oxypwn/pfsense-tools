@@ -84,7 +84,7 @@ index e4963e2..cd1c9c1 100644
 +			up = intoudpcb(local_inp);
 +			UDP_PROBE(receive, NULL, local_inp, ip6, local_inp, uh);
 +			if (up->u_tun_func == NULL) {
-+				udp6_append(inp, n, off, &fromsa);
++				udp6_append(local_inp, n, off, &fromsa);
 +			} else {
 +				/*
 +				 * Engage the tunneling protocol.
