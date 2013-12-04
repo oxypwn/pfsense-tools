@@ -89,14 +89,11 @@ post_tweet() {
 # SRCDIR/tools/tools/ath/athstats and changes from various freebsd
 # versions which makes adding this to pfPorts difficult.
 handle_tools_stats_crypto() {
-	echo -n ">>> Building athstats..."
-	cd $SRCDIR/tools/tools/ath/athstats
-	(make clean && make && make install) 2>&1 | egrep -wi '(^>>>|error)'
-	echo "Done!" 	
-	echo -n ">>> Building tools/crytpo..."
-	cd $SRCDIR/tools/tools/crypto/
-	(make clean && make && make install) 2>&1 | egrep -wi '(^>>>|error)'
-	echo "Done!"
+	if [ -d $SRCDIR/tools/tools/crypto ]; then
+		echo -n ">>> Building tools/crytpo..."
+		(cd $SRCDIR/tools/tools/crypto && make clean && make cleandir && env SRCCONF=${SRC_CONF} make && env SRCCONF=${SRC_CONF} make install) 2>&1 | egrep -wi '(^>>>|error)'
+		echo "Done!"
+	fi
 
 }
 
@@ -352,7 +349,7 @@ recompile_pfPorts() {
 			# The other option is to create build env for ports and
 			# not pollute the host
 			echo "==> Starting make includes operation..."
-			( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
+			( cd $SRCDIR && env SRCCONF=${SRC_CONF} make includes ) | egrep -wi '(^>>>|error)'
 		else
 			echo "--> Skipping the make includes run for a single port build."
 		fi
@@ -367,7 +364,7 @@ recompile_pfPorts() {
 			CPUS=`expr $DCPUS '*' 2`
 			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
-			echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" >> /etc/make.conf
+			echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN INFO" >> /etc/make.conf
 			MKCNF="pfPorts"
 		fi
 		if [ "$ARCH" = "mips" ]; then
@@ -396,7 +393,7 @@ recompile_pfPorts() {
 
 		handle_tools_stats_crypto
 
-		if [ "$1" = "" ] || [ "$1" = "athstats" ]; then
+		if [ "$1" = "" ]; then
 			touch /tmp/pfSense_do_not_build_pfPorts
 			echo "==> End of pfPorts..."
 		fi
@@ -1626,20 +1623,17 @@ make_world() {
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "7" ]; then
 		(cd $SRCDIR/sys/boot && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD) 2>&1 \
 			| egrep -wi '(warning|error)'
 	fi
-	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
-		| egrep -wi '(warning|error)'
-	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX SRCCONF=${SRC_CONF} make $MAKEJ_WORLD ${MAKE_CONF}) 2>&1 \
 		| egrep -wi '(warning|error)'
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX SRCCONF=${SRC_CONF} make $MAKEJ_WORLD ${MAKE_CONF}) 2>&1 \
 		| egrep -wi '(warning|error)'
 	if [ "$ARCH" = "i386" ]; then
 		(cd $SRCDIR/sys/boot/i386/pxeldr && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX SRCCONF=${SRC_CONF} make $MAKEJ_WORLD ${MAKE_CONF}) 2>&1 \
 			| egrep -wi '(warning|error)'
 	fi
 

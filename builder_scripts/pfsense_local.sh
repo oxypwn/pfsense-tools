@@ -134,7 +134,8 @@ export OVA_DISKSECTIONALLOCATIONUNITS=${OVA_DISKSECTIONALLOCATIONUNITS:-"1073725
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
 
 # Leave this alone.
-export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
+#export SRC_CONF=${SRC_CONF:-"${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION"}
+export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"${BUILDER_SCRIPTS}/conf/src/src.conf.${FREEBSD_VERSION}.install"}
 
 #### User settable options follow ###
 
