@@ -43,13 +43,6 @@ echo -n ">>> Rebuilding BSDInstaller..."
 (cd $BASE_DIR/installer/scripts/build  && sh ./build_installer_packages.sh) 2>&1 | egrep -B3 -A3 -wi '(error)'
 echo "Done!"
 
-if [ -f $BUILDER_TOOLS/builder_scripts/conf/packages.tbz ]; then
-	echo -n ">>> Moving BSDInstaller package into place..."
-	mv $BUILDER_TOOLS/builder_scripts/conf/packages.tbz \
-		/usr/ports/packages/All/bsdinstaller-2.0.2008.0405.tbz
-	echo "Done!"
-fi
-
 # Restore previous make.conf
 if [ -f /tmp/make.conf ]; then
 	mv /tmp/make.conf /etc/
