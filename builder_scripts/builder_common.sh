@@ -1593,17 +1593,16 @@ update_cvs_depot() {
 # This builds FreeBSD (make buildworld)
 make_world() {
 
-	if [ -d $MAKEOBJDIRPREFIX ]; then
-		find $MAKEOBJDIRPREFIX/ -name .done_installworld -exec rm {} \;
-		find $MAKEOBJDIRPREFIX/ -name .done_buildworld -exec rm {} \;
-		find $MAKEOBJDIRPREFIX/ -name .done_extra -exec rm {} \;
-		find $MAKEOBJDIRPREFIX/ -name .done_objdir -exec rm {} \;
+	if [ -d ${BUILDER_LOGS}/freesbie2 ]; then
+		find ${BUILDER_LOGS}/freesbie2/ -name .done_installworld -exec rm {} \;
+		find ${BUILDER_LOGS}/freesbie2/ -name .done_buildworld -exec rm {} \;
+		find ${BUILDER_LOGS}/freesbie2/ -name .done_extra -exec rm {} \;
+		find ${BUILDER_LOGS}/freesbie2/ -name .done_objdir -exec rm {} \;
 
 		# Check if the world and kernel are already built and set
 		# the NO variables accordingly
 		ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
 		if [ "$ISINSTALLED" -gt 0 ]; then
-			touch ${MAKEOBJDIRPREFIX}/.done_buildworld
 			export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
 		fi
 	fi
@@ -1636,18 +1635,6 @@ make_world() {
 			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX SRCCONF=${SRC_CONF} make $MAKEJ_WORLD ${MAKE_CONF}) 2>&1 \
 			| egrep -wi '(warning|error)'
 	fi
-
-	# EDGE CASE #2 yp.h ##############################################
-	# Ensure yp.h is built, this commonly has issues for some
-	# reason on subsequent build runs and results in file not found.
-	#if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
-	#	rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
-	#	(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
-	#		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
-	#		NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
-	#fi
-
-	# EDGE CASE #3 libc_p.a  #########################################
 
 	OSRC_CONF=${SRC_CONF}
 	if [ -n "${SRC_CONF_INSTALL:-}" ]; then
