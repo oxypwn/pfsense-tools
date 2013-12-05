@@ -52,6 +52,18 @@ touch $LASTUPDATE
 
 PWD=`pwd`
 
+# Source pfsense-build-snapshots.conf
+if [ -f "$PWD/pfsense-build-snapshots.conf" ]; then
+	echo ">>> Execing pfsense-build-snapshots.conf"
+	. $PWD/pfsense-build-snapshots.conf
+fi
+
+# Source pfsense-build.conf
+if [ ! -f "$PWD/pfsense-build.conf" ]; then
+	echo "You must run this utility from the same location as pfsense-build.conf !!"
+	exit 1
+fi
+
 # Requires pfSenseGITREPO and GIT_RESET variables
 # set in pfsense-build-snapshots.conf
 git_last_commit() {
@@ -115,12 +127,12 @@ update_status() {
 # Copy the current log file to $filename.old on
 # the snapshot www server (real time logs)
 rotate_logfile() {
-	if [ -d /tmp/pfPort ]; then
-		for FILE in /tmp/pfPort; do
+	if [ -d ${BUILDER_LOGS}/pfPort ]; then
+		for FILE in ${BUILDER_LOGS}/pfPort; do
 			echo "$FILE ------------------------------------------------" >> $LOGFILE
 			cat $FILE >> $LOGFILE
 		done
-		rm -rf /tmp/pfPort/*
+		rm -rf ${BUILDER_LOGS}/pfPort/*
 	fi
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST.old
@@ -129,18 +141,6 @@ rotate_logfile() {
 	rm $LOGFILE
 	touch $LOGFILE
 }
-
-# Source pfsense-build-snapshots.conf
-if [ -f "$PWD/pfsense-build-snapshots.conf" ]; then
-	echo ">>> Execing pfsense-build-snapshots.conf"
-	. $PWD/pfsense-build-snapshots.conf
-fi
-
-# Source pfsense-build.conf
-if [ ! -f "$PWD/pfsense-build.conf" ]; then
-	echo "You must run this utility from the same location as pfsense-build.conf !!"
-	exit 1
-fi
 
 # Unset do not build ports flag
 rm -f /tmp/pfSense_do_not_build_pfPorts
