@@ -139,10 +139,10 @@ if [ "$1" = "" ]; then
 	build_all_kernels
 
 	# Check for freesbie builder issues
-	if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
+	if [ -f ${BUILDER_LOGS}/freesbie2/.tmp_kernelbuild ]; then
 		echo "Something has gone wrong!  Press ENTER to view log file."
 		read ans
-		more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
+		more ${BUILDER_LOGS}/freesbie2/.tmp_kernelbuild 
 		exit
 	fi
 
