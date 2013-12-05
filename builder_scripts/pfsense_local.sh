@@ -54,6 +54,10 @@ export BUILDER_TOOLS=${BUILDER_TOOLS:-${BASE_DIR}/${TOOLS_DIR}}
 
 # Generally /home/pfsense/tools/builder_scripts
 export BUILDER_SCRIPTS=${BUILDER_SCRIPTS:-${BUILDER_TOOLS}/builder_scripts}
+export BUILDER_LOGS=${BUILDER_LOGS:-${BUILDER_TOOLS}/logs}
+if [ ! -d ${BUILDER_LOGS} ]; then
+	mkdir -p ${BUILDER_LOGS}
+fi
 
 # Generally /home/pfsense/tools/builder_scripts/builder_profiles
 export BUILDER_PROFILES=${BUILDER_SCRIPTS}/builder_profiles

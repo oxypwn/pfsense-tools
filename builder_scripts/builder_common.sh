@@ -3390,7 +3390,7 @@ install_pkg_install_ports_build() {
 			${PKG_QUERY} $_BUILT_PKGNAME
 			if [ $? -ne 0 ]; then
 				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-				script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
+				script ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 				if [ "$?" != "0" ]; then
 					echo
 					echo
@@ -3437,7 +3437,7 @@ install_pkg_install_ports_build() {
 		fi
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN LATEST_LINK" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		script ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN LATEST_LINK" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
@@ -3448,9 +3448,9 @@ install_pkg_install_ports_build() {
 		fi
 
 		if [ ${FREEBSD_VERSION} -gt 9 ]; then
-			script -a /tmp/pfPorts/${PORTNAME}.txt pkg create -f tbz -o $PFS_PKG_ALL $BUILT_PKGNAME 
+			script -a ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt pkg create -f tbz -o $PFS_PKG_ALL $BUILT_PKGNAME 
 		else
-			script -a /tmp/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
+			script -a ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
 		fi
 		if [ "$?" != "0" ]; then
 			echo
@@ -3495,7 +3495,7 @@ buildworld() {
 
 	# Set LOGFILE. If it's a tmp file, schedule for deletion
 	if [ -z "${LOGFILE}" ]; then
-		LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+		LOGFILE=$(mktemp -q ${BUILDER_LOGS}/freesbie.XXXXXX)
 	fi
 
 	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
@@ -3518,7 +3518,7 @@ installworld() {
 
 	# Set LOGFILE. If it's a tmp file, schedule for deletion
 	if [ -z "${LOGFILE}" ]; then
-		LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+		LOGFILE=$(mktemp -q ${BUILDER_LOGS}/freesbie.XXXXXX)
 	fi
 
 	echo ">>> Installing world for ${ARCH} architecture..."
@@ -3551,7 +3551,7 @@ buildkernel() {
 	echo ">>> ARCH:        ${ARCH}"
 	echo ">>> SRC_CONF:    ${SRCCONFBASENAME}"
 
-	LOGFILE="/tmp/kernel.${KERNCONF}.log"
+	LOGFILE="${BUILDER_LOGS}/kernel.${KERNCONF}.log"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR
@@ -3571,7 +3571,7 @@ installkernel() {
 	    export KERNCONF="FREESBIE"
 	fi
 	mkdir -p ${BASEDIR}/boot
-	LOGFILE="/tmp/kernel.${KERNCONF}.log"
+	LOGFILE="${BUILDER_LOGS}/kernel.${KERNCONF}.log"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
 	cd ${SRCDIR}
