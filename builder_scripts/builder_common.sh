@@ -429,7 +429,7 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
-	mkdir -p /tmp/pfPort
+	mkdir -p ${BUILDER_LOGS}/pfPort
 
 	# Overlay host binaries
 	if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
@@ -467,11 +467,11 @@ cust_overlay_host_binaries() {
 		FOUND_FILES=`cat conf/copylist/copy.list.${PFSENSETAG}`
 	fi
 
-	if [ -f /tmp/pfPort/copy.list ]; then
-		rm /tmp/pfPort/copy.list
-		touch /tmp/pfPort/copy.list
+	if [ -f ${BUILDER_LOGS}/pfPort/copy.list ]; then
+		rm ${BUILDER_LOGS}/pfPort/copy.list
+		touch ${BUILDER_LOGS}/pfPort/copy.list
 	else
-		touch /tmp/pfPort/copy.list
+		touch ${BUILDER_LOGS}/pfPort/copy.list
 	fi
 
 	# Process base system libraries
@@ -510,7 +510,7 @@ cust_overlay_host_binaries() {
 					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"
 				fi
 			else
-				echo "Could not locate $TEMPFILE" >> /tmp/pfPort/copy.list				
+				echo "Could not locate $TEMPFILE" >> ${BUILDER_LOGS}/pfPort/copy.list				
 			fi
 		fi
 	done
@@ -2914,6 +2914,7 @@ create_memstick_image() {
 	cd $OLDPWD
 	umount /tmp/memstick/usbmnt
 	mdconfig -d -u $MD
+	rm -r /tmp/memstick
 	gzip -f $MEMSTICKPATH
 }
 
@@ -3397,7 +3398,7 @@ install_pkg_install_ports_build() {
 					echo "!!! Something went wrong while building ${EXTRAPORT}"
 					echo "    Press RETURN/ENTER to view the log from this build."
 					read inputline
-					more /tmp/pfPorts/${PORTNAME}.txt
+					more ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt
 				else
 					echo "Done!"
 				fi
@@ -3444,7 +3445,7 @@ install_pkg_install_ports_build() {
 			echo "!!! Something went wrong while building ${PORTNAME}"
 			echo "    Press RETURN/ENTER to view the log from this build."
 			read inputline
-			more /tmp/pfPorts/${PORTNAME}.txt
+			more {$BUILDER_LOGS}/pfPorts/${PORTNAME}.txt
 		fi
 
 		if [ ${FREEBSD_VERSION} -gt 9 ]; then
@@ -3458,7 +3459,7 @@ install_pkg_install_ports_build() {
 			echo "!!! Something went wrong while building package($BUILT_PKGNAME) for ${PORTNAME}"
 			echo "    Press RETURN/ENTER to view the log from this build."
 			read inputline
-			more /tmp/pfPorts/${PORTNAME}.txt
+			more ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt
 		fi
 		echo "Done!"
 	fi
