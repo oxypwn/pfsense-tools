@@ -3067,8 +3067,13 @@ update_freebsd_sources_and_apply_patches() {
 			# Update src
 			(cd ${SRCDIR} && ${SVN_BIN} up 2>&1) | grep -i 'error'
 		else
-			(${SVN_BIN} co ${SVN_BASE}/${SVN_BRANCH} ${SRCDIR} 2>&1) | grep -i 'error'
+			(${SVN_BIN} co ${FREEBSD_REPO_BASE}/${SVN_BRANCH} ${SRCDIR} 2>&1) | grep -i 'error'
 		fi
+	elif [ -n "${USE_GIT}" ]; then
+		if [ -d "${SRCDIR}/.git" ]; then
+			( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin)
+		else
+			( cd ${SRCDIR} && git clone ${FREEBSD_REPO_BASE}/${SVN_BRANCH} ../src
 	else
 		# CVSUp freebsd version -- this MUST be after Loop through and remove files
 		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
