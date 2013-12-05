@@ -3313,7 +3313,7 @@ install_pkg_install_ports() {
 	mkdir -p ${PFS_PKG_OLD}
 	mkdir -p ${VAR_DB_PKG_TMP}
 	# port build log files will be stored here
-	mkdir -p /tmp/pfPorts
+	mkdir -p ${BUILDER_LOGS}/pfPorts
 	# Make a backup of existing packages so we can figure out
 	# which packages need to be installed in pfsense-fs chroot.
 	# otherwise you will get a bunch of extra pkgs that where
