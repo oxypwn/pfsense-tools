@@ -258,7 +258,7 @@ export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/conf/rmlist/
 #export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
 
 # GIT pfSense, BSDInstaller & FreeSBIE GIT repo settings
-export USE_GIT=${USE_GIT:-"yo"}
+#export FREEBSD_REPO_BASE=https://github.com/freebsd/freebsd.git
 export GIT_REPO=${GIT_REPO:-"git://github.com/pfsense/pfsense.git"}
 export GIT_REPO_DIR="${BASE_DIR}/pfSenseGITREPO"
 export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"git://github.com/pfsense/freesbie2.git freesbie2"}
