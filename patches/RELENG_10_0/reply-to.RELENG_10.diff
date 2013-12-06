@@ -1,8 +1,8 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 07d6987..f4a417e 100644
+index 28017dd..1ef30a7 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -5370,6 +5370,12 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5369,6 +5369,12 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	ip = mtod(m0, struct ip *);
  
@@ -15,7 +15,7 @@ index 07d6987..f4a417e 100644
  	bzero(&dst, sizeof(dst));
  	dst.sin_family = AF_INET;
  	dst.sin_len = sizeof(dst);
-@@ -5418,7 +5424,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5417,7 +5423,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	if (ifp == NULL)
  		goto bad;
  
@@ -75,7 +75,7 @@ index 07d6987..f4a417e 100644
  		if (pf_test(PF_OUT, ifp, &m0, NULL) != PF_PASS)
  			goto bad;
  		else if (m0 == NULL)
-@@ -5551,6 +5609,12 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5550,6 +5608,12 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	ip6 = mtod(m0, struct ip6_hdr *);
  
@@ -88,7 +88,7 @@ index 07d6987..f4a417e 100644
  	bzero(&dst, sizeof(dst));
  	dst.sin6_family = AF_INET6;
  	dst.sin6_len = sizeof(dst);
-@@ -5589,6 +5653,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5588,6 +5652,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	if (ifp == NULL)
  		goto bad;

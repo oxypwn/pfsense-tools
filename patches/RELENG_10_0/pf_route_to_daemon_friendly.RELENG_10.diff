@@ -1,18 +1,32 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 2f95c09..182f1ef 100644
+index 9e18c22..902341c 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -5611,6 +5611,13 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5601,6 +5601,13 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	if (oifp != ifp) {
  		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
- 			goto donelocal;
+ 			return;
 +
 +		if (s && r->rt == PF_ROUTETO && pd->nat_rule != NULL &&
-+		    r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
++			r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
 +			ip_off = ntohs(ip->ip_off);
 +			pf_packet_undo_nat(m0, pd, ip_off, s, dir);
 +		}
 +
  		if (pf_test(PF_OUT, ifp, &m0, NULL) != PF_PASS)
+ 			goto bad;
+ 		else if (m0 == NULL)
+@@ -5829,6 +5836,13 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 	       return;
+ 
+ 	if (oifp != ifp) {
++
++		if (s && r->rt == PF_ROUTETO && pd->nat_rule != NULL &&
++			r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
++			ip_off = ntohs(ip->ip_off);
++			pf_packet_undo_nat(m0, pd, ip_off, s, dir);
++		}
++
+ 		if (pf_test6(PF_OUT, ifp, &m0, NULL) != PF_PASS)
  			goto bad;
  		else if (m0 == NULL)

@@ -1,8 +1,8 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index cdee693..ae49332 100644
+index d6c9de0..d145373 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -6082,7 +6082,14 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6072,7 +6072,14 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	if (m->m_flags & M_SKIP_FIREWALL)
  		return (PF_PASS);
  
@@ -18,7 +18,7 @@ index cdee693..ae49332 100644
  
  	PF_RULES_RLOCK();
  
-@@ -6548,7 +6555,14 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6538,7 +6545,14 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  		return (PF_PASS);
  
  	memset(&pd, 0, sizeof(pd));

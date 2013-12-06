@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index cefdeb0..c7ae808 100644
+index 358781b..27fd219 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
 @@ -162,6 +162,7 @@ struct node_icmp {
@@ -51,7 +51,7 @@ index cefdeb0..c7ae808 100644
  		{ "max-src-conn-rate",	MAXSRCCONNRATE},
  		{ "max-src-nodes",	MAXSRCNODES},
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index 2612b11..735db95 100644
+index 327d4f3..bad5f74 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -969,6 +969,12 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -68,7 +68,7 @@ index 2612b11..735db95 100644
  			if (!opts)
  				printf(", ");
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index 763b79a..cff9e85 100644
+index 6aac85d..bf245b7 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -832,7 +832,13 @@ struct pf_state {
@@ -103,7 +103,7 @@ index 763b79a..cff9e85 100644
  };
  
  /*
-@@ -1266,7 +1273,8 @@ struct pf_pdesc {
+@@ -1267,7 +1274,8 @@ struct pf_pdesc {
  #define PFRES_MAXSTATES	12		/* State limit */
  #define PFRES_SRCLIMIT	13		/* Source node/conn limit */
  #define PFRES_SYNPROXY	14		/* SYN proxy */
@@ -113,7 +113,7 @@ index 763b79a..cff9e85 100644
  
  #define PFRES_NAMES { \
  	"match", \
-@@ -1284,6 +1292,7 @@ struct pf_pdesc {
+@@ -1285,6 +1293,7 @@ struct pf_pdesc {
  	"state-limit", \
  	"src-limit", \
  	"synproxy", \
@@ -122,7 +122,7 @@ index 763b79a..cff9e85 100644
  }
  
 diff --git a/sys/netinet/ip_divert.c b/sys/netinet/ip_divert.c
-index e698035..b74d60d 100644
+index 0000745..8e4124f 100644
 --- a/sys/netinet/ip_divert.c
 +++ b/sys/netinet/ip_divert.c
 @@ -267,8 +267,7 @@ divert_packet(struct mbuf *m, int incoming)
@@ -174,10 +174,10 @@ index e698035..b74d60d 100644
 -MODULE_DEPEND(ipdivert, ipfw, 2, 2, 2);
  MODULE_VERSION(ipdivert, 1);
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 6e0146d..8ae4182 100644
+index 4a2fe66..d6c9de0 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -91,6 +91,7 @@ __FBSDID("$FreeBSD$");
+@@ -91,6 +91,7 @@ __FBSDID("$FreeBSD: stable/10/sys/netpfil/pf/pf.c 254523 2013-08-19 13:27:32Z an
  #include <netpfil/ipfw/ip_fw_private.h> /* XXX: only for DIR_IN/DIR_OUT */
  #include <netinet/ip_fw.h>
  #include <netinet/ip_dummynet.h>
@@ -185,7 +185,7 @@ index 6e0146d..8ae4182 100644
  
  #ifdef INET6
  #include <netinet/ip6.h>
-@@ -317,6 +318,14 @@ VNET_DEFINE(struct pf_limit, pf_limits[PF_LIMIT_MAX]);
+@@ -316,6 +317,14 @@ VNET_DEFINE(struct pf_limit, pf_limits[PF_LIMIT_MAX]);
  
  #define	PACKET_LOOPED(mtag)	((mtag)->flags & PF_PACKET_LOOPED)
  
@@ -200,7 +200,7 @@ index 6e0146d..8ae4182 100644
  #define	STATE_LOOKUP(i, k, d, s, pd)					\
  	do {								\
  		(s) = pf_find_state((i), (k), (d));			\
-@@ -6049,6 +6058,8 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6039,6 +6048,8 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	struct pf_pdesc		 pd;
  	int			 off = 0, dirndx, pqid = 0;
  	int                      loopedfrom = 0;
@@ -209,7 +209,24 @@ index 6e0146d..8ae4182 100644
  	struct ip_fw_args        dnflow;
  
  	M_ASSERTPKTHDR(m);
-@@ -6253,6 +6264,17 @@ done:
+@@ -6071,12 +6082,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+ 		pd.pf_mtag->flags |= PF_PACKET_LOOPED;
+ 		if (rr->info & IPFW_IS_DUMMYNET)
+ 			loopedfrom = 1;
+-		if (rr->info & IPFW_IS_DIVERT && rr->rulenum == 0) {
+-			if (pd.pf_mtag == NULL &&
+-			    ((pd.pf_mtag = pf_get_mtag(m)) == NULL)) {
+-				action = PF_DROP;
+-				goto done;
+-			}
++		if (rr->info & IPFW_IS_DIVERT) {
++			divertcookie = rr->rulenum;
++			divflags = (u_int8_t)(divertcookie >> 8);
++			divertcookie &= ~PFSTATE_DIVERT_MASK;
+ 		}
+ 		if (pd.pf_mtag && pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
+ 			m->m_flags |= M_FASTFWD_OURS;
+@@ -6243,6 +6252,17 @@ done:
  		    ("pf: dropping packet with ip options\n"));
  	}
  
@@ -227,12 +244,11 @@ index 6e0146d..8ae4182 100644
  	if (s && s->tag > 0 && pf_tag_packet(m, &pd, s->tag)) {
  		action = PF_DROP;
  		REASON_SET(&reason, PFRES_MEMORY);
-@@ -6285,8 +6307,35 @@ done:
+@@ -6270,7 +6290,33 @@ done:
  	}
  #endif /* ALTQ */
  
--	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
--		if (dir != r->direction && r->pdnpipe) {
+-	if (s && (s->dnpipe || s->pdnpipe)) {
 +	if (divflags & PFSTATE_DIVERT_TAG)
 +		pd.pf_mtag->tag = divertcookie;
 +	else if (divflags & PFSTATE_DIVERT_ALTQ)
@@ -240,32 +256,30 @@ index 6e0146d..8ae4182 100644
 +	else if (divflags & PFSTATE_DIVERT_ACTION) {
 +		struct pf_rule *dlr;
 +		action = PF_DROP;
-+		if (s) {
-+			PF_STATE_UNLOCK(s);
++		if (s)
 +			pf_unlink_state(s, PF_ENTER_LOCKED);
-+		}
 +		REASON_SET(&reason, PFRES_DIVERT);
 +		log = 1;
 +		DPFPRINTF(PF_DEBUG_MISC,
-+		    ("pf: changing action to with overload from divert.\n"));
++			("pf: changing action to with overload from divert.\n"));
 +		dlr = r;
 +		PFLOG_PACKET(kif, m, AF_INET, dir, reason, dlr, a,
-+		    ruleset, &pd, (s == NULL));
++			ruleset, &pd, (s == NULL));
 +		m_freem(*m0);
 +		*m0 = NULL;
 +		/* NOTE: Fake this to avoid divert giving errors to the application. */
 +		return (PF_PASS);
 +	}
 +
-+	if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
-+	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
-+		if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
-+			dnflow.rule.info = divertcookie;
-+		} else if (dir != r->direction && r->pdnpipe) {
- 			dnflow.rule.info = r->pdnpipe;
- 		} else if (dir == r->direction) {
- 			dnflow.rule.info = r->dnpipe;
-@@ -6332,10 +6381,51 @@ done:
++	if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
++		pd.act.dnpipe = divertcookie;
++		pd.act.pdnpipe = divertcookie;
++		pd.act.flags |= PFRULE_DN_IS_PIPE;
++	} else if (s && (s->dnpipe || s->pdnpipe)) {
+ 		pd.act.dnpipe = s->dnpipe;
+ 		pd.act.pdnpipe = s->pdnpipe;
+ 		pd.act.flags = s->state_flags;
+@@ -6325,10 +6371,51 @@ done:
  				PF_STATE_UNLOCK(s);
  			return (action);
  		}
@@ -319,7 +333,7 @@ index 6e0146d..8ae4182 100644
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -6345,49 +6435,14 @@ continueprocessing:
+@@ -6338,49 +6425,14 @@ continueprocessing:
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
  	    s->nat_rule.ptr->action == PF_BINAT) &&
@@ -374,7 +388,7 @@ index 6e0146d..8ae4182 100644
  	if (log) {
  		struct pf_rule *lr;
  
-@@ -6509,7 +6564,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6502,7 +6554,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  
  	PF_RULES_RLOCK();
  
