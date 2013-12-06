@@ -1,0 +1,13 @@
+diff --git a/gnu/lib/libregex/Makefile b/gnu/lib/libregex/Makefile
+index 0c4dfcb..37f733e 100644
+--- a/gnu/lib/libregex/Makefile
++++ b/gnu/lib/libregex/Makefile
+@@ -22,7 +22,7 @@ CFLAGS+=	-DHAVE_CONFIG_H -I${.CURDIR} -I${REGEXDIR}
+ 
+ CLEANFILES=	regex.h.patched gnuregex.c
+ regex.h.patched: regex.h
+-	sed 's=<posix/regex\.h>=<gnu/posix/regex.h>=g' \
++	sed 's=<posix/regex\.h>=<gnu/regex.h>=g' \
+ 		< ${.ALLSRC} > ${.TARGET}
+ 
+ gnuregex.c: regex.c
