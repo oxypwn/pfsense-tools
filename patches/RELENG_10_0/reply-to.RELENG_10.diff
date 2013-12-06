@@ -1,5 +1,5 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index d4561bb..4ce45d3 100644
+index 07d6987..f4a417e 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -5370,6 +5370,12 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
@@ -15,10 +15,10 @@ index d4561bb..4ce45d3 100644
  	bzero(&dst, sizeof(dst));
  	dst.sin_family = AF_INET;
  	dst.sin_len = sizeof(dst);
-@@ -5417,8 +5423,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
- 	}
+@@ -5418,7 +5424,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	if (ifp == NULL)
  		goto bad;
+ 
 +	else if (r->rt == PF_REPLYTO) {
 +		/* XXX: Copied from ifaof_ifpforaddr() since it mostly will not return NULL! */
 +		struct sockaddr_in inaddr;
@@ -42,14 +42,14 @@ index d4561bb..4ce45d3 100644
 +				    (ifa->ifa_dstaddr &&
 +				    (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0))) {
 +					IF_ADDR_RUNLOCK(ifp);
-+					goto donelocal;
++					return;
 +				}
 +				continue;
 +			}
 +			if (ifp->if_flags & IFF_POINTOPOINT) {
 +				if (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0) {
 +					IF_ADDR_RUNLOCK(ifp);
-+					goto donelocal;
++					return;
 +				}
 +			} else {
 +				cp = addr->sa_data;
@@ -61,43 +61,34 @@ index d4561bb..4ce45d3 100644
 +						break;
 +				if (cp3 == cplim) {
 +					IF_ADDR_RUNLOCK(ifp);
-+					goto donelocal;
++					return;
 +				}
 +			}
 +		}
 +		IF_ADDR_RUNLOCK(ifp);
 +	} else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
-+		goto donelocal;
- 
++		return;
++
  	if (oifp != ifp) {
 +		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
-+			goto donelocal;
++			return;
  		if (pf_test(PF_OUT, ifp, &m0, NULL) != PF_PASS)
  			goto bad;
  		else if (m0 == NULL)
-@@ -5501,6 +5558,11 @@ done:
- 		*m = NULL;
- 	return;
- 
-+donelocal:
-+	if (s)
-+		PF_STATE_UNLOCK(s);
-+	return;
-+
- bad_locked:
- 	if (s)
- 		PF_STATE_UNLOCK(s);
-@@ -5551,6 +5613,9 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5551,6 +5609,12 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	ip6 = mtod(m0, struct ip6_hdr *);
  
-+	if (IN6_IS_ADDR_MULTICAST(&ip6->ip6_src))
-+		goto donelocal;
++	if (IN6_IS_ADDR_MULTICAST(&ip6->ip6_src)) {
++		if (s)
++			PF_STATE_UNLOCK(s);
++		return;
++	}
 +
  	bzero(&dst, sizeof(dst));
  	dst.sin6_family = AF_INET6;
  	dst.sin6_len = sizeof(dst);
-@@ -5589,6 +5654,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5589,6 +5653,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	if (ifp == NULL)
  		goto bad;
@@ -125,14 +116,14 @@ index d4561bb..4ce45d3 100644
 +                                   (ifa->ifa_dstaddr &&
 +                                   (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0))) {
 +                                       IF_ADDR_RUNLOCK(ifp);
-+                                       goto donelocal;
++                                       return;
 +                               }
 +                               continue;
 +                       }
 +                       if (ifp->if_flags & IFF_POINTOPOINT) {
 +                               if (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0) {
 +                                       IF_ADDR_RUNLOCK(ifp);
-+                                       goto donelocal;
++                                       return;
 +                               }
 +                       } else {
 +                               cp = addr->sa_data;
@@ -144,25 +135,13 @@ index d4561bb..4ce45d3 100644
 +                                               break;
 +                               if (cp3 == cplim) {
 +                                       IF_ADDR_RUNLOCK(ifp);
-+                                       goto donelocal;
++                                       return;
 +                               }
 +                       }
 +               }
 +               IF_ADDR_RUNLOCK(ifp);
 +       } else if (r->rt == PF_ROUTETO && r->direction == dir && in6_localaddr(&ip6->ip6_dst))
-+	       goto donelocal;
++	       return;
  
  	if (oifp != ifp) {
  		if (pf_test6(PF_OUT, ifp, &m0, NULL) != PF_PASS)
-@@ -5628,6 +5743,11 @@ done:
- 		*m = NULL;
- 	return;
- 
-+donelocal:
-+	if (s)
-+		PF_STATE_UNLOCK(s);
-+	return;
-+
- bad_locked:
- 	if (s)
- 		PF_STATE_UNLOCK(s);
