@@ -141,8 +141,10 @@ fixup_kernel_options() {
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 
 	# Cleanup self
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	if [ -d ${$MAKEOBJDIRPREFIX} ]; then
+		find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+		find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	fi
 
 	if [ -d "$KERNEL_DESTDIR/boot" ]; then
 		rm -rf $KERNEL_DESTDIR/boot/*
