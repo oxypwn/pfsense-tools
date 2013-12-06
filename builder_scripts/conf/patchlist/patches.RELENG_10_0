@@ -62,4 +62,3 @@
 -p1~~sfxge_compile_i386.diff~
 -p1~~udp_SO_REUSEADDR+PORT.diff~
 -p1~~ipsec_improvement.diff~
--p1~~pf_load_options.diff~
