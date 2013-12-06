@@ -3073,7 +3073,11 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	elif [ -n "${USE_GIT}" ]; then
 		if [ -d "${SRCDIR}/.git" ]; then
-			( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin)
+			if [ -z ${SVN_BRANCH} ]; then
+				( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin)
+			else
+				( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin/${SVN_BRANCH)
+			fi
 		else
 			( cd ${SRCDIR} && git clone -branch ${SVN_BRANCH} --single-branch ${FREEBSD_REPO_BASE} ../src )
 		fi
