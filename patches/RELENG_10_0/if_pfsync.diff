@@ -62,7 +62,7 @@ index dc9be1a..ca5c751 100644
  		("%s: st->sync_state %u", __func__, st->sync_state));
  
  	PFSYNC_LOCK(sc);
-+	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING))
++	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING)) {
 +		PFSYNC_UNLOCK(sc);
 +		return;
 +	}
@@ -81,7 +81,7 @@ index dc9be1a..ca5c751 100644
  	PF_STATE_LOCK_ASSERT(st);
  	PFSYNC_LOCK(sc);
  
-+	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING))
++	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING)) {
 +		PFSYNC_UNLOCK(sc);
 +		return;
 +	}
@@ -92,7 +92,7 @@ index dc9be1a..ca5c751 100644
  	struct pfsync_softc *sc = V_pfsyncif;
  
  	PFSYNC_LOCK(sc);
-+	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING))
++	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING)) {
 +		PFSYNC_UNLOCK(sc);
 +		return;
 +	}
@@ -103,7 +103,7 @@ index dc9be1a..ca5c751 100644
  	r.clr.creatorid = creatorid;
  
  	PFSYNC_LOCK(sc);
-+	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING))
++	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING)) {
 +		PFSYNC_UNLOCK(sc);
 +		return;
 +	}
