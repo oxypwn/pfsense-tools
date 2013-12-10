@@ -16,7 +16,7 @@ NO_STAGE=	yes
 MAINTAINER=	thompsa@FreeBSD.org
 COMMENT=	FreeBSD syslogd with clog and zmq additions
 
-LIB_DEPENDS=	czmq:${PORTSDIR}/devel/czmq
+LIB_DEPENDS=	czmq:${PORTSDIR}/net/czmq
 
 DISTDIR=	${FILESDIR}
 # overwrite base
