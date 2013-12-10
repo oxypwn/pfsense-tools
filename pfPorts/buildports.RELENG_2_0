@@ -116,7 +116,7 @@ php52-zlib					/usr/ports/archivers/php52-zlib				/usr/local/lib/php/20060613/zl
 php52-xmlreader				/usr/ports/textproc/php52-xmlreader			/usr/local/lib/php/20060613/xmlreader.so
 php52-xmlwriter				/usr/ports/textproc/php52-xmlwriter			/usr/local/lib/php/20060613/xmlwriter.so
 pecl-inclued				/usr/ports/devel/pecl-inclued				/usr/local/lib/php/20060613/inclued.so
-zmq							/usr/ports/devel/zmq						/usr/local/lib/libzmq.so.1
+zmq					/usr/ports/net/libzmq2					/usr/local/lib/libzmq.so.1
 php-zmq						/usr/ports/devel/php-zmq					/usr/local/lib/php/20060613/zmq.so
 php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/20060613/xdebug.so
 php-suhosin					/usr/ports/security/php-suhosin				/usr/local/lib/php/20060613/suhosin.so
