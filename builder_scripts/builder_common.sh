@@ -1540,7 +1540,9 @@ restore_pfSense() {
 
 # Shortcut to FreeSBIE make command
 freesbie_make() {
-	(cd ${FREESBIE_PATH} && make $*)
+	# Make sure MAKEOBJDIRPREFIX is not set, otherwise OBJDIR will be wrong
+	# and it will always rebuild everything.
+	(cd ${FREESBIE_PATH} && env -u MAKEOBJDIRPREFIX MAKEOBJDIR="${BUILDER_LOGS}/freesbie2" make $*)
 }
 
 # This updates the pfSense sources from rcs.pfsense.org
