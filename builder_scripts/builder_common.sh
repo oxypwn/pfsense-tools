@@ -1603,9 +1603,11 @@ make_world() {
 
 		# Check if the world and kernel are already built and set
 		# the NO variables accordingly
-		ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
-		if [ "$ISINSTALLED" -gt 0 ]; then
-			export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
+		if [ -d "${MAKEOBJDIRPREFIX}" ]; then
+			ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
+			if [ "$ISINSTALLED" -gt 0 ]; then
+				export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
+			fi
 		fi
 	fi
 
