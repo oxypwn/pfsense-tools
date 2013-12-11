@@ -33,7 +33,7 @@
 . ./pfsense_local.sh
 
 # Read params
-while getopts c opt; do
+while getopts c:g opt; do
 	case "${opt}" in
 		c)      ALTCONFFILE="${OPTARG}";;
 		g)      USE_VGA="yes";;
