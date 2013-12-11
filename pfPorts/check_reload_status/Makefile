@@ -21,6 +21,13 @@ WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
 
+CFLAGS+=	-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
+                -Wno-unused-parameter -Wstrict-prototypes \
+                -Wmissing-prototypes -Wpointer-arith -Wreturn-type \
+                -Wcast-qual -Wwrite-strings -Wswitch -Wshadow \
+                -Wunused-parameter -Wchar-subscripts -Winline \
+                -Wnested-externs -Wredundant-decls -Wno-pointer-sign    
+
 LIB_DEPENDS=   event:${PORTSDIR}/devel/libevent
 
 do-extract:
@@ -29,9 +36,11 @@ do-extract:
 do-build:
 	${CC} ${CFLAGS} -levent -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 	${CC} ${CFLAGS} -o ${WRKSRC}/pfSctl ${FILESDIR}/pfSctl.c
+	${CC} ${CFLAGS} -lsbuf -o ${WRKSRC}/fcgicli ${FILESDIR}/fcgicli.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
 	${INSTALL_PROGRAM} ${WRKSRC}/pfSctl ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/fcgicli ${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>

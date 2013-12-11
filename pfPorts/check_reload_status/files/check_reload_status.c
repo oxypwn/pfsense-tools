@@ -60,8 +60,8 @@ static void			socket_read_command(int socket, short event, void *arg);
 static void			show_command_list(int fd, const struct command *list);
 static void			socket_accept_command(int socket, short event, void *arg);
 static void			socket_close_command(int fd, struct event *ev);
-static void *			listen_thread(void *);
-static void *			runqueue_thread(void *);
+//static void *			listen_thread(void *);
+//static void *			runqueue_thread(void *);
 
 /*
  * Internal representation of a packet.
@@ -135,12 +135,12 @@ parse_command(int fd, int argc, char **argv)
 {
 	struct command	*start = first_level;
 	struct command	*match = NULL;
-	char *errstring = "ERROR:\tvalid commands are:\n";
+	char *errstring = (char *)"ERROR:\tvalid commands are:\n";
 
 	while (argc >= 0) {
 		match = match_command(start, *argv);
 		if (match == NULL) {
-			errstring = "ERROR:\tNo match found.\n";
+			errstring = (char *)"ERROR:\tNo match found.\n";
 			goto error3;
 		}
 
@@ -148,19 +148,19 @@ parse_command(int fd, int argc, char **argv)
 		argv++;
 
 		if (argc > 0 && match->next == NULL) {
-			errstring = "ERROR:\textra arguments passed.\n";
+			errstring = (char *)"ERROR:\textra arguments passed.\n";
 			goto error3;
 		}
 		if (argc < 0 && match->type != NON) {
 			if (match->next != NULL)
 				start = match->next;
-			errstring = "ERROR:\tincomplete command.\n";
+			errstring = (char *)"ERROR:\tincomplete command.\n";
 			goto error3;
 		}
 		if (argc == 0 && *argv == NULL && match->type != NON) {
 			if (match->next != NULL)
 				start = match->next;
-			errstring = "ERROR:\tincomplete command.\n";
+			errstring = (char *)"ERROR:\tincomplete command.\n";
 			goto error3;
 		}
 
@@ -206,7 +206,7 @@ handle_signal(int sig)
 }
 
 static void
-run_command_detailed(int fd, short event, void *arg) {
+run_command_detailed(int fd __unused, short event __unused, void *arg) {
 	struct runq *cmd;
 	struct timeval tv = { 8, 0 };
 
@@ -324,7 +324,7 @@ socket_read_command(int fd, short event, void *arg)
 {
 	struct command *cmd;
 	struct event *ev = arg;
-	pthread_mutex_t *lock;
+	//pthread_mutex_t *lock;
 	enum { bufsize = 2048 };
 	char buf[bufsize];
 	register int n;

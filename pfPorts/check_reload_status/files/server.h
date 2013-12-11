@@ -72,15 +72,15 @@ enum argtype {
 };
 
 struct run {
-        char    *command;
-        char    *syslog;
+        const char    *command;
+        const char    *syslog;
 	int aggregate;
 };
 
 struct command {
         enum actions    action;
         enum argtype    type;
-        char      *keyword;
+        const char      *keyword;
         struct command  *next;
         struct run      cmd;
 };
@@ -91,13 +91,14 @@ static struct command c_interface[];
 static struct command c_service[];
 static struct command c_service2[];
 
+#define NULL_INIT { NULL, NULL, 0 }
 
 static struct command first_level[] = {
-        { FILTER, COMPOUND, "filter", c_filter},
-        { INTERFACE, COMPOUND, "interface", c_interface },
+        { FILTER, COMPOUND, "filter", c_filter, NULL_INIT},
+        { INTERFACE, COMPOUND, "interface", c_interface, NULL_INIT},
         /* { GATEWAY, COMPOUND, "gateway", c_reload }, */
-        { SERVICE, COMPOUND, "service", c_service },
-        { NULLOPT, NON, "", NULL }
+        { SERVICE, COMPOUND, "service", c_service, NULL_INIT },
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_filter[] = {
@@ -109,11 +110,11 @@ static struct command c_filter[] = {
                 { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
         { SYNC, NON, "sync", NULL,
                 { "/etc/rc.filter_synchronize", "Syncing firewall", 1 } },
-        { NULLOPT, NON, "", NULL }
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_interface[] = {
-        { ALL, STRING, "all", c_interface2 },
+        { ALL, STRING, "all", c_interface2, NULL_INIT },
         { RELOAD, IFNAME, "reload", NULL,
                 { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
         { RECONFIGURE, IFNAME, "reconfigure", NULL,
@@ -122,10 +123,10 @@ static struct command c_interface[] = {
                 { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
         { NEWIP, STRING, "newip", NULL,
                 { "/etc/rc.newwanip %s", "rc.newwanip starting %s", 0 } },
-        { LINKUP, STRING, "linkup", c_interface2 },
+        { LINKUP, STRING, "linkup", c_interface2, NULL_INIT },
         { SYNC, NON, "sync", NULL,
                 { "/etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc", 1 } },
-        { NULLOPT, NON, "", NULL }
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_interface2[] = {
@@ -135,7 +136,7 @@ static struct command c_interface2[] = {
                 { "/etc/rc.linkup start %s", "Linkup starting %s", 0 } },
 	{ STOP, IFNAME, "stop", NULL,
                 { "/etc/rc.linkup stop %s", "Linkup starting %s", 0 } },
-        { NULLOPT, NON, "", NULL }
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_service2[] = {
@@ -161,21 +162,21 @@ static struct command c_service2[] = {
                 { "/etc/sshd", "starting sshd", 1 } },
         { WEBGUI, NON, "webgui", NULL,
                 { "/etc/rc.restart_webgui", "webConfigurator restart in progress", 1 } },
-        { NULLOPT, NON, "", NULL }
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_service_sync[] = {
 	{ VOUCHERS, NON, "vouchers", NULL,
 		{ "/etc/rc.savevoucher", "Synching vouchers", 1 } },
-        { NULLOPT, NON, "", NULL }
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_service[] = {
-        { RELOAD, STRING, "reload", c_service2 },
-        { RECONFIGURE, STRING, "reconfigure", c_service2},
-        { RESTART, STRING, "restart", c_service2 },
-	{ SYNC, STRING, "sync", c_service_sync },
-        { NULLOPT, NON, "", NULL }
+        { RELOAD, STRING, "reload", c_service2, NULL_INIT },
+        { RECONFIGURE, STRING, "reconfigure", c_service2, NULL_INIT},
+        { RESTART, STRING, "restart", c_service2, NULL_INIT },
+	{ SYNC, STRING, "sync", c_service_sync, NULL_INIT },
+        { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 #endif /* _SERVER_H_ */

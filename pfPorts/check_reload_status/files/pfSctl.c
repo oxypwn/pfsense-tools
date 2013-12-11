@@ -60,14 +60,16 @@ main(int argc, char **argv)
 	struct sockaddr_un sun;
 	struct sigaction sa;
 	char buf[2048];
-	char *cmd[6], *path = PATH;
+	char *cmd[6], *path;
 	socklen_t len;
 	int fd, n, ch;
 	int ncmds = 0, nsock = 0, error = 0, i;
 
 	if (argc != 2)
+		return (-1);
 		/* NOTREACHED */
 
+	path = NULL;
 	while ((ch = getopt(argc, argv, "c:s:")) != -1) {
 		switch (ch) {
 		case 'c':
@@ -106,7 +108,7 @@ main(int argc, char **argv)
 	
 	bzero(&sun, sizeof(sun));
 	sun.sun_family = AF_LOCAL;
-	strlcpy(sun.sun_path, path, sizeof(sun.sun_path));
+	strlcpy(sun.sun_path, path == NULL ? PATH : path, sizeof(sun.sun_path));
 	len = sizeof(sun);
 
 	op = 0; /* Read */
