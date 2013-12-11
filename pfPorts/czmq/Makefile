@@ -3,7 +3,7 @@
 
 PORTNAME=	czmq
 PORTVERSION=	1.3.2
-CATEGORIES=	devel net
+CATEGORIES=	net
 MASTER_SITES=	http://download.zeromq.org/
 NO_STAGE=	yes
 
@@ -12,7 +12,7 @@ COMMENT=	High-level C Binding for zmq
 
 LICENSE=	LGPL3
 
-LIB_DEPENDS=	zmq:${PORTSDIR}/devel/zmq
+LIB_DEPENDS=	zmq:${PORTSDIR}/net/libzmq2
 
 USE_PERL5_BUILD=	yes
 USE_GMAKE=	yes
