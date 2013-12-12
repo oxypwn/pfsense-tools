@@ -15,128 +15,83 @@
 #include <strings.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <sys/utsname.h>
 
-#define VERSION	1
-
-enum reqtype {
-	BEGINREQUEST = 1,
-	ABORTREQUEST,
-	ENDREQUEST,
-	PARAMS,
-	STDIN,
-	STDOUT,
-	STDERR,
-	DATA,
-	GETVALUES,
-	GETVALUESRESULT,
-	MAXTYPE
-};
-
-enum clitype {
-	RESPONDER = 1,
-	AUTHORIZER,
-	FILER
-};
-
-enum reqstatus {
-	REQUESTCOMPLETE = 0,
-	CANTMULTIPLEX,
-	OVERLOADED,
-	UNKOWNROLE
-};
-
-enum respindex {
-	respversion = 0,
-	resptype,
-	resprequestId,
-	respcontentLength,
-	resppaddingLength,
-	respreserved,
-	respcontent,
-	respMAX
-};
-
-#define HEADERLEN	8
+#include "fastcgi.h"
 
 static int fcgisock = -1;
 static struct sockaddr_un sun;
 static struct sockaddr_in sin;
-static int keepalive = 1;
+static int keepalive = 0;
 
 static int
-build_nvpair(struct sbuf *sb, const char *key, const char *value)
+build_nvpair(struct sbuf *sb, const char *key, char *svalue)
 {
 	int lkey, lvalue;
 
 	lkey = strlen(key);
-	lvalue = strlen(value);
+	lvalue = strlen(svalue);
 
 	if (lkey < 128)
-		sbuf_printf(sb, "%c", (char)lkey);
+		sbuf_putc(sb, lkey);
 	else
-		sbuf_printf(sb, "%c%c%c%c", (char)((lkey >> 24) | 0x80), (char)((lkey >> 16) & 0xFF), (char)((lkey >> 16) & 0xFF), (char)(lkey & 0xFF));
+		sbuf_printf(sb, "%c%c%c%c", (u_char)((lkey >> 24) | 0x80), (u_char)((lkey >> 16) & 0xFF), (u_char)((lkey >> 16) & 0xFF), (u_char)(lkey & 0xFF));
 
-	if (lkey < 128)
-		sbuf_printf(sb, "%c", (char)lvalue);
+	if (lvalue < 128 || lvalue > 65535)
+		sbuf_putc(sb, lvalue);
 	else
-		sbuf_printf(sb, "%c%c%c%c", (char)((lvalue >> 24) | 0x80), (char)((lvalue >> 16) & 0xFF), (char)((lvalue >> 16) & 0xFF), (char)(lvalue & 0xFF));
+		sbuf_printf(sb, "%c%c%c%c", (u_char)((lvalue >> 24) | 0x80), (u_char)((lvalue >> 16) & 0xFF), (u_char)((lvalue >> 16) & 0xFF), (u_char)(lvalue & 0xFF));
 
-	sbuf_printf(sb, "%s%s", key, value);
+	if (lkey > 0)
+		sbuf_printf(sb, "%s", key);
+	if (lvalue > 0)
+		sbuf_printf(sb, "%s", svalue);
 
 	return (0);
 }
 
 static int
-build_packet(struct sbuf *sb, int type, char *content, int requestId)
+prepare_packet(FCGI_Header *header, int type, int lcontent, int requestId)
 {
-	int lcontent;
-
-	if (content == NULL)
-		lcontent = 0;
-	else
-		lcontent = strlen(content);
-
-	sbuf_printf(sb, "%c%c%c%c%c%c%c%c%s", (char)VERSION, (char)type, (char)((requestId >> 8) & 0xFF),
-			(char)(requestId & 0xFF), (char)((lcontent >> 8) & 0xFF), (char)(lcontent & 0xFF),
-			(char)0, (char)0, content);
+	header->version = (unsigned char)FCGI_VERSION_1;
+	header->type = (unsigned char)type;
+	header->requestIdB1 = (unsigned char)((requestId >> 8) & 0xFF);
+	header->requestIdB0 = (unsigned char)(requestId & 0xFF);
+	header->contentLengthB1 = (unsigned char)((lcontent >> 8) & 0xFF);
+	header->contentLengthB0 = (unsigned char)(lcontent & 0xFF);
 
 	return (0);
 }
 
-static int
-read_packet(struct sbuf *sb, int sockfd, int *header)
+static char * 
+read_packet(FCGI_Header *header, int sockfd)
 {
-	char data[HEADERLEN];
-	char buf[2048];
+	char *buf = NULL;
 	int len, err;
 
-	memset(header, 0, sizeof(int) * HEADERLEN);
-	memset(data, 0, sizeof(char) * HEADERLEN);
-	if (read(sockfd, data, HEADERLEN) >= 0) {
-		header[respversion] = (int)data[0];
-		header[resptype] = (int)data[0];
-		header[resprequestId] = (int)(((int)((data[2] << 8))) + ((int)(data[3])));
-		header[respcontentLength] = (int)(((int)((data[4] << 8))) + ((int)(data[5])));
-		header[resppaddingLength] = (int)data[6];
-		header[respreserved] = (int)data[7];
+	memset(header, 0, sizeof(*header));
+	if (recv(sockfd, header, sizeof(*header), 0) > 0) {
+		len = (header->requestIdB1 << 8) + header->requestIdB0;
+		if (len != 1) {
+			return (NULL);
+		}
+		len = (header->contentLengthB1 << 8) + header->contentLengthB0;
+		len += header->paddingLength;
+		//printf("LEN: %d, %d, %d: %s\n", len, header->type, (header->requestIdB1 << 8) + header->requestIdB0, (char *)header);
+		if (len > 0) {
+			buf = calloc(1, len);
+			if (buf == NULL)
+				return (NULL);
 
-		if (header[respcontentLength] > 0) {
-			memset(buf, 0, sizeof(buf));
-			len = header[respcontentLength];
-			while (len > 0 && (err = read(sockfd, buf, sizeof(buf)))) {
-				if (err < 0) {
-					printf("Something wrong happened while reading from socket\n");
-					return (-1);
-				}
-				len -= err;
-				sbuf_printf(sb, "%s", buf);
-				memset(buf, 0, sizeof(buf));
+			err = recv(sockfd, buf, len, 0);
+			if (err < 0) {
+				free(buf);
+				return (NULL);
 			}
 		}
-		
-		return (0);
-	} else
-		return (-1);
+	}
+
+	return (buf);
 }
 
 static void
@@ -149,18 +104,23 @@ usage()
 int
 main(int argc, char **argv)
 {
-	struct sbuf *sb, *sbtmp2, *sbtmp;
-	int ch, ispost = 0, len;
-	char *data = NULL, *script = NULL, *socketpath = NULL, *mtype = NULL;
-	int header[respMAX];
+	FCGI_BeginRequestRecord *bHeader;
+	FCGI_Header *tmpl, rHeader;
+	struct sbuf *sbtmp2, *sbtmp;
+	struct utsname uts;
+	int ch, ispost = 0, len, result;
+	char *data = NULL, *script = NULL, *socketpath = NULL, *mtype = NULL, *buf;
 
-	while ((ch = getopt(argc, argv, "d:f:s:o:")) != -1) {
+	while ((ch = getopt(argc, argv, "d:f:ks:o:")) != -1) {
 		switch (ch) {
 		case 'd':
 			data = optarg;
 			break;
 		case 'f':
 			script = optarg;
+			break;
+		case 'k':
+			keepalive = 1;
 			break;
 		case 's':
 			socketpath = optarg;
@@ -190,7 +150,7 @@ main(int argc, char **argv)
 	}
 
 	if (strstr(socketpath, "/")) {
-		fcgisock = socket(PF_INET, SOCK_STREAM, 0);
+		fcgisock = socket(PF_UNIX, SOCK_STREAM, 0);
 		if (fcgisock < 0)
 			err(-2, "could not create socket.");
 
@@ -201,7 +161,7 @@ main(int argc, char **argv)
 
 		//alarm(3); /* Wait 3 seconds to complete a connect. More than enough?! */
 		if (connect(fcgisock, (struct sockaddr *)&sun, len) < 0)
-			errx(errno, "Could not connect to server.");
+			errx(errno, "Could not connect to server(%s).", socketpath);
 	} else {
 		char *host, *port;
 		if (!(port = strstr(socketpath, ":")))
@@ -210,7 +170,7 @@ main(int argc, char **argv)
 		*port++ = '\0';
 		host = socketpath;
 
-		fcgisock = socket(PF_UNIX, SOCK_STREAM, 0);
+		fcgisock = socket(PF_INET, SOCK_STREAM, 0);
 		if (fcgisock < 0)
 			err(-2, "could not create socket.");
 
@@ -222,39 +182,31 @@ main(int argc, char **argv)
 
 		//alarm(3); /* Wait 3 seconds to complete a connect. More than enough?! */
 		if (connect(fcgisock, (struct sockaddr *)&sin, len) < 0)
-			errx(errno, "Could not connect to server.");
+			errx(errno, "Could not connect to server(%s:%s).", host, port);
 	}
 
-	sb = sbuf_new_auto();
-	if (sb == NULL)
-		errx(-3, "Could not allocate memory\n");
-
-	sbtmp = sbuf_new_auto();
-	if (sbtmp == NULL)
-		errx(-3, "Could not allocate memory\n");
+	uname(&uts);
 
 	if (ispost) {
+		printf("POST is not yet implemented\n");
+		tmpl = NULL;
 		
 	} else {
-		sbuf_printf(sbtmp, "0%c%c00000", (char)RESPONDER, (char)keepalive);
-		sbuf_finish(sbtmp);
-		if (build_packet(sb, BEGINREQUEST, sbuf_data(sbtmp), 1))
-			errx(-4, "Could not build start of request");
-		sbuf_delete(sbtmp);
-		
 		sbtmp2 = sbuf_new_auto();
-		build_nvpair(sbtmp2, "GATEWAY_INTERFACE", "FastCGI/1.0");
-		build_nvpair(sbtmp2, "REQUEST_METHOD", "GET");
-		build_nvpair(sbtmp2, "SCRIPT_FILENAME", script);
+		if (sbtmp2 == NULL)
+			errx(-3, "Could not allocate memory\n");
+		build_nvpair(sbtmp2, "GATEWAY_INTERFACE", (char *)"FastCGI/1.0");
+		build_nvpair(sbtmp2, "REQUEST_METHOD", (char *)"GET");
 		sbtmp = sbuf_new_auto();
 		sbuf_printf(sbtmp, "/%s", basename(script));
 		sbuf_finish(sbtmp);
+		build_nvpair(sbtmp2, "SCRIPT_FILENAME", script);
 		build_nvpair(sbtmp2, "SCRIPT_NAME", sbuf_data(sbtmp));
-		build_nvpair(sbtmp2, "DOCUMENT_URI", sbuf_data(sbtmp));
 		if (data == NULL) {
 			build_nvpair(sbtmp2, "REQUEST_URI", sbuf_data(sbtmp));
-			build_nvpair(sbtmp2, "QUERY_STRING", "");
+			build_nvpair(sbtmp2, "QUERY_STRING", (char *)"");
 		}
+		build_nvpair(sbtmp2, "DOCUMENT_URI", sbuf_data(sbtmp));
 		sbuf_delete(sbtmp);
 		if (data) {
 			build_nvpair(sbtmp2, "QUERY_STRING", data); 
@@ -264,65 +216,90 @@ main(int argc, char **argv)
 			build_nvpair(sbtmp2, "REQUEST_URI", sbuf_data(sbtmp));
 			sbuf_delete(sbtmp);
 		}
-		build_nvpair(sbtmp2, "SERVER_SOFTWARE", "php/fcgiclient");
-		build_nvpair(sbtmp2, "REMOTE_ADDR", "localhost");
-		build_nvpair(sbtmp2, "REMOTE_PORT", "9999");
-		build_nvpair(sbtmp2, "SERVER_ADDR", "localhost");
-		build_nvpair(sbtmp2, "SERVER_PORT", "80");
-		build_nvpair(sbtmp2, "SERVER_NAME", "fcgicli");
-		build_nvpair(sbtmp2, "SERVER_PROTOCOL", "HTTP/1.1");
-		build_nvpair(sbtmp2, "CONTENT_TYPE", "");
-		build_nvpair(sbtmp2, "CONTENT_LENGTH", "0");
+		build_nvpair(sbtmp2, "SERVER_SOFTWARE", (char *)"php/fcgiclient");
+		build_nvpair(sbtmp2, "REMOTE_ADDR", (char *)"127.0.0.1");
+		build_nvpair(sbtmp2, "REMOTE_PORT", (char *)"9999");
+		build_nvpair(sbtmp2, "SERVER_ADDR", (char *)"127.0.0.1");
+		build_nvpair(sbtmp2, "SERVER_PORT", (char *)"80");
+		build_nvpair(sbtmp2, "SERVER_NAME", uts.nodename);
+		build_nvpair(sbtmp2, "SERVER_PROTOCOL", (char *)"HTTP/1.1");
+		build_nvpair(sbtmp2, "CONTENT_TYPE", (char *)"");
+		build_nvpair(sbtmp2, "CONTENT_LENGTH", (char *)"0");
 		sbuf_finish(sbtmp2);
-		build_packet(sb, PARAMS, sbuf_data(sbtmp2), 1);
+
+		len = (3 * sizeof(FCGI_Header)) + sizeof(FCGI_BeginRequestRecord) + sbuf_len(sbtmp2);
+		buf = calloc(1, len);
+		if (buf == NULL)
+			errx(-4, "Cannot allocate memory");
+
+		bHeader = (FCGI_BeginRequestRecord *)buf;
+		prepare_packet(&bHeader->header, FCGI_BEGIN_REQUEST, sizeof(bHeader->body), 1);
+		bHeader->body.roleB0 = (unsigned char)FCGI_RESPONDER;
+		bHeader->body.flags = (unsigned char)(keepalive ? FCGI_KEEP_CONN : 0);
+		bHeader++;
+		tmpl = (FCGI_Header *)bHeader;
+		prepare_packet(tmpl, FCGI_PARAMS, sbuf_len(sbtmp2), 1);
+		tmpl++;
+		memcpy((char *)tmpl, sbuf_data(sbtmp2), sbuf_len(sbtmp2));
+		tmpl = (FCGI_Header *)(((char *)tmpl) + sbuf_len(sbtmp2));
 		sbuf_delete(sbtmp2);
 	}
-	build_packet(sb, PARAMS, NULL, 1);
-	build_packet(sb, STDIN, NULL, 1);
-	sbuf_finish(sb);
-	if (write(fcgisock, sbuf_data(sb), sbuf_len(sb)) != sbuf_len(sb)) {
-		printf("Something wrong happened\n");
-		sbuf_delete(sb);
-		close(fcgisock);
-		exit(-2);
+	prepare_packet(tmpl, FCGI_PARAMS, 0, 1);
+	tmpl++;
+	prepare_packet(tmpl, FCGI_STDIN, 0, 1);
+	while (len > 0) {
+		result = write(fcgisock, buf, len);
+		if (result < 0) {
+			printf("Something wrong happened while sending request\n");
+			free(buf);
+			close(fcgisock);
+			exit(-2);
+		}
+		len -= result;
+		buf += result;
 	}
-	sbuf_delete(sb);
+	free(buf);
 
 	do {
-		sb = sbuf_new_auto();
-		ch = read_packet(sb, fcgisock, header);
-		if (ch < 0) {
+		buf = read_packet(&rHeader, fcgisock);
+		if (buf == NULL) {
 			printf("Something wrong happened while reading request\n");
-			//sbuf_finish(sb);
-			//sbuf_delete(sb);
+			close(fcgisock);
+			exit(-1);
+		}
+		switch (rHeader.type) {
+		case FCGI_DATA:
+		case FCGI_STDOUT:
+		case FCGI_STDERR:
+			printf("%s", buf);
+			free(buf);
+			break;
+		case FCGI_ABORT_REQUEST:
+			printf("Request aborted\n");
+			free(buf);
+			goto endprog;
+			break;
+		case FCGI_END_REQUEST:
+			switch (((FCGI_EndRequestBody *)buf)->protocolStatus) {
+			case FCGI_CANT_MPX_CONN:
+				printf("The FCGI server cannot multiplex\n");
+				break;
+			case FCGI_OVERLOADED:
+				printf("The FCGI server is overloaded\n");
+				break;
+			case FCGI_UNKNOWN_ROLE:
+				printf("FCGI role is unknown\n");
+				break;
+			case FCGI_REQUEST_COMPLETE:
+				break;
+			}
+			free(buf);
+			goto endprog;
 			break;
 		}
-		sbuf_finish(sb);
-		if (header[resptype] == STDOUT || header[resptype] == STDERR) {
-			printf("%s", sbuf_data(sb));
-			sbuf_delete(sb);
-		}
-	} while (header[resptype] != ENDREQUEST);
+	} while (rHeader.type != FCGI_END_REQUEST);
 
-	if (ch > 0) {
-		data = sbuf_data(sb);
-		switch ((int)data[4]) {
-		case CANTMULTIPLEX:
-			printf("The FCGI server cannot multiplex\n");
-			break;
-		case OVERLOADED:
-			printf("The FCGI server is overloaded\n");
-			break;
-		case UNKOWNROLE:
-			printf("FCGI role is unknown\n");
-			break;
-		case REQUESTCOMPLETE:
-			printf("%s", data);
-			break;
-		}
-		sbuf_delete(sb);
-	}
-
+endprog:
 	close(fcgisock);
 
 	return (0);
