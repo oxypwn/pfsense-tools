@@ -139,7 +139,7 @@ gzsig						/usr/ports/sysutils/gzsig					/usr/local/sbin/gzsig
 ssh_tunnel_shell			/usr/ports/sysutils/ssh_tunnel_shell		/usr/local/sbin/ssh_tunnel_shell
 sshlockout_pf				/usr/ports/sysutils/sshlockout_pf			/usr/local/sbin/sshlockout_pf
 smartmontools				/usr/ports/sysutils/smartmontools			/usr/local/sbin/smartctl
-check_reload_status			/usr/ports/sysutils/check_reload_status		/usr/local/sbin/check_reload_status
+check_reload_status			/usr/ports/sysutils/check_reload_status_2.1		/usr/local/sbin/check_reload_status
 ataidle						/usr/ports/sysutils/ataidle					/usr/local/sbin/ataidle
 syslogd						/usr/ports/sysutils/syslogd					/usr/sbin/syslogd
 clog						/usr/ports/sysutils/clog					/usr/sbin/clog
