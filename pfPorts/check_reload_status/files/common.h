@@ -29,5 +29,6 @@
 #define _COMMON_H_
 
 #define PATH            "/var/run/check_reload_status"
+#define FCGI_SOCK_PATH	"/var/run/php.fcgi.sock"
 
 #endif

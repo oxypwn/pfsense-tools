@@ -28,8 +28,6 @@
 #ifndef _SERVER_H_
 #define _SERVER_H_
 
-#include <pthread.h>
-
 #define filepath        "/tmp/check_test"
 
 enum actions {
@@ -71,10 +69,13 @@ enum argtype {
         IFNAME
 };
 
+#define	AGGREGATE	1
+#define	FCGICMD		2
 struct run {
         const char    *command;
+	const char    *params;
         const char    *syslog;
-	int aggregate;
+	int flags;
 };
 
 struct command {
@@ -91,7 +92,7 @@ static struct command c_interface[];
 static struct command c_service[];
 static struct command c_service2[];
 
-#define NULL_INIT { NULL, NULL, 0 }
+#define NULL_INIT { NULL, NULL, NULL, 0 }
 
 static struct command first_level[] = {
         { FILTER, COMPOUND, "filter", c_filter, NULL_INIT},
@@ -103,71 +104,71 @@ static struct command first_level[] = {
 
 static struct command c_filter[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
+                { "/etc/rc.filter_configure_sync", NULL, "Reloading filter", AGGREGATE | FCGICMD } },
         { RECONFIGURE, NON, "reconfigure", NULL,
-                { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
+                { "/etc/rc.filter_configure_sync", NULL, "Reloading filter", AGGREGATE | FCGICMD } },
         { RESTART, NON, "restart", NULL,
-                { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
+                { "/etc/rc.filter_configure_sync", NULL, "Reloading filter", AGGREGATE | FCGICMD } },
         { SYNC, NON, "sync", NULL,
-                { "/etc/rc.filter_synchronize", "Syncing firewall", 1 } },
+                { "/etc/rc.filter_synchronize", NULL, "Syncing firewall", AGGREGATE | FCGICMD } },
         { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_interface[] = {
         { ALL, STRING, "all", c_interface2, NULL_INIT },
         { RELOAD, IFNAME, "reload", NULL,
-                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
+                { "/etc/rc.interfaces_wan_configure", "interface=%s", "Configuring interface %s", AGGREGATE | FCGICMD } },
         { RECONFIGURE, IFNAME, "reconfigure", NULL,
-                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
+                { "/etc/rc.interfaces_wan_configure", "interface=%s", "Configuring interface %s", AGGREGATE | FCGICMD } },
         { RESTART, IFNAME, "restart", NULL,
-                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
+                { "/etc/rc.interfaces_wan_configure", "interface=%s", "Configuring interface %s", AGGREGATE | FCGICMD } },
         { NEWIP, STRING, "newip", NULL,
-                { "/etc/rc.newwanip %s", "rc.newwanip starting %s", 0 } },
+                { "/etc/rc.newwanip", "interface=%s", "rc.newwanip starting %s", FCGICMD } },
         { LINKUP, STRING, "linkup", c_interface2, NULL_INIT },
         { SYNC, NON, "sync", NULL,
-                { "/etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc", 1 } },
+                { "/etc/rc.filter_configure_xmlrpc", NULL, "Reloading filter_configure_xmlrpc", AGGREGATE | FCGICMD } },
         { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_interface2[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/etc/rc.reload_interfaces", "Reloading interfaces", 1 } },
+                { "/etc/rc.reload_interfaces", NULL, "Reloading interfaces", AGGREGATE | FCGICMD } },
 	{ START, IFNAME, "start", NULL,
-                { "/etc/rc.linkup start %s", "Linkup starting %s", 0 } },
+                { "/etc/rc.linkup", "action=start&interface=%s", "Linkup starting %s", FCGICMD } },
 	{ STOP, IFNAME, "stop", NULL,
-                { "/etc/rc.linkup stop %s", "Linkup starting %s", 0 } },
+                { "/etc/rc.linkup", "action=stop&interface=%s", "Linkup starting %s", FCGICMD } },
         { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_service2[] = {
         { ALL, NON, "all", NULL,
-                { "/etc/rc.reload_all", "Reloading all", 1 } },
+                { "/etc/rc.reload_all", NULL, "Reloading all", AGGREGATE | FCGICMD } },
         { DNSSERVER, NON, "dns", NULL,
-                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", 1 } },
+                { "/etc/rc.resolv_conf_generate", NULL, "Rewriting resolv.conf", AGGREGATE | FCGICMD } },
         { IPSECDNS, NON, "ipsecdns", NULL,
-                { "/etc/rc.newipsecdns", "Restarting ipsec tunnels", 1 } },
+                { "/etc/rc.newipsecdns", NULL, "Restarting ipsec tunnels", AGGREGATE | FCGICMD } },
         { ROUTEDNS, NON, "routedns", NULL,
-                { "/etc/rc.newroutedns", "Updating static routes based on hostnames", 1 } },
+                { "/etc/rc.newroutedns", NULL, "Updating static routes based on hostnames", AGGREGATE | FCGICMD } },
         { OPENVPN, STRING, "openvpn", NULL,
-                { "/etc/rc.openvpn %s", "Restarting OpenVPN tunnels/interfaces", 1 } },
+                { "/etc/rc.openvpn", "interface=%s", "Restarting OpenVPN tunnels/interfaces", AGGREGATE | FCGICMD } },
         { DYNDNS, STRING, "dyndns", NULL,
-                { "/etc/rc.dyndns.update %s", "updating dyndns %s", 1 } },
+                { "/etc/rc.dyndns.update", "dyndns=%s", "updating dyndns %s", AGGREGATE | FCGICMD } },
         { DYNDNSALL, NON, "dyndnsall", NULL,
-                { "/etc/rc.dyndns.update", "Updating all dyndns", 1 } },
+                { "/etc/rc.dyndns.update", NULL, "Updating all dyndns", AGGREGATE | FCGICMD } },
         { NTPD, NON, "ntpd", NULL,
-                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "Starting nptd", 1 } },
+                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", NULL, "Starting nptd", AGGREGATE } },
         { PACKAGES, NON, "packages", NULL,
-                { "/etc/rc.start_packages", "Starting packages", 1 } },
+                { "/etc/rc.start_packages", NULL, "Starting packages", AGGREGATE | FCGICMD } },
         { SSHD, NON, "sshd", NULL,
-                { "/etc/sshd", "starting sshd", 1 } },
+                { "/etc/sshd", NULL, "starting sshd", AGGREGATE | FCGICMD } },
         { WEBGUI, NON, "webgui", NULL,
-                { "/etc/rc.restart_webgui", "webConfigurator restart in progress", 1 } },
+                { "/etc/rc.restart_webgui", NULL, "webConfigurator restart in progress", AGGREGATE | FCGICMD } },
         { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
 static struct command c_service_sync[] = {
 	{ VOUCHERS, NON, "vouchers", NULL,
-		{ "/etc/rc.savevoucher", "Synching vouchers", 1 } },
+		{ "/etc/rc.savevoucher", NULL, "Synching vouchers", AGGREGATE | FCGICMD } },
         { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 

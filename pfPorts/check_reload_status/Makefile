@@ -19,7 +19,7 @@ COMMENT?=	run various pfSense scripts on event.
 
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
-CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
+CFLAGS=	-I/usr/local/include -L/usr/local/lib  -g -O1
 
 CFLAGS+=	-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
                 -Wno-unused-parameter -Wstrict-prototypes \
@@ -34,7 +34,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -levent -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -lsbuf -levent -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 	${CC} ${CFLAGS} -o ${WRKSRC}/pfSctl ${FILESDIR}/pfSctl.c
 	${CC} ${CFLAGS} -lsbuf -o ${WRKSRC}/fcgicli ${FILESDIR}/fcgicli.c
 

@@ -27,6 +27,7 @@
 
 #include <sys/types.h>
 #include <sys/event.h>
+#include <sys/sbuf.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -50,6 +51,10 @@
 #include "server.h"
 #include "common.h"
 
+#include <sys/utsname.h>
+
+#include "fastcgi.h"
+
 /* function definitions */
 static void			handle_signal(int);
 static void			run_command(struct command *, char *);
@@ -60,8 +65,9 @@ static void			socket_read_command(int socket, short event, void *arg);
 static void			show_command_list(int fd, const struct command *list);
 static void			socket_accept_command(int socket, short event, void *arg);
 static void			socket_close_command(int fd, struct event *ev);
-//static void *			listen_thread(void *);
-//static void *			runqueue_thread(void *);
+static void			socket_read_fcgi(int, short, void *);
+static void			fcgi_send_command(int, short, void *);
+static int			fcgi_open_socket(void);
 
 /*
  * Internal representation of a packet.
@@ -70,15 +76,82 @@ struct runq {
 	TAILQ_ENTRY(runq) rq_link;
 	struct event ev;
 	char   command[2048];
+	char   params[256];
+	int requestId;
 	int aggregate;
 	int dontexec;
 };
 TAILQ_HEAD(runqueue, runq) cmds = TAILQ_HEAD_INITIALIZER(cmds);;
 
-pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
-
 static pid_t ppid = -1;
 static int child = 0;
+static struct utsname uts;
+static int fcgifd = -1;
+static int keepalive = 1;
+static char *fcgipath = (char *)FCGI_SOCK_PATH;
+struct event fcgiev;
+
+static int
+prepare_packet(FCGI_Header *header, int type, int lcontent, int requestId)
+{
+        header->version = (unsigned char)FCGI_VERSION_1;
+        header->type = (unsigned char)type;
+        header->requestIdB1 = (unsigned char)((requestId >> 8) & 0xFF);
+        header->requestIdB0 = (unsigned char)(requestId & 0xFF);
+        header->contentLengthB1 = (unsigned char)((lcontent >> 8) & 0xFF);
+        header->contentLengthB0 = (unsigned char)(lcontent & 0xFF);
+
+        return (0);
+}
+
+static int
+build_nvpair(struct sbuf *sb, int lkey, int lvalue, const char *key, char *svalue)
+{
+        if (lkey < 128)
+                sbuf_putc(sb, lkey);
+        else
+                sbuf_printf(sb, "%c%c%c%c", (u_char)((lkey >> 24) | 0x80), (u_char)((lkey >> 16) & 0xFF), (u_char)((lkey >> 16) & 0xFF), (u_char)(lkey & 0xFF));
+
+        if (lvalue < 128 || lvalue > 65535)
+                sbuf_putc(sb, lvalue);
+        else
+                sbuf_printf(sb, "%c%c%c%c", (u_char)((lvalue >> 24) | 0x80), (u_char)((lvalue >> 16) & 0xFF), (u_char)((lvalue >> 16) & 0xFF), (u_char)(lvalue & 0xFF));
+
+        if (lkey > 0)
+                sbuf_printf(sb, "%s", key);
+        if (lvalue > 0)
+                sbuf_printf(sb, "%s", svalue);
+
+        return (0);
+}
+
+static int
+fcgi_open_socket()
+{
+        struct sockaddr_un sun;
+
+	fcgifd = socket(PF_UNIX, SOCK_STREAM, 0);
+	if (fcgifd < 0) {
+		printf("Could not socket\n");
+		return (-1);
+	}
+
+	bzero(&sun, sizeof(sun));
+	sun.sun_family = PF_UNIX;
+        strlcpy(sun.sun_path, fcgipath, sizeof(sun.sun_path));
+        if (connect(fcgifd, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
+                printf("Could not bind\n");
+                close(fcgifd);
+                return (-1);
+        }
+
+        set_blockmode(fcgifd, O_NONBLOCK | FD_CLOEXEC);
+
+	event_set(&fcgiev, fcgifd, EV_READ | EV_PERSIST, socket_read_fcgi, &fcgiev);
+	event_add(&fcgiev, NULL);
+
+	return (fcgifd);
+}
 
 static void
 show_command_list(int fd, const struct command *list)
@@ -206,6 +279,114 @@ handle_signal(int sig)
 }
 
 static void
+fcgi_send_command(int fd __unused , short event __unused, void *arg)
+{
+	FCGI_BeginRequestRecord *bHeader;
+        FCGI_Header *tmpl;
+        struct sbuf sb;
+	struct runq *cmd;
+	struct timeval tv = { 8, 0 };
+	static int requestId = 0;
+	int len, result;
+	char *p, sbuf[2048], buf[2048];
+
+	cmd = arg;
+	if (cmd == NULL)
+		return;
+
+	if (cmd->dontexec) {
+		TAILQ_REMOVE(&cmds, cmd, rq_link);
+		child = 0;
+		timeout_del(&cmd->ev);
+		free(cmd);
+		return;
+	}
+
+	requestId++;
+	cmd->requestId = requestId;
+
+	memset(sbuf, 0, sizeof(sbuf));
+	sbuf_new(&sb, sbuf, 2048, 0);
+	/* TODO: Use hardcoded length instead of strlen allover later on */
+	/* TODO: Remove some env variables since might not be needed at all!!! */
+	build_nvpair(&sb, strlen("GATEWAY_INTERFACE"), strlen("FastCGI/1.0"), "GATEWAY_INTERFACE", (char *)"FastCGI/1.0");
+	build_nvpair(&sb, strlen("REQUEST_METHOD"), strlen("GET"), "REQUEST_METHOD", (char *)"GET");
+	build_nvpair(&sb, strlen("SCRIPT_FILENAME"), strlen(cmd->command), "SCRIPT_FILENAME", cmd->command);
+	p = strrchr(cmd->command, '/');
+	build_nvpair(&sb, strlen("SCRIPT_NAME"), strlen(p), "SCRIPT_NAME", p);
+	p++;
+	build_nvpair(&sb, strlen("DOCUMENT_URI"), strlen(p), "DOCUMENT_URI", p);
+	build_nvpair(&sb, strlen("QUERY_STRING"), strlen(cmd->params), "QUERY_STRING", cmd->params);
+	if (!cmd->params[0]) {
+		build_nvpair(&sb, strlen("REQUEST_URI"), 0, "REQUEST_URI", p);
+	} else {
+		/* XXX: Hack in sight to avoid using another sbuf */
+		build_nvpair(&sb, strlen("REQUEST_URI"), 1 + strlen(p) + strlen(cmd->params) + 1, "REQUEST_URI", (char *)"/");
+		sbuf_printf(&sb, "%s?%s", p, cmd->params);
+	}
+	build_nvpair(&sb, strlen("SERVER_SOFTWARE"), strlen("php/fcgicheckreload"), "SERVER_SOFTWARE", (char *)"php/fcgicheckreload");
+	build_nvpair(&sb, strlen("REMOTE_ADDR"), strlen("127.0.0.1"), "REMOTE_ADDR", (char *)"127.0.0.1");
+	build_nvpair(&sb, strlen("REMOTE_PORT"), strlen("9999"), "REMOTE_PORT", (char *)"9999");
+	build_nvpair(&sb, strlen("SERVER_ADDR"), strlen("127.0.0.1"), "SERVER_ADDR", (char *)"127.0.0.1");
+	build_nvpair(&sb, strlen("SERVER_PORT"), strlen("80"), "SERVER_PORT", (char *)"80");
+	build_nvpair(&sb, strlen("SERVER_NAME"), strlen(uts.nodename), "SERVER_NAME", uts.nodename);
+	build_nvpair(&sb, strlen("SERVER_PROTOCOL"), strlen("HTTP/1.1"), "SERVER_PROTOCOL", (char *)"HTTP/1.1");
+	build_nvpair(&sb, strlen("CONTENT_TYPE"), 0, "CONTENT_TYPE", (char *)"");
+	build_nvpair(&sb, strlen("CONTENT_LENGTH"), strlen("0"), "CONTENT_LENGTH", (char *)"0");
+	sbuf_finish(&sb);
+
+	len = (3 * sizeof(FCGI_Header)) + sizeof(FCGI_BeginRequestRecord) + sbuf_len(&sb);
+#if 0
+	if (len > 2048) {
+		buf = calloc(1, len);
+		if (buf == NULL) {
+			tv.tv_sec = 1;
+			timeout_add(&cmd->ev, &tv);
+			sbuf_delete(sbtmp2);
+			return;
+		}
+	} else
+#endif
+		memset(buf, 0, sizeof(buf));
+
+	bHeader = (FCGI_BeginRequestRecord *)buf;
+	prepare_packet(&bHeader->header, FCGI_BEGIN_REQUEST, sizeof(bHeader->body), requestId);
+	bHeader->body.roleB0 = (unsigned char)FCGI_RESPONDER;
+	bHeader->body.flags = (unsigned char)(keepalive ? FCGI_KEEP_CONN : 0);
+	bHeader++;
+	tmpl = (FCGI_Header *)bHeader;
+	prepare_packet(tmpl, FCGI_PARAMS, sbuf_len(&sb), requestId);
+	tmpl++;
+	memcpy((char *)tmpl, sbuf_data(&sb), sbuf_len(&sb));
+	tmpl = (FCGI_Header *)(((char *)tmpl) + sbuf_len(&sb));
+        prepare_packet(tmpl, FCGI_PARAMS, 0, requestId);
+        tmpl++;
+        prepare_packet(tmpl, FCGI_STDIN, 0, requestId);
+	if (fcgifd < 0) {
+		syslog(LOG_ERR, "Reopening fcgi socket");
+		if (fcgi_open_socket() < 0) {
+			/* Reschedule */
+			tv.tv_sec = 1;
+			timeout_add(&cmd->ev, &tv);
+			return;
+		}
+	}
+
+	result = write(fcgifd, buf, len);
+	if (result < 0) {
+		syslog(LOG_ERR, "Something wrong happened while sending request: %m\n");
+		timeout_add(&cmd->ev, &tv);
+	} else if (cmd->aggregate > 0) {
+		cmd->dontexec = 1;
+		timeout_add(&cmd->ev, &tv);
+	} else {
+		TAILQ_REMOVE(&cmds, cmd, rq_link);
+		timeout_del(&cmd->ev);
+		free(cmd);
+	}
+}
+
+static void
 run_command_detailed(int fd __unused, short event __unused, void *arg) {
 	struct runq *cmd;
 	struct timeval tv = { 8, 0 };
@@ -216,14 +397,13 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 		return;
 
 	if (cmd->dontexec) {
-		pthread_mutex_lock(&mtx);
 		TAILQ_REMOVE(&cmds, cmd, rq_link);
-		pthread_mutex_unlock(&mtx);
 		child = 0;
-		if (cmd != NULL)
-			free(cmd);
+		timeout_del(&cmd->ev);
+		free(cmd);
 		return;
 	}
+
 
 	switch (vfork()) {
 	case -1:
@@ -232,7 +412,10 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 	case 0:
 		child = 1;
 		/* Possibly optimize by creating argument list and calling execve. */
-		execl("/bin/sh", "/bin/sh", "-c", cmd->command, (char *)NULL);
+		if (cmd->params[0])
+			execl("/bin/sh", "/bin/sh", "-c", cmd->command, cmd->params, (char *)NULL);
+		else
+			execl("/bin/sh", "/bin/sh", "-c", cmd->command, (char *)NULL);
 		syslog(LOG_ERR, "could not run: %s", cmd->command);
 		_exit(127); /* Protect in case execl errors out */
 		break;
@@ -241,9 +424,8 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 			cmd->dontexec = 1;
 			timeout_add(&cmd->ev, &tv);
 		} else {
-			pthread_mutex_lock(&mtx);
 			TAILQ_REMOVE(&cmds, cmd, rq_link);
-			pthread_mutex_unlock(&mtx);
+			timeout_del(&cmd->ev);
 			free(cmd);
 		}
 		break;
@@ -253,7 +435,26 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 static void
 run_command(struct command *cmd, char *argv) {
 	struct runq *command, *tmpcmd;
-	struct timeval tv = { 2, 0 };
+	struct timeval tv = { 1, 0 };
+	int aggregate = 0;
+
+	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
+		if (cmd->cmd.flags & AGGREGATE && !strcmp(tmpcmd->command, cmd->cmd.command)) {
+			aggregate += tmpcmd->aggregate;
+			if (aggregate > 1) {
+				/* Rexec the command so the event is not lost. */
+				if (tmpcmd->dontexec && aggregate < 3) {
+					//syslog(LOG_ERR, "Rescheduling command %s", tmpcmd->command);
+					syslog(LOG_NOTICE, cmd->cmd.syslog, argv);
+					tmpcmd->dontexec = 0;
+					tv.tv_sec = 5;
+					timeout_del(&tmpcmd->ev);
+					timeout_add(&tmpcmd->ev, &tv);
+				}
+				return;
+			}
+		}
+	}
 
 	command = calloc(1, sizeof(*command));
 	if (command == NULL) {
@@ -261,31 +462,15 @@ run_command(struct command *cmd, char *argv) {
 		return;
 	}
 
-	snprintf(command->command, sizeof(command->command), cmd->cmd.command, argv);
-	command->aggregate = 1;
+	command->aggregate = aggregate + 1;
+	memcpy(command->command, cmd->cmd.command, sizeof(command->command));
+	if (cmd->cmd.params)
+		snprintf(command->params, sizeof(command->params), cmd->cmd.params, argv);
 
-	pthread_mutex_lock(&mtx);
-	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
-		if (cmd->cmd.aggregate && !strcmp(tmpcmd->command, command->command)) {
-			command->aggregate += tmpcmd->aggregate;
-			if (command->aggregate > 1) {
-				pthread_mutex_unlock(&mtx);
-				free(command);
-				/* Rexec the command so the event is not lost. */
-				if (tmpcmd->dontexec) {
-					tmpcmd->dontexec = 0;
-					tv.tv_sec = 5;
-					timeout_add(&tmpcmd->ev, &tv);
-				}
-				return;
-			}
-		}
-	}
-	if (!cmd->cmd.aggregate)
+	if (!(cmd->cmd.flags & AGGREGATE))
 		command->aggregate = 0;
 
 	TAILQ_INSERT_HEAD(&cmds, command, rq_link);
-	pthread_mutex_unlock(&mtx);
 
 	switch (cmd->type) {
 	case NON:
@@ -305,7 +490,10 @@ run_command(struct command *cmd, char *argv) {
 		break;
 	}
 
-	timeout_set(&command->ev, run_command_detailed, command);
+	if (cmd->cmd.flags & FCGICMD)
+		timeout_set(&command->ev, fcgi_send_command, command);
+	else
+		timeout_set(&command->ev, run_command_detailed, command);
 	timeout_add(&command->ev, &tv);
 
 	return;
@@ -320,11 +508,93 @@ socket_close_command(int fd, struct event *ev)
 }
 
 static void
+socket_read_fcgi(int fd, short event, void *arg __unused)
+{
+	struct runq *tmpcmd = NULL;
+	FCGI_Header header;
+	char buf[2048];
+        int len, err, success = 0;
+
+	if (event == EV_TIMEOUT) {
+		close(fd);
+		fcgi_open_socket();
+		return;
+	}
+
+	len = 0;
+	memset(&header, 0, sizeof(header));
+	if (recv(fd, &header, sizeof(header), 0) > 0) {
+		len = (header.requestIdB1 << 8) | header.requestIdB0;
+		TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
+			if (tmpcmd->requestId == len)
+				break;
+		}
+		len = (header.contentLengthB1 << 8) | header.contentLengthB0;
+		len += header.paddingLength;
+		
+		//syslog(LOG_ERR, "LEN: %d, %d, %d\n", len, header.type, (header.requestIdB1 << 8) | header.requestIdB0);
+		if (len > 0) {
+			memset(buf, 0, sizeof(buf));
+
+			/* XXX: Should check if len > sizeof(buf)? */
+			err = recv(fd, buf, len, 0);
+			if (err < 0) {
+				//syslog(LOG_ERR, "Something happened during recv of data");
+				return;
+			}
+		}
+	}
+
+	switch (header.type) {
+	case FCGI_DATA:
+	case FCGI_STDOUT:
+	case FCGI_STDERR:
+		break;
+	case FCGI_ABORT_REQUEST:
+		syslog(LOG_ERR, "Request aborted\n");
+		break;
+	case FCGI_END_REQUEST:
+		if (len >= (int)sizeof(FCGI_EndRequestBody)) {
+			switch (((FCGI_EndRequestBody *)buf)->protocolStatus) {
+			case FCGI_CANT_MPX_CONN:
+				syslog(LOG_ERR, "The FCGI server cannot multiplex\n");
+				success = 0;
+				break;
+			case FCGI_OVERLOADED:
+				syslog(LOG_ERR, "The FCGI server is overloaded\n");
+				success = 0;
+				break;
+			case FCGI_UNKNOWN_ROLE:
+				syslog(LOG_ERR, "FCGI role is unknown\n");
+				success = 0;
+				break;
+			case FCGI_REQUEST_COMPLETE:
+				//syslog(LOG_ERR, "FCGI request completed");
+				success = 1;
+				break;
+			}
+			if (tmpcmd != NULL)  {
+				if (success) {
+					TAILQ_REMOVE(&cmds, tmpcmd, rq_link);
+					timeout_del(&tmpcmd->ev);
+					free(tmpcmd);
+				} else {
+				       /* Rexec the command so the event is not lost. */
+					syslog(LOG_ERR, "Repeating event %s/%s because it was not triggered.", tmpcmd->command, tmpcmd->params);
+					if (tmpcmd->dontexec)
+						tmpcmd->dontexec = 0;
+				}
+			}
+		}
+		break;
+	}
+}
+
+static void
 socket_read_command(int fd, short event, void *arg)
 {
 	struct command *cmd;
 	struct event *ev = arg;
-	//pthread_mutex_t *lock;
 	enum { bufsize = 2048 };
 	char buf[bufsize];
 	register int n;
@@ -428,13 +698,16 @@ set_blockmode(int fd, int cmd)
                 errx(errno, "fcntl F_SETFL");
 }
 
-int main(void) {
+int
+main(void)
+{
 	struct event ev;
 	struct sockaddr_un sun;
 	struct sigaction sa;
 	mode_t *mset, mode;
 	sigset_t set;
 	int fd, errcode = 0;
+	char *p;
 
 	/* daemonize */
 	if (daemon(0, 0) < 0) {
@@ -444,6 +717,13 @@ int main(void) {
 	}
 
 	syslog(LOG_NOTICE, "check_reload_status is starting.");
+
+	uname(&uts);
+
+	if ((p = getenv("fcgipath")) != NULL) {
+		fcgipath = p;
+		syslog(LOG_ERR, "fcgipath %s", fcgipath);
+	}
 
 	sigemptyset(&set);
 	sigfillset(&set);
@@ -473,8 +753,9 @@ int main(void) {
 			switch (kevent(kq, NULL, 0, &kev, 1, NULL)) {
 			case 1:
 				syslog(LOG_ERR, "Reloading check_reload_status because it exited from an error!");
-				execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status");
+				execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status", (char *)NULL);
 				_exit(127);
+				syslog(LOG_ERR, "could not run check_reload_status again");
 				/* NOTREACHED */
 				break;
 			default:
