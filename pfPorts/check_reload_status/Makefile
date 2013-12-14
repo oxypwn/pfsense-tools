@@ -19,7 +19,7 @@ COMMENT?=	run various pfSense scripts on event.
 
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
-CFLAGS=	-I/usr/local/include -L/usr/local/lib  -g -O1
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
 
 CFLAGS+=	-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
                 -Wno-unused-parameter -Wstrict-prototypes \
