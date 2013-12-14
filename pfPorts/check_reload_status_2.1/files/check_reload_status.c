@@ -473,7 +473,7 @@ int main(void) {
 			switch (kevent(kq, NULL, 0, &kev, 1, NULL)) {
 			case 1:
 				syslog(LOG_ERR, "Reloading check_reload_status because it exited from an error!");
-				execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status");
+				execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status", (char *)NULL);
 				_exit(127);
 				/* NOTREACHED */
 				break;
