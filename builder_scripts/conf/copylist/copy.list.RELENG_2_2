@@ -14,6 +14,7 @@ usr/local/bin/verifysig
 usr/local/bin/lua50
 usr/local/bin/links
 usr/local/bin/php
+usr/local/sbin/php-fpm
 usr/local/bin/radns
 usr/local/bin/rrdtool
 usr/local/bin/sqlite3
