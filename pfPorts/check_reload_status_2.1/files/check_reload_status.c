@@ -220,8 +220,8 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 		TAILQ_REMOVE(&cmds, cmd, rq_link);
 		pthread_mutex_unlock(&mtx);
 		child = 0;
-		if (cmd != NULL)
-			free(cmd);
+		timeout_del(&cmd->ev);
+		free(cmd);
 		return;
 	}
 
@@ -244,6 +244,7 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 			pthread_mutex_lock(&mtx);
 			TAILQ_REMOVE(&cmds, cmd, rq_link);
 			pthread_mutex_unlock(&mtx);
+			timeout_del(&cmd->ev);
 			free(cmd);
 		}
 		break;
@@ -254,6 +255,25 @@ static void
 run_command(struct command *cmd, char *argv) {
 	struct runq *command, *tmpcmd;
 	struct timeval tv = { 2, 0 };
+	int aggregate = 0;
+
+	pthread_mutex_lock(&mtx);
+	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
+		if (cmd->cmd.aggregate && !strcmp(tmpcmd->command, cmd->cmd.command)) {
+			aggregate += tmpcmd->aggregate;
+			if (aggregate > 1) {
+				pthread_mutex_unlock(&mtx);
+				/* Rexec the command so the event is not lost. */
+				if (tmpcmd->dontexec) {
+					tmpcmd->dontexec = 0;
+					tv.tv_sec = 5;
+					timeout_del(&tmpcmd->ev);
+					timeout_add(&tmpcmd->ev, &tv);
+				}
+				return;
+			}
+		}
+	}
 
 	command = calloc(1, sizeof(*command));
 	if (command == NULL) {
@@ -262,25 +282,8 @@ run_command(struct command *cmd, char *argv) {
 	}
 
 	snprintf(command->command, sizeof(command->command), cmd->cmd.command, argv);
-	command->aggregate = 1;
+	command->aggregate = aggregate + 1;
 
-	pthread_mutex_lock(&mtx);
-	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
-		if (cmd->cmd.aggregate && !strcmp(tmpcmd->command, command->command)) {
-			command->aggregate += tmpcmd->aggregate;
-			if (command->aggregate > 1) {
-				pthread_mutex_unlock(&mtx);
-				free(command);
-				/* Rexec the command so the event is not lost. */
-				if (tmpcmd->dontexec) {
-					tmpcmd->dontexec = 0;
-					tv.tv_sec = 5;
-					timeout_add(&tmpcmd->ev, &tv);
-				}
-				return;
-			}
-		}
-	}
 	if (!cmd->cmd.aggregate)
 		command->aggregate = 0;
 
