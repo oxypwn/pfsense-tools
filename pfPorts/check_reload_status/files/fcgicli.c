@@ -18,6 +18,7 @@
 #include <sys/utsname.h>
 
 #include "fastcgi.h"
+#include "common.h"
 
 static int fcgisock = -1;
 static struct sockaddr_un sun;
@@ -109,7 +110,9 @@ main(int argc, char **argv)
 	struct sbuf *sbtmp2, *sbtmp;
 	struct utsname uts;
 	int ch, ispost = 0, len, result;
-	char *data = NULL, *script = NULL, *socketpath = NULL, *mtype = NULL, *buf;
+	char *data = NULL, *script = NULL, *socketpath, *mtype = NULL, *buf;
+
+	socketpath = (char *)FCGI_SOCK_PATH;
 
 	while ((ch = getopt(argc, argv, "d:f:ks:o:")) != -1) {
 		switch (ch) {
