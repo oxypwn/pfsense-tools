@@ -312,6 +312,7 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 	build_nvpair(&sb, strlen("GATEWAY_INTERFACE"), strlen("FastCGI/1.0"), "GATEWAY_INTERFACE", (char *)"FastCGI/1.0");
 	build_nvpair(&sb, strlen("REQUEST_METHOD"), strlen("GET"), "REQUEST_METHOD", (char *)"GET");
 	build_nvpair(&sb, strlen("SCRIPT_FILENAME"), strlen(cmd->command), "SCRIPT_FILENAME", cmd->command);
+	build_nvpair(&sb, strlen("NO_HEADERS"), strlen("1"), "NO_HEADERS", (char *)"1");
 	p = strrchr(cmd->command, '/');
 	build_nvpair(&sb, strlen("SCRIPT_NAME"), strlen(p), "SCRIPT_NAME", p);
 	p++;
@@ -324,15 +325,6 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 		build_nvpair(&sb, strlen("REQUEST_URI"), 1 + strlen(p) + strlen(cmd->params) + 1, "REQUEST_URI", (char *)"/");
 		sbuf_printf(&sb, "%s?%s", p, cmd->params);
 	}
-	build_nvpair(&sb, strlen("SERVER_SOFTWARE"), strlen("php/fcgicheckreload"), "SERVER_SOFTWARE", (char *)"php/fcgicheckreload");
-	build_nvpair(&sb, strlen("REMOTE_ADDR"), strlen("127.0.0.1"), "REMOTE_ADDR", (char *)"127.0.0.1");
-	build_nvpair(&sb, strlen("REMOTE_PORT"), strlen("9999"), "REMOTE_PORT", (char *)"9999");
-	build_nvpair(&sb, strlen("SERVER_ADDR"), strlen("127.0.0.1"), "SERVER_ADDR", (char *)"127.0.0.1");
-	build_nvpair(&sb, strlen("SERVER_PORT"), strlen("80"), "SERVER_PORT", (char *)"80");
-	build_nvpair(&sb, strlen("SERVER_NAME"), strlen(uts.nodename), "SERVER_NAME", uts.nodename);
-	build_nvpair(&sb, strlen("SERVER_PROTOCOL"), strlen("HTTP/1.1"), "SERVER_PROTOCOL", (char *)"HTTP/1.1");
-	build_nvpair(&sb, strlen("CONTENT_TYPE"), 0, "CONTENT_TYPE", (char *)"");
-	build_nvpair(&sb, strlen("CONTENT_LENGTH"), strlen("0"), "CONTENT_LENGTH", (char *)"0");
 	sbuf_finish(&sb);
 
 	len = (3 * sizeof(FCGI_Header)) + sizeof(FCGI_BeginRequestRecord) + sbuf_len(&sb);

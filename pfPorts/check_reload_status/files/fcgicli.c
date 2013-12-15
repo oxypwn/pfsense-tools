@@ -200,6 +200,7 @@ main(int argc, char **argv)
 			errx(-3, "Could not allocate memory\n");
 		build_nvpair(sbtmp2, "GATEWAY_INTERFACE", (char *)"FastCGI/1.0");
 		build_nvpair(sbtmp2, "REQUEST_METHOD", (char *)"GET");
+		build_nvpair(sbtmp2, "NO_HEADERS", (char *)"1");
 		sbtmp = sbuf_new_auto();
 		sbuf_printf(sbtmp, "/%s", basename(script));
 		sbuf_finish(sbtmp);
@@ -207,7 +208,6 @@ main(int argc, char **argv)
 		build_nvpair(sbtmp2, "SCRIPT_NAME", sbuf_data(sbtmp));
 		if (data == NULL) {
 			build_nvpair(sbtmp2, "REQUEST_URI", sbuf_data(sbtmp));
-			build_nvpair(sbtmp2, "QUERY_STRING", (char *)"");
 		}
 		build_nvpair(sbtmp2, "DOCUMENT_URI", sbuf_data(sbtmp));
 		sbuf_delete(sbtmp);
@@ -219,15 +219,6 @@ main(int argc, char **argv)
 			build_nvpair(sbtmp2, "REQUEST_URI", sbuf_data(sbtmp));
 			sbuf_delete(sbtmp);
 		}
-		build_nvpair(sbtmp2, "SERVER_SOFTWARE", (char *)"php/fcgiclient");
-		build_nvpair(sbtmp2, "REMOTE_ADDR", (char *)"127.0.0.1");
-		build_nvpair(sbtmp2, "REMOTE_PORT", (char *)"9999");
-		build_nvpair(sbtmp2, "SERVER_ADDR", (char *)"127.0.0.1");
-		build_nvpair(sbtmp2, "SERVER_PORT", (char *)"80");
-		build_nvpair(sbtmp2, "SERVER_NAME", uts.nodename);
-		build_nvpair(sbtmp2, "SERVER_PROTOCOL", (char *)"HTTP/1.1");
-		build_nvpair(sbtmp2, "CONTENT_TYPE", (char *)"");
-		build_nvpair(sbtmp2, "CONTENT_LENGTH", (char *)"0");
 		sbuf_finish(sbtmp2);
 
 		len = (3 * sizeof(FCGI_Header)) + sizeof(FCGI_BeginRequestRecord) + sbuf_len(sbtmp2);
@@ -274,8 +265,6 @@ main(int argc, char **argv)
 		case FCGI_DATA:
 		case FCGI_STDOUT:
 		case FCGI_STDERR:
-			if ((p = strstr(buf, "text/html")) != NULL)
-				
 			printf("%s", buf);
 			free(buf);
 			break;
