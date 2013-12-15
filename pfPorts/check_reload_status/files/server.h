@@ -127,6 +127,10 @@ static struct command c_interface[] = {
         { LINKUP, STRING, "linkup", c_interface2, NULL_INIT },
         { SYNC, NON, "sync", NULL,
                 { "/etc/rc.filter_configure_xmlrpc", NULL, "Reloading filter_configure_xmlrpc", AGGREGATE | FCGICMD } },
+        { RECONFIGURE , IFNAME, "carpmaster", NULL,
+                { "/etc/rc.carpmaster", "interface=%s, "Carp master event", AGGREGATE | FCGICMD } },
+        { RECONFIGURE, IFNAME, "carpbackup", NULL,
+                { "/etc/rc.carpbackup", "interface=%s, "Carp backup event", AGGREGATE | FCGICMD } },
         { NULLOPT, NON, "", NULL, NULL_INIT }
 };
 
