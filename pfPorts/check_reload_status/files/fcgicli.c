@@ -274,6 +274,8 @@ main(int argc, char **argv)
 		case FCGI_DATA:
 		case FCGI_STDOUT:
 		case FCGI_STDERR:
+			if ((p = strstr(buf, "text/html")) != NULL)
+				
 			printf("%s", buf);
 			free(buf);
 			break;

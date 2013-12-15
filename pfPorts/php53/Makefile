@@ -1,8 +1,8 @@
 # Created by: Alex Dupre <sysadmin@alexdupre.com>
-# $FreeBSD$
+# $FreeBSD: lang/php53/Makefile 336500 2013-12-14 23:30:36Z flo $
 
 PORTNAME=	php53
-PORTVERSION=	5.3.27
+PORTVERSION=	5.3.28
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
@@ -18,7 +18,7 @@ USE_BZIP2=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf
 
-LIB_DEPENDS=	pcre.3:${PORTSDIR}/devel/pcre
+LIB_DEPENDS=	libpcre.so:${PORTSDIR}/devel/pcre
 
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
@@ -26,7 +26,6 @@ CONFIGURE_ARGS=	\
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-libxml \
-		--with-libxmlrpc \
 		--enable-mysqlnd \
 		--with-libxml-dir=${LOCALBASE} \
 		--with-pcre-regex=${LOCALBASE} \
@@ -38,12 +37,7 @@ USE_GNOME=	libxml2
 OPTIONS_DEFINE=	CLI CGI FPM APACHE AP2FILTER DEBUG SUHOSIN MULTIBYTE IPV6 \
 		MAILHEAD LINKTHR
 
-.include <bsd.port.pre.mk>
-.if ${OSVERSION} < 900000
 OPTIONS_DEFAULT=	CLI CGI SUHOSIN IPV6 LINKTHR
-.else
-OPTIONS_DEFAULT=	CLI CGI FPM SUHOSIN IPV6 LINKTHR
-.endif
 
 CLI_DESC=	Build CLI version
 CGI_DESC=	Build CGI version
@@ -57,9 +51,9 @@ LINKTHR_DESC=	Link thread lib (for threaded extensions)
 
 CONFLICTS=	php52-5* php5-5*
 
-MAN1=		php-config.1 phpize.1
+DESTDIRNAME=	INSTALL_ROOT
 
-NO_STAGE=	yes
+.include <bsd.port.pre.mk>
 
 PATCH_DIST_STRIP=	-p1
 
@@ -82,7 +76,6 @@ PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .if ${PORT_OPTIONS:MCLI}
 PHP_SAPI+=	cli
 PLIST_SUB+=	CLI=""
-MAN1+=		php.1
 .else
 PLIST_SUB+=	CLI="@comment "
 CONFIGURE_ARGS+=--disable-cli
@@ -98,7 +91,6 @@ CONFIGURE_ARGS+=--disable-cgi
 
 .if ${PORT_OPTIONS:MFPM}
 PHP_SAPI+=	fpm
-MAN8+=		php-fpm.8
 USE_RC_SUBR+=	php-fpm
 CONFIGURE_ARGS+=--enable-fpm \
 		--with-fpm-user=${WWWOWN} \
@@ -185,16 +177,8 @@ test: build
 	@(cd ${WRKSRC} && ${MAKE} test)
 
 post-install:
-	@${INSTALL_DATA} ${WRKSRC}/php.ini-development ${PREFIX}/etc
-	@${INSTALL_DATA} ${WRKSRC}/php.ini-production ${PREFIX}/etc
-	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
-	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
-.if ${PORT_OPTIONS:MFPM}
-	@${CP} -n ${PREFIX}/etc/php-fpm.conf.default ${PREFIX}/etc/php-fpm.conf || ${TRUE}
-.endif
-.if ${PORT_OPTIONS:MAPACHE}
-	@${CAT} ${PKGMESSAGE}
-.endif
+	@${INSTALL_DATA} ${WRKSRC}/php.ini-development ${WRKSRC}/php.ini-production \
+		${WRKDIR}/php.conf ${STAGEDIR}/${PREFIX}/etc
 
 .else
 .include "${MASTERDIR}/Makefile.ext"
