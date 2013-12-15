@@ -701,6 +701,8 @@ main(void)
 	int fd, errcode = 0;
 	char *p;
 
+	tzset();
+
 	/* daemonize */
 	if (daemon(0, 0) < 0) {
 		syslog(LOG_ERR, "check_reload_status could not start.");

@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/utsname.h>
+#include <time.h>
 
 #include "fastcgi.h"
 #include "common.h"
@@ -111,6 +112,8 @@ main(int argc, char **argv)
 	struct utsname uts;
 	int ch, ispost = 0, len, result;
 	char *data = NULL, *script = NULL, *socketpath, *mtype = NULL, *buf;
+
+	tzset();
 
 	socketpath = (char *)FCGI_SOCK_PATH;
 

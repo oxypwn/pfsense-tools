@@ -38,6 +38,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "common.h"
 
@@ -64,6 +65,8 @@ main(int argc, char **argv)
 	socklen_t len;
 	int fd, n, ch;
 	int ncmds = 0, nsock = 0, error = 0, i;
+
+	tzset();
 
 	if (argc != 2)
 		return (-1);
