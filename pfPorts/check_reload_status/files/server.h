@@ -124,6 +124,8 @@ static struct command c_interface[] = {
                 { "/etc/rc.interfaces_wan_configure", "interface=%s", "Configuring interface %s", AGGREGATE | FCGICMD } },
         { NEWIP, STRING, "newip", NULL,
                 { "/etc/rc.newwanip", "interface=%s", "rc.newwanip starting %s", FCGICMD } },
+        { NEWIP, STRING, "newipv6", NULL,
+                { "/etc/rc.newwanipv6", "interface=%s", "rc.newwanipv6 starting %s", FCGICMD } },
         { LINKUP, STRING, "linkup", c_interface2, NULL_INIT },
         { SYNC, NON, "sync", NULL,
                 { "/etc/rc.filter_configure_xmlrpc", NULL, "Reloading filter_configure_xmlrpc", AGGREGATE | FCGICMD } },
