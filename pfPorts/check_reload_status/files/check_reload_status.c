@@ -505,7 +505,7 @@ socket_read_fcgi(int fd, short event, void *arg __unused)
 	struct runq *tmpcmd = NULL;
 	FCGI_Header header;
 	char buf[2048];
-        int len, err, success = 0;
+        int len, terr, success = 0;
 
 	if (event == EV_TIMEOUT) {
 		close(fd);
@@ -529,8 +529,8 @@ socket_read_fcgi(int fd, short event, void *arg __unused)
 			memset(buf, 0, sizeof(buf));
 
 			/* XXX: Should check if len > sizeof(buf)? */
-			err = recv(fd, buf, len, 0);
-			if (err < 0) {
+			terr = recv(fd, buf, len, 0);
+			if (terr < 0) {
 				//syslog(LOG_ERR, "Something happened during recv of data");
 				return;
 			}
