@@ -60,10 +60,10 @@ index 6b71607..ea264d8 100644
  
 +	case SIOCORDERIFADDR:
 +		if (ia != NULL) {
-+			IF_ADDR_LOCK(ifp);
++			IF_ADDR_WLOCK(ifp);
 +			TAILQ_REMOVE(&ifp->if_addrhead, &ia->ia_ifa, ifa_link);
 +			TAILQ_INSERT_AFTER(&ifp->if_addrhead, TAILQ_FIRST(&ifp->if_addrhead), &ia->ia_ifa, ifa_link);
-+			IF_ADDR_UNLOCK(ifp);
++			IF_ADDR_WUNLOCK(ifp);
 +			goto out;
 +		} else {
 +			error = EINVAL;
