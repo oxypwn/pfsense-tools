@@ -35,7 +35,7 @@ index 97e610d..b90dee8 100644
  
  static __constructor void
 diff --git a/sys/netinet/in.c b/sys/netinet/in.c
-index 6b71607..ea264d8 100644
+index 6b71607..e87a098 100644
 --- a/sys/netinet/in.c
 +++ b/sys/netinet/in.c
 @@ -315,6 +315,7 @@ in_control(struct socket *so, u_long cmd, caddr_t data, struct ifnet *ifp,
@@ -54,26 +54,25 @@ index 6b71607..ea264d8 100644
  	case SIOCAIFADDR:
  	case SIOCDIFADDR:
  		if (ifra->ifra_addr.sin_family == AF_INET) {
-@@ -438,6 +440,19 @@ in_control(struct socket *so, u_long cmd, caddr_t data, struct ifnet *ifp,
+@@ -399,10 +401,17 @@ in_control(struct socket *so, u_long cmd, caddr_t data, struct ifnet *ifp,
+ 				goto out;
+ 			}
  		}
- 		break;
- 
-+	case SIOCORDERIFADDR:
-+		if (ia != NULL) {
+-		if (cmd == SIOCDIFADDR && ia == NULL) {
++		if ((cmd == SIOCDIFADDR || cmd == SIOCORDERIFADDR) && ia == NULL) {
+ 			error = EADDRNOTAVAIL;
+ 			goto out;
+ 		}
++		if (cmd == SIOCORDERIFADDR && ia != NULL) {
 +			IF_ADDR_WLOCK(ifp);
 +			TAILQ_REMOVE(&ifp->if_addrhead, &ia->ia_ifa, ifa_link);
 +			TAILQ_INSERT_AFTER(&ifp->if_addrhead, TAILQ_FIRST(&ifp->if_addrhead), &ia->ia_ifa, ifa_link);
 +			IF_ADDR_WUNLOCK(ifp);
 +			goto out;
-+		} else {
-+			error = EINVAL;
-+			goto out;
 +		}
-+		break;
-+
- 	case SIOCGIFADDR:
- 	case SIOCGIFNETMASK:
- 	case SIOCGIFDSTADDR:
+ 		if (ia == NULL) {
+ 			ia = (struct in_ifaddr *)
+ 				malloc(sizeof *ia, M_IFADDR, M_NOWAIT |
 diff --git a/sys/sys/sockio.h b/sys/sys/sockio.h
 index 17ee232..30acf87 100644
 --- a/sys/sys/sockio.h
