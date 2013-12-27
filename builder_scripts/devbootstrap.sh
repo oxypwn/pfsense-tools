@@ -91,8 +91,8 @@ else
 	CVSUP_HOST="`/usr/local/bin/fastest_cvsup -c tld -q`"
 fi
 
-# CVSUp /usr/ports
-/usr/bin/csup -h $CVSUP_HOST /usr/share/examples/cvsup/ports-supfile
+# Install /usr/ports using portsnap
+/usr/sbin/portsnap fetch extract
 
 # Build a few required ports
 cd /usr/ports/textproc/expat2 && make depends install
