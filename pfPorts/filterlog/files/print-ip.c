@@ -38,40 +38,6 @@
 #include <pcap/pcap.h>
 
 #include "common.h"
-#include "ipproto.h"
-
-const struct tok ipproto_values[] = {
-    { IPPROTO_HOPOPTS, "Options" },
-    { IPPROTO_ICMP, "ICMP" },
-    { IPPROTO_IGMP, "IGMP" },
-    { IPPROTO_IPV4, "IPIP" },
-    { IPPROTO_TCP, "TCP" },
-    { IPPROTO_EGP, "EGP" },
-    { IPPROTO_PIGP, "IGRP" },
-    { IPPROTO_UDP, "UDP" },
-    { IPPROTO_DCCP, "DCCP" },
-    { IPPROTO_IPV6, "IPv6" },
-    { IPPROTO_ROUTING, "Routing" },
-    { IPPROTO_FRAGMENT, "Fragment" },
-    { IPPROTO_RSVP, "RSVP" },
-    { IPPROTO_GRE, "GRE" },
-    { IPPROTO_ESP, "ESP" },
-    { IPPROTO_AH, "AH" },
-    { IPPROTO_MOBILE, "Mobile IP" },
-    { IPPROTO_ICMPV6, "ICMPv6" },
-    { IPPROTO_MOBILITY_OLD, "Mobile IP (old)" },
-    { IPPROTO_EIGRP, "EIGRP" },
-    { IPPROTO_OSPF, "OSPF" },
-    { IPPROTO_PIM, "PIM" },
-    { IPPROTO_IPCOMP, "Compressed IP" },
-    { IPPROTO_VRRP, "VRRP" },
-    { IPPROTO_PGM, "PGM" },
-    { IPPROTO_SCTP, "SCTP" },
-    { IPPROTO_MOBILITY, "Mobility" },
-    { IPPROTO_CARP, "CARP" },
-    { IPPROTO_PFSYNC, "pfsync" },
-    { 0, NULL }
-};
 
 #define IP_RES 0x8000
 
@@ -240,9 +206,11 @@ again:
 		break;
 #endif
 	case IPPROTO_VRRP:
-		sbuf_printf(sbuf, "%s,%d,%d,version,advskew,advbase",
+		/* Type, ttl, vhid, version, adbskew, advbase */
+		sbuf_printf(sbuf, "%s,%d,%d,%d,%d,%d",
 				(ipds->cp[0] & 0x0f) == 1 ? "advertise" : "unkwn",
-				ipds->ip->ip_ttl, ipds->cp[1]);
+				ipds->ip->ip_ttl, ipds->cp[1], (ipds->cp[0] & 0xf0) >> 4,
+				ipds->cp[2], ipds->cp[5]);
 		break;
 
 #if 0
@@ -276,9 +244,7 @@ ip_print(struct sbuf *sbuf,
 	u_int hlen;
 
 	ipds->ip = (const struct ip *)bp;
-	if (IP_V(ipds->ip) != 4) { /* print version if != 4 */
-	    sbuf_printf(sbuf, "version=%u,", IP_V(ipds->ip));
-	}
+	sbuf_printf(sbuf, "%u,", IP_V(ipds->ip));
 
 	if (ntohs(ipds->ip->ip_len) > MAXIMUM_SNAPLEN) {
 		sbuf_printf(sbuf, "[|ip]),");
@@ -325,7 +291,7 @@ ip_print(struct sbuf *sbuf,
 			break;
 		}
 	}
-	sbuf_print(sbuf, ",%u,", ipds->ip->ip_ttl);
+	sbuf_printf(sbuf, ",%u,", ipds->ip->ip_ttl);
 
 	/*
 	 * for the firewall guys, print id, offset.

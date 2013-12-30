@@ -14,6 +14,12 @@
 # define        IP_HL(x)        (x)->ip_hl
 #endif
 
+struct tok {
+        int action;
+        const char *descr;
+};
+
+#include "ipproto.h"
 
 typedef struct {
 	u_int16_t	val;
@@ -35,15 +41,10 @@ EXTRACT_32BITS(const void *p)
 	return ((u_int32_t)ntohl(((const unaligned_u_int32_t *)(p))->val));
 }
 
-struct tok {
-        int action;
-        const char *descr;
-};
-
 const char *code2str(const struct tok *, const char[], int);
 void ip_print(struct sbuf *sbuf, const u_char *bp, u_int length);
 void ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length);
-
+int mobility_print(struct sbuf *sbuf, const u_char *bp, int len);
 void tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
           register const u_char *bp2);
 

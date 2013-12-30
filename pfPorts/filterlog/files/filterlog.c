@@ -126,27 +126,24 @@ decode_packet(u_char *user __unused, const struct pcap_pkthdr *pkthdr, const u_c
 	/* skip to the real packet */
 	length -= hdrlen;
 	packet += hdrlen;
+	ip = (struct ip *)packet;
 
         if (length < 4) {
-                sbuf_printf(&sbuf, "IP(truncated-ip %d) ", length);
+                sbuf_printf(&sbuf, "%d, IP(truncated-ip %d) ", IP_V(ip), length);
 		goto printsbuf;
         }
         ip = (struct ip *)packet;
         switch (IP_V(ip)) {
         case 4:
-                sbuf_printf(&sbuf, "IPV4(");
                 ip_print(&sbuf, packet, length);
-                sbuf_printf(&sbuf, ") ");
 		break;
 #ifdef INET6
         case 6:
-                sbuf_printf(&sbuf, "IPV6(");
                 ip6_print(&sbuf, packet, length);
-                sbuf_printf(&sbuf, ") ");
 		break;
 #endif
         default:
-                sbuf_printf(&sbuf, "unknown(ip=%d)", IP_V(ip));
+                sbuf_printf(&sbuf, "%d", IP_V(ip));
                 break;
         }
 

@@ -29,6 +29,93 @@
 
 #include "common.h"
 
+static int
+rt6_print(struct sbuf *sbuf, register const u_char *bp, int datalen)
+{
+	register const struct ip6_rthdr *dp;
+	register const struct ip6_rthdr0 *dp0;
+	register const u_char *ep;
+	int i, len;
+	register const struct in6_addr *addr;
+
+	dp = (struct ip6_rthdr *)bp;
+	len = dp->ip6r_len;
+
+	/* 'ep' points to the end of available data. */
+	ep = bp + datalen;
+
+	TCHECK(dp->ip6r_segleft);
+
+	sbuf_printf(sbuf, "%d,%d,%d,", dp->ip6r_len, dp->ip6r_type, dp->ip6r_segleft);	/*)*/
+
+	switch (dp->ip6r_type) {
+#ifndef IPV6_RTHDR_TYPE_0
+#define IPV6_RTHDR_TYPE_0 0
+#endif
+#ifndef IPV6_RTHDR_TYPE_2
+#define IPV6_RTHDR_TYPE_2 2
+#endif
+	case IPV6_RTHDR_TYPE_0:
+	case IPV6_RTHDR_TYPE_2:			/* Mobile IPv6 ID-20 */
+		dp0 = (struct ip6_rthdr0 *)dp;
+
+		TCHECK(dp0->ip6r0_reserved);
+		sbuf_printf(sbuf, "0x%0x,",
+			    EXTRACT_32BITS(&dp0->ip6r0_reserved));
+
+		if (len % 2 == 1)
+			goto trunc;
+		len >>= 1;
+		addr = &dp0->ip6r0_addr[0];
+		for (i = 0; i < len; i++) {
+			if ((u_char *)(addr + 1) > ep)
+				goto trunc;
+
+			sbuf_printf(sbuf, "%d, %s", i, ip6addr_string(addr));
+			addr++;
+		}
+		/*(*/
+		return((dp0->ip6r0_len + 1) << 3);
+		break;
+	default:
+		goto trunc;
+		break;
+	}
+
+ trunc:
+	sbuf_printf(sbuf, "TRUNC,[|srcrt],");
+	return -1;
+}
+
+static int
+frag6_print(struct sbuf *sbuf, register const u_char *bp, register const u_char *bp2)
+{
+	register const struct ip6_frag *dp;
+	register const struct ip6_hdr *ip6;
+
+	dp = (const struct ip6_frag *)bp;
+	ip6 = (const struct ip6_hdr *)bp2;
+
+	TCHECK(dp->ip6f_offlg);
+
+	sbuf_printf(sbuf, "FRAG6, 0x%08x:%d|%ld,",
+		       EXTRACT_32BITS(&dp->ip6f_ident),
+		       EXTRACT_16BITS(&dp->ip6f_offlg) & IP6F_OFF_MASK,
+		       sizeof(struct ip6_hdr) + EXTRACT_16BITS(&ip6->ip6_plen) -
+			       (long)(bp - bp2) - sizeof(struct ip6_frag));
+
+#if 1
+	/* it is meaningless to decode non-first fragment */
+	if ((EXTRACT_16BITS(&dp->ip6f_offlg) & IP6F_OFF_MASK) != 0)
+		return -1;
+	else
+#endif
+	{
+		sbuf_printf(sbuf, ",");
+		return sizeof(struct ip6_frag);
+	}
+}
+
 /*
  * Compute a V6-style checksum by building a pseudoheader.
  */
@@ -79,41 +166,37 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 	u_int flow;
 
 	ip6 = (const struct ip6_hdr *)bp;
+	sbuf_printf(sbuf, "6,");
 
 	if (length < sizeof (struct ip6_hdr)) {
-		sbuf_printf((sbuf, "truncated-ip6=%u", length));
+		sbuf_printf((sbuf, "truncated-ip6=%u,", length));
 		return;
 	}
 
 	payload_len = EXTRACT_16BITS(&ip6->ip6_plen);
 	len = payload_len + sizeof(struct ip6_hdr);
 	if (length < len)
-		sbuf_printf(sbuf, "error='truncated-ip6 - %u bytes missing!' ",
+		sbuf_printf(sbuf, "error='truncated-ip6 - %u bytes missing!',",
 			len - length));
 
-        if (ndo->ndo_vflag) {
-            flow = EXTRACT_32BITS(&ip6->ip6_flow);
-            sbuf_printf(sbuf, "flow=(");
+	flow = EXTRACT_32BITS(&ip6->ip6_flow);
 #if 0
-            /* rfc1883 */
-            if (flow & 0x0f000000)
-		(void)ND_PRINT((ndo, "pri 0x%02x, ", (flow & 0x0f000000) >> 24));
-            if (flow & 0x00ffffff)
-		(void)ND_PRINT((ndo, "flowlabel 0x%06x, ", flow & 0x00ffffff));
+	/* rfc1883 */
+	if (flow & 0x0f000000)
+	(void)ND_PRINT((ndo, "pri 0x%02x, ", (flow & 0x0f000000) >> 24));
+	if (flow & 0x00ffffff)
+	(void)ND_PRINT((ndo, "flowlabel 0x%06x, ", flow & 0x00ffffff));
 #else
-            /* RFC 2460 */
-            if (flow & 0x0ff00000)
-		sbuf_printf(sbuf, "class=0x%02x ", (flow & 0x0ff00000) >> 20));
-            if (flow & 0x000fffff)
-		sbuf_printf(sbuf, "flowlabel=0x%05x ", flow & 0x000fffff));
+	/* RFC 2460 */
+	sbuf_printf(sbuf, "0x%02x,", (flow & 0x0ff00000) >> 20));
+	sbuf_printf(sbuf, "0x%05x,", flow & 0x000fffff));
 #endif
 
-            sbuf_printf(sbuf, "hlim=%u next-header=%s next=%u payload-length=%u) ",
-                         ip6->ip6_hlim,
-                         code2str(ipproto_values, "unknown", ip6->ip6_nxt),
-                         ip6->ip6_nxt,
-                         payload_len));
-        }
+	sbuf_printf(sbuf, "%u,%s,%u,%u,",
+		ip6->ip6_hlim,
+		code2str(ipproto_values, "unknown", ip6->ip6_nxt),
+		ip6->ip6_nxt, payload_len));
+	
 
 	/*
 	 * Cut off the snapshot length to the end of the IP payload.
@@ -123,14 +206,12 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 	cp = (const u_char *)ip6;
 	advance = sizeof(struct ip6_hdr);
 	nh = ip6->ip6_nxt;
-	while (cp < ndo->ndo_snapend && advance > 0) {
+	while (cp < ipend && advance > 0) {
 		cp += advance;
 		len -= advance;
 
-		if (cp == (const u_char *)(ip6 + 1) &&
-		    nh != IPPROTO_TCP && nh != IPPROTO_UDP &&
-		    nh != IPPROTO_DCCP && nh != IPPROTO_SCTP) {
-			sbuf_printf(sbuf, "src=%s dst=%s ", ip6addr_string(&ip6->ip6_src),
+		if (cp == (const u_char *)(ip6 + 1)) {
+			sbuf_printf(sbuf, "%s,%s,", ip6addr_string(&ip6->ip6_src),
 				     ip6addr_string(&ip6->ip6_dst)));
 		}
 
@@ -161,11 +242,12 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 			 * which payload can be piggybacked atop a
 			 * mobility header.
 			 */
-			advance = mobility_print(sbuf, cp, (const u_char *)ip6);
+			sbuf_print(sbuf, "MOBILITY,");
+			advance = mobility_print(sbuf, cp, len);
 			nh = *cp;
 			return;
 		case IPPROTO_ROUTING:
-			advance = rt6_print(sbuf, cp, (const u_char *)ip6);
+			advance = rt6_print(sbuf, cp, len);
 			nh = *cp;
 			break;
 #if 0
@@ -177,12 +259,17 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 			return;
 #endif
 		case IPPROTO_TCP:
-			sbuf_printf(sbuf, "TCP( ");
 			tcp_print(sbuf, cp, len, (const u_char *)ip6, fragmented);
-			sbuf_printf(sbuf, ") ");
 			return;
 		case IPPROTO_UDP:
-			udp_print(cp, len, (const u_char *)ip6, fragmented);
+		{
+			const struct udphdr *up;
+
+			up = (struct udphdr *)ipds->cp;
+			sbuf_printf(sbuf, "%d,%d,%d", EXTRACT_16BITS(&up->uh_sport), EXTRACT_16BITS(&up->uh_dport),
+				EXTRACT_16BITS(&up->uh_ulen));
+
+		}
 			return;
 #if 0
 		case IPPROTO_ICMPV6:
@@ -238,13 +325,7 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 			rsvp_print(cp, len);
 			return;
 #endif
-
-		case IPPROTO_NONE:
-			sbuf_printf(sbuf, "no-next-header");
-			return;
-
 		default:
-			sbuf_printf(sbuf, "ip-proto=%d length=%d", nh, len);
 			return;
 		}
 	}

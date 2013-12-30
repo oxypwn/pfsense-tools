@@ -35,6 +35,39 @@
 
 #include "common.h"
 
+const struct tok ipproto_values[] = {
+    { IPPROTO_HOPOPTS, "Options" },
+    { IPPROTO_ICMP, "ICMP" },
+    { IPPROTO_IGMP, "IGMP" },
+    { IPPROTO_IPV4, "IPIP" },
+    { IPPROTO_TCP, "TCP" },
+    { IPPROTO_EGP, "EGP" },
+    { IPPROTO_PIGP, "IGRP" },
+    { IPPROTO_UDP, "UDP" },
+    { IPPROTO_DCCP, "DCCP" },
+    { IPPROTO_IPV6, "IPv6" },
+    { IPPROTO_ROUTING, "Routing" },
+    { IPPROTO_FRAGMENT, "Fragment" },
+    { IPPROTO_RSVP, "RSVP" },
+    { IPPROTO_GRE, "GRE" },
+    { IPPROTO_ESP, "ESP" },
+    { IPPROTO_AH, "AH" },
+    { IPPROTO_MOBILE, "Mobile IP" },
+    { IPPROTO_ICMPV6, "ICMPv6" },
+    { IPPROTO_MOBILITY_OLD, "Mobile IP (old)" },
+    { IPPROTO_EIGRP, "EIGRP" },
+    { IPPROTO_OSPF, "OSPF" },
+    { IPPROTO_PIM, "PIM" },
+    { IPPROTO_IPCOMP, "Compressed IP" },
+    { IPPROTO_VRRP, "VRRP" },
+    { IPPROTO_PGM, "PGM" },
+    { IPPROTO_SCTP, "SCTP" },
+    { IPPROTO_MOBILITY, "Mobility" },
+    { IPPROTO_CARP, "CARP" },
+    { IPPROTO_PFSYNC, "pfsync" },
+    { 0, NULL }
+};
+
 /* These tcp optinos do not have the size octet */
 #define ZEROLENOPT(o) ((o) == TCPOPT_EOL || (o) == TCPOPT_NOP)
 
@@ -92,7 +125,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
 
         hlen = (tp->th_off & 0x0f) * 4;
         if (hlen < sizeof(*tp)) {
-                sbuf_printf(sbuf, "errormsg='tcp %d [bad hdr length %u - too short < %lu]' ",
+                sbuf_printf(sbuf, "errormsg='tcp %d [bad hdr length %u - too short < %lu]',",
                              length - hlen, hlen, (unsigned long)sizeof(*tp));
                 return;
         }
@@ -108,7 +141,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
         sport = ntohs(EXTRACT_16BITS(&tp->th_sport));
         dport = ntohs(EXTRACT_16BITS(&tp->th_dport));
 
-	sbuf_printf(sbuf, "srcport=%u dstport=%u ", sport, dport);
+	sbuf_printf(sbuf, "%u,%u,%d", sport, dport, length - hlen);
 
         seq = EXTRACT_32BITS(&tp->th_seq);
         ack = EXTRACT_32BITS(&tp->th_ack);
@@ -116,12 +149,12 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
         urp = EXTRACT_16BITS(&tp->th_urp);
 
         flags = tp->th_flags;
-        sbuf_printf(sbuf, "flags=%s%s%s", flags & TH_FIN ? "F" : "", flags & TH_SYN ? "S" : "", flags & TH_RST ? "R" : "");
+        sbuf_printf(sbuf, "%s%s%s", flags & TH_FIN ? "F" : "", flags & TH_SYN ? "S" : "", flags & TH_RST ? "R" : "");
         sbuf_printf(sbuf, "%s%s%s", flags & TH_PUSH ? "P" : "", flags & TH_ACK ? "A" : "", flags & TH_URG ? "U" : "");
-        sbuf_printf(sbuf, "%s%s ", flags & TH_ECE ? "E" : "", flags & TH_CWR ? "C" : "");
+        sbuf_printf(sbuf, "%s%s,", flags & TH_ECE ? "E" : "", flags & TH_CWR ? "C" : "");
 
         if (hlen > length) {
-                sbuf_printf(sbuf, "errormsg='[bad hdr length %u - too long, > %u]' ",
+                sbuf_printf(sbuf, "errormsg='[bad hdr length %u - too long, > %u]',",
                              hlen, length);
                 return;
         }
@@ -129,19 +162,19 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
         length -= hlen;
         if (length > 0 || flags & (TH_SYN | TH_FIN | TH_RST)) {
                 if (length > 0)
-                        sbuf_printf(sbuf, "seq=%u:%u ", seq, seq + length);
+                        sbuf_printf(sbuf, "%u:%u,", seq, seq + length);
 		else
-			sbuf_printf(sbuf, "seq=%u ", seq);
+			sbuf_printf(sbuf, "%u,", seq);
         }
 
         if (flags & TH_ACK) {
-                sbuf_printf(sbuf, "ack=%u ", ack);
+                sbuf_printf(sbuf, "%u,", ack);
         }
 
-        sbuf_printf(sbuf, "win=%d ", win);
+        sbuf_printf(sbuf, "%d,", win);
 
         if (flags & TH_URG)
-                sbuf_printf(sbuf, "urg=%d ", urp);
+                sbuf_printf(sbuf, "%d,", urp);
         /*
          * Handle any options.
          */
@@ -152,7 +185,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
 
                 hlen -= sizeof(*tp);
                 cp = (const u_char *)tp + sizeof(*tp);
-                sbuf_printf(sbuf, "options=[");
+                sbuf_printf(sbuf, "[");
                 while (hlen > 0) {
                         if (ch != '\0')
                                 sbuf_printf(sbuf, "%c", ch);
@@ -182,21 +215,16 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                         if (opt == TCPOPT_EOL)
                                 break;
                 }
-                sbuf_printf(sbuf, "] ");
+                sbuf_printf(sbuf, "],");
         }
-
-        /*
-         * Print length field before crawling down the stack.
-         */
-        sbuf_printf(sbuf, "length=%u ", length);
 
         if (length <= 0)
                 return;
 
         return;
  bad:
-        sbuf_printf(sbuf, "[bad opt]");
+        sbuf_printf(sbuf, "[bad opt],");
         if (ch != '\0')
-                sbuf_printf(sbuf, ">");
+                sbuf_printf(sbuf, ">,");
         return;
 }

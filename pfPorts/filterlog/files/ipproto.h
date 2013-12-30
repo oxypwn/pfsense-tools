@@ -38,6 +38,9 @@
  * FreeBSD: src/sys/netinet/in.h,v 1.38.2.3 1999/08/29 16:29:34 peter Exp
  */
 
+#ifndef _IPPROTO_FILTERLOG_H_
+#define _IPPROTO_FILTERLOG_H_
+
 extern const struct tok ipproto_values[];
 
 #ifndef IPPROTO_IP
@@ -146,3 +149,4 @@ extern const struct tok ipproto_values[];
 #ifndef IPPROTO_MOBILITY
 #define IPPROTO_MOBILITY	135
 #endif
+#endif /* _IPPROTO_FILTERLOG_H_ */

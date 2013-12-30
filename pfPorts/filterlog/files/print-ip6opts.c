@@ -141,132 +141,127 @@ ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 
 	switch (bp[i]) {
 	case IP6OPT_PAD1:
-            sbuf_printf(sbuf, "(pad1) ");
+            sbuf_printf(sbuf, "PAD1,");
 	    break;
 	case IP6OPT_PADN:
 	    if (len - i < IP6OPT_MINLEN) {
-		sbuf_printf(sbuf, "(padn=trunc) ");
+		sbuf_printf(sbuf, "PADNTRUNC,");
 		goto trunc;
 	    }
-            sbuf_printf(sbuf, "(padn) ");
+            sbuf_printf(sbuf, "PADN,");
 	    break;
 	case IP6OPT_ROUTER_ALERT:
 	    if (len - i < IP6OPT_RTALERT_LEN) {
-		sbuf_printf(sbuf, "(rtalert=trunc)");
+		sbuf_printf(sbuf, "RTALERTTRUNC,");
 		goto trunc;
 	    }
 	    if (bp[i + 1] != IP6OPT_RTALERT_LEN - 2) {
-		sbuf_printf(sbuf, "(rtalert='invalid len %d') ", bp[i + 1]);
+		sbuf_printf(sbuf, "RTALERTINVALID, %d,", bp[i + 1]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "(rtalert=0x%04x) ", EXTRACT_16BITS(&bp[i + 2]));
+	    sbuf_printf(sbuf, "RTALERT,0x%04x,", EXTRACT_16BITS(&bp[i + 2]));
 	    break;
 	case IP6OPT_JUMBO:
 	    if (len - i < IP6OPT_JUMBO_LEN) {
-		sbuf_printf(sbuf, "(jumbo=trunc) ");
+		sbuf_printf(sbuf, "JUMBOTRUNC,");
 		goto trunc;
 	    }
 	    if (bp[i + 1] != IP6OPT_JUMBO_LEN - 2) {
-		sbuf_printf(sbuf, "(jumbo='invalid len %d') ", bp[i + 1]);
+		sbuf_printf(sbuf, "JUMBOINVALID,%d,", bp[i + 1]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "(jumbo=%u) ", EXTRACT_32BITS(&bp[i + 2]));
+	    sbuf_printf(sbuf, "JUMBO,%u,", EXTRACT_32BITS(&bp[i + 2]));
 	    break;
         case IP6OPT_HOME_ADDRESS:
 	    if (len - i < IP6OPT_HOMEADDR_MINLEN) {
-		sbuf_printf(sbuf, "(homeaddr=trunc) ");
+		sbuf_printf(sbuf, "HOMEADDRTRUNC,");
 		goto trunc;
 	    }
 	    if (bp[i + 1] < IP6OPT_HOMEADDR_MINLEN - 2) {
-		sbuf_printf(sbuf, "(homeaddr='invalid len %d') ", bp[i + 1]);
+		sbuf_printf(sbuf, "HOMEADDRINVALID, %d,", bp[i + 1]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "(homeaddr=%s", ip6addr_string(&bp[i + 2]));
+	    sbuf_printf(sbuf, "HOMEADDR, %s,", ip6addr_string(&bp[i + 2]));
             if (bp[i + 1] > IP6OPT_HOMEADDR_MINLEN - 2) {
 		ip6_sopt_print(&bp[i + IP6OPT_HOMEADDR_MINLEN],
 		    (optlen - IP6OPT_HOMEADDR_MINLEN));
 	    }
-            printf(") ");
 	    break;
         case IP6OPT_BINDING_UPDATE:
 	    if (len - i < IP6OPT_BU_MINLEN) {
-		sbuf_printf(sbuf, "(bu=trunc) ");
+		sbuf_printf(sbuf, "BINDINGUPTRUNC,");
 		goto trunc;
 	    }
 	    if (bp[i + 1] < IP6OPT_BU_MINLEN - 2) {
-		sbuf_printf(sbuf, "(bu='invalid len %d') ", bp[i + 1]);
+		sbuf_printf(sbuf, "BINDINGUPINVALID,%d,", bp[i + 1]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "(bu=");
+	    sbuf_printf(sbuf, "BINDINGUP,");
 	    if (bp[i + 2] & 0x80)
-		    sbuf_printf(sbuf, "A ");
+		    sbuf_printf(sbuf, "A");
 	    if (bp[i + 2] & 0x40)
-		    sbuf_printf(sbuf, "H ");
+		    sbuf_printf(sbuf, "H");
 	    if (bp[i + 2] & 0x20)
-		    sbuf_printf(sbuf, "S ");
+		    sbuf_printf(sbuf, "S");
 	    if (bp[i + 2] & 0x10)
-		    sbuf_printf(sbuf, "D ");
+		    sbuf_printf(sbuf, "D");
 	    if ((bp[i + 2] & 0x0f) || bp[i + 3] || bp[i + 4])
-		    sbuf_printf(sbuf, "res ");
-	    sbuf_printf(sbuf, "sequence=%u ", bp[i + 5]);
-	    sbuf_printf(sbuf, "lifetime=%u ", EXTRACT_32BITS(&bp[i + 6]));
+		    sbuf_printf(sbuf, "r");
+	    sbuf_printf(sbuf, ",%u,", bp[i + 5]);
+	    sbuf_printf(sbuf, "%u,", EXTRACT_32BITS(&bp[i + 6]));
 
 	    if (bp[i + 1] > IP6OPT_BU_MINLEN - 2) {
 		ip6_sopt_print(&bp[i + IP6OPT_BU_MINLEN],
 		    (optlen - IP6OPT_BU_MINLEN));
 	    }
-	    sbuf_printf(sbuf, ") ");
 	    break;
 	case IP6OPT_BINDING_ACK:
 	    if (len - i < IP6OPT_BA_MINLEN) {
-		sbuf_printf(sbuf, "(ba=trunc) ");
+		sbuf_printf(sbuf, "BINDINGACKTRUNC,");
 		goto trunc;
 	    }
 	    if (bp[i + 1] < IP6OPT_BA_MINLEN - 2) {
-		printf(sbuf, "(ba='invalid len %d') ", bp[i + 1]);
+		printf(sbuf, "BINDINGACKINVALID,%d,", bp[i + 1]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "(ba ");
-	    sbuf_printf(sbuf, "status=%u ", bp[i + 2]);
+	    sbuf_printf(sbuf, "BINDINGACK,");
+	    sbuf_printf(sbuf, "%u,", bp[i + 2]);
 	    if (bp[i + 3])
-		    sbuf_printf(sbuf, "res ");
-	    sbuf_printf(sbuf, "sequence=%u ", bp[i + 4]);
-	    sbuf_printf(sbuf, "lifetime=%u ", EXTRACT_32BITS(&bp[i + 5]));
-	    sbuf_printf(sbuf, "refresh=%u ", EXTRACT_32BITS(&bp[i + 9]));
+		    sbuf_printf(sbuf, "res,");
+	    else
+		sbuf_printf(sbuf, ",");
+	    sbuf_printf(sbuf, "%u,", bp[i + 4]);
+	    sbuf_printf(sbuf, "%u,", EXTRACT_32BITS(&bp[i + 5]));
+	    sbuf_printf(sbuf, "%u,", EXTRACT_32BITS(&bp[i + 9]));
 
 	    if (bp[i + 1] > IP6OPT_BA_MINLEN - 2) {
 		ip6_sopt_print(&bp[i + IP6OPT_BA_MINLEN],
 		    (optlen - IP6OPT_BA_MINLEN));
 	    }
-            sbuf_printf(sbuf, ") ");
 	    break;
         case IP6OPT_BINDING_REQ:
 	    if (len - i < IP6OPT_BR_MINLEN) {
-		sbuf_printf(sbuf, "(br=trunc) ");
+		sbuf_printf(sbuf, "BINDINGREQTRUNC,");
 		goto trunc;
 	    }
-            sbuf_printf(sbuf, "(br ");
+            sbuf_printf(sbuf, "BINDINGREQ,");
             if (bp[i + 1] > IP6OPT_BR_MINLEN - 2) {
 		ip6_sopt_print(&bp[i + IP6OPT_BR_MINLEN],
 		    (optlen - IP6OPT_BR_MINLEN));
 	    }
-            sbuf_printf(sbuf, ") ");
 	    break;
 	default:
 	    if (len - i < IP6OPT_MINLEN) {
-		sbuf_printf(sbuf, "(type-%d=trunc) ", bp[i]);
+		sbuf_printf(sbuf, "TYPETRUNC,%d,", bp[i]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "(opt_type=0x%02x len=%d) ", bp[i], bp[i + 1]);
+	    sbuf_printf(sbuf, "TYPE,0x%02x,%d,", bp[i], bp[i + 1]);
 	    break;
 	}
     }
-    sbuf_printf(sbuf, " ");
-
-    return;
 
 trunc:
-    sbuf_printf(sbuf, "[trunc] ");
+    return;
 }
 
 int
@@ -278,12 +273,12 @@ hbhopt_print(struct sbuf *sbuf, register const u_char *bp)
     TCHECK(dp->ip6h_len);
     hbhlen = (int)((dp->ip6h_len + 1) << 3);
     TCHECK2(*dp, hbhlen);
-    sbuf_printf(sbuf, "HBH ");
-	ip6_opt_print(sbuf, (const u_char *)dp + sizeof(*dp), hbhlen - sizeof(*dp));
+    sbuf_printf(sbuf, "HBH,");
+    ip6_opt_print(sbuf, (const u_char *)dp + sizeof(*dp), hbhlen - sizeof(*dp));
 
     return(hbhlen);
 
-  trunc:
+trunc:
     sbuf_printf(sbuf, "[|HBH]");
     return(-1);
 }
@@ -297,10 +292,9 @@ dstopt_print(struct sbuf *sbuf, register const u_char *bp)
     TCHECK(dp->ip6d_len);
     dstoptlen = (int)((dp->ip6d_len + 1) << 3);
     TCHECK2(*dp, dstoptlen);
-    sbuf_printf("DSTOPT(");
+    sbuf_printf("DSTOPT,");
 	ip6_opt_print(sbuf, (const u_char *)dp + sizeof(*dp),
 	    dstoptlen - sizeof(*dp));
-    sbuf_printf(")");
 
     return(dstoptlen);
 }

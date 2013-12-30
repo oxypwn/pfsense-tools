@@ -7,7 +7,7 @@ BINDIR?=        ${PREFIX}/sbin
 DATAMODE=       0444
 INSTALL?=       /usr/bin/install
 
-OBJS=           print-ip.o print-ip6.o print-ip6opts.o print-tcp.o filterlog.o
+OBJS=           print-ip.o print-ip6.o print-ip6opts.o print-tcp.o print-mobility.c filterlog.o
 
 WARNS=          -Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
                 -Wno-unused-parameter -Wstrict-prototypes \
