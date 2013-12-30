@@ -3020,7 +3020,7 @@ update_freebsd_sources_and_apply_patches() {
             return
         fi
 
-	if [ -z "${USE_SVNUP}" -a -z "${USE_SVN}" ]; then
+	if [ -z "${USE_GIT}" -a -z "${USE_SVNUP}" -a -z "${USE_SVN}" ]; then
 		# If override is in place, use it otherwise
 		# locate fastest cvsup host
 		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
