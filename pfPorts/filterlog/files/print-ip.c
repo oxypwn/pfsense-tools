@@ -175,13 +175,15 @@ again:
 
 	case IPPROTO_IPV4:
 		/* DVMRP multicast tunnel (ip-in-ip encapsulation) */
-		ip_print(sbuf, ipds->cp, ipds->len);
+		sbuf_printf(sbuf, "IPV4-IN-IPV4,");
+		//ip_print(sbuf, ipds->cp, ipds->len);
 		break;
 
 #ifdef INET6
 	case IPPROTO_IPV6:
 		/* ip6-in-ip encapsulation */
-		ip6_print(sbuf, ipds->cp, ipds->len);
+		//ip6_print(sbuf, ipds->cp, ipds->len);
+		sbuf_printf(sbuf, "IPV6-IN-IPV4,");
 		break;
 #endif /*INET6*/
 

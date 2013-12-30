@@ -305,11 +305,13 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 			return;
 #endif
 		case IPPROTO_IPV6:
-			ip6_print(sbuf, cp, len);
+			sbuf_printf(sbuf, "IPV6-IN-IPV6,");
+			//ip6_print(sbuf, cp, len);
 			return;
 
 		case IPPROTO_IPV4:
-		        ip_print(sbuf, cp, len);
+			sbuf_printf(sbuf, "IPV4-IN-IPV6,");
+		        //ip_print(sbuf, cp, len);
 			return;
 
 #if 0
