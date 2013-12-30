@@ -5,6 +5,7 @@
 ~~~/sys/contrib/altq/altq/altq_fairq.h~
 ~~~/sys/contrib/altq/altq/altq_fairq.c~
 ~~~/sbin/pfctl/missing/altq/altq_fairq.h~
+~~~/sbin/ifconfig/ifstf.c~
 ~~altq_max_queues.diff~
 ~~fairq.RELENG_8.diff~
 ~~dscp.RELENG_8.diff~

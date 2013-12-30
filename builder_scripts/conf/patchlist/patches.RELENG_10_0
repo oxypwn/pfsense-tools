@@ -5,6 +5,7 @@
 ~~~/sys/contrib/altq/altq/altq_codel.c~
 ~~~/usr.sbin/syslogd/clog.h~
 ~~~/sbin/ipfw/context.c~
+~~~/sbin/ifconfig/ifstf.c~
 -p1~~altq_max_queues.diff~
 -p1~~dscp.RELENG_10.diff~
 -p1~~hfscconfig.RELENG_10.diff~
