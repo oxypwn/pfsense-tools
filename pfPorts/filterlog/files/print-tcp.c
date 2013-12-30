@@ -202,7 +202,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                         --hlen;			/* account for type byte */
                         datalen = 0;
 
-                        sbuf_printf(sbuf, "%s", code2str(tcp_option_values, "Unknown Option %u", opt));
+                        sbuf_printf(sbuf, "%s ", code2str(tcp_option_values, "Unknown Option %u", opt));
 
 			switch (opt) {
                         case TCPOPT_MAXSEG:
