@@ -70,6 +70,7 @@ const struct tok ipproto_values[] = {
 
 /* These tcp optinos do not have the size octet */
 #define ZEROLENOPT(o) ((o) == TCPOPT_EOL || (o) == TCPOPT_NOP)
+#define TCP_SIGLEN 16
 
 #define TCPOPT_WSCALE           3       /* window scale factor (rfc1323) */
 #define TCPOPT_SACKOK           4       /* selective ack ok (rfc2018) */
@@ -202,6 +203,48 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                         datalen = 0;
 
                         sbuf_printf(sbuf, "%s", code2str(tcp_option_values, "Unknown Option %u", opt));
+
+			switch (opt) {
+                        case TCPOPT_MAXSEG:
+                                datalen = 2;
+                                break;
+                        case TCPOPT_WSCALE:
+                                datalen = 1;
+                                break;
+                        case TCPOPT_SACK:
+                                datalen = len - 2;
+                                break;
+                        case TCPOPT_CC:
+                        case TCPOPT_CCNEW:
+                        case TCPOPT_CCECHO:
+                        case TCPOPT_ECHO:
+                        case TCPOPT_ECHOREPLY:
+                                datalen = 4;
+                                break;
+                        case TCPOPT_TIMESTAMP:
+                                datalen = 8;
+                                break;
+                        case TCPOPT_SIGNATURE:
+                                datalen = TCP_SIGLEN;
+                                break;
+                        case TCPOPT_AUTH:
+                                datalen = len - 3;
+                                break;
+                        case TCPOPT_EOL:
+                        case TCPOPT_NOP:
+                        case TCPOPT_SACKOK:
+                                /*
+                                 * Nothing interesting.
+                                 * fall through
+                                 */
+                                break;
+                        case TCPOPT_UTO:
+                                datalen = 2;
+                                break;
+                        default:
+                                datalen = len - 2;
+                                break;
+                        }
 
                         /* Account for data printed */
                         cp += datalen;
