@@ -113,15 +113,15 @@ decode_packet(u_char *user __unused, const struct pcap_pkthdr *pkthdr, const u_c
 	}
 
 	/* print what we know */
-	sbuf_printf(&sbuf, "rulenr=%u ", EXTRACT_32BITS(&hdr->rulenr));
+	sbuf_printf(&sbuf, "%u,", EXTRACT_32BITS(&hdr->rulenr));
 	subrulenr = EXTRACT_32BITS(&hdr->subrulenr);
 	if (subrulenr == (u_int32_t)-1)
-		sbuf_printf(&sbuf, "subrulenr=0/ ");
+		sbuf_printf(&sbuf, ",,");
 	else
-		sbuf_printf(&sbuf, "subrulenr=%u:%s ", subrulenr, hdr->ruleset); 
-	sbuf_printf(&sbuf, "reason=%s ", code2str(pf_reasons, "unkn(%u)", hdr->reason));
-	sbuf_printf(&sbuf, "action=%s ", code2str(pf_actions, "unkn(%u)", hdr->action));
-	sbuf_printf(&sbuf, "dir=%s ", code2str(pf_directions, "unkn(%u)", hdr->dir));
+		sbuf_printf(&sbuf, "%u,%s,", subrulenr, hdr->ruleset); 
+	sbuf_printf(&sbuf, "%s,", code2str(pf_reasons, "unkn(%u)", hdr->reason));
+	sbuf_printf(&sbuf, "%s,", code2str(pf_actions, "unkn(%u)", hdr->action));
+	sbuf_printf(&sbuf, "%s,", code2str(pf_directions, "unkn(%u)", hdr->dir));
 
 	/* skip to the real packet */
 	length -= hdrlen;
