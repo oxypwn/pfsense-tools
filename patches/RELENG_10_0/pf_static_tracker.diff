@@ -1,5 +1,5 @@
 diff --git a/sbin/pfctl/parse.y b/sbin/pfctl/parse.y
-index 27fd219..72c1ba7 100644
+index 27fd219..bc33064 100644
 --- a/sbin/pfctl/parse.y
 +++ b/sbin/pfctl/parse.y
 @@ -234,6 +234,7 @@ struct filter_opts {
@@ -24,7 +24,7 @@ index 27fd219..72c1ba7 100644
  				YYERROR;
  			free($9.schedule);
 +			if ($9.tracker)
-+				r.tracker = $9.tracker;
++				r.cuid = $9.tracker;
  			r.flags = $9.flags.b1;
  			r.flagset = $9.flags.b2;
  			if (($9.flags.b1 & $9.flags.b2) != $9.flags.b1) {
@@ -69,7 +69,7 @@ index b6b57b1..fa90edd 100644
  }
  
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
-index bad5f74..aef9514 100644
+index bad5f74..3e3703f 100644
 --- a/sbin/pfctl/pfctl_parser.c
 +++ b/sbin/pfctl/pfctl_parser.c
 @@ -736,7 +736,11 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -79,7 +79,7 @@ index bad5f74..aef9514 100644
 +#ifdef PF_USER_INFO
  		printf("@%d ", r->nr);
 +#else
-+		printf("@%d(%u) ", r->nr, r->tracker);
++		printf("@%d(%u) ", r->nr, r->cuid);
 +#endif
  	if (r->action == PF_MATCH)
  		printf("match");
@@ -104,7 +104,7 @@ index 0faeb7d..326b551 100644
  	u_int8_t	pad[3];
  };
 diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
-index bf245b7..e259ac6 100644
+index bf245b7..88d7703 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
 @@ -628,7 +628,11 @@ struct pf_rule {
@@ -114,7 +114,7 @@ index bf245b7..e259ac6 100644
 +#ifdef PF_USER_INFO
  	uid_t			 cuid;
 +#else
-+	u_int32_t		 tracker;
++	u_int32_t		 cuid;
 +#endif
  	pid_t			 cpid;
  
@@ -134,18 +134,18 @@ index bf245b7..e259ac6 100644
  	union {
  		struct tcphdr		*tcp;
 diff --git a/sys/netpfil/pf/if_pflog.c b/sys/netpfil/pf/if_pflog.c
-index 087a121..19ab25b 100644
+index 087a121..b4d5b5c 100644
 --- a/sys/netpfil/pf/if_pflog.c
 +++ b/sys/netpfil/pf/if_pflog.c
 @@ -218,13 +218,16 @@ pflog_packet(struct pfi_kif *kif, struct mbuf *m, sa_family_t af, u_int8_t dir,
  	if (am == NULL) {
  		hdr.rulenr = htonl(rm->nr);
  		hdr.subrulenr =  1;
-+		hdr.ridentifier = rm->tracker;
++		hdr.ridentifier = rm->cuid;
  	} else {
  		hdr.rulenr = htonl(am->nr);
  		hdr.subrulenr = htonl(rm->nr);
-+		hdr.ridentifier = rm->tracker;
++		hdr.ridentifier = rm->cuid;
  		if (ruleset != NULL && ruleset->anchor != NULL)
  			strlcpy(hdr.ruleset, ruleset->anchor->name,
  			    sizeof(hdr.ruleset));
@@ -230,7 +230,7 @@ index fc07c6c..2d90713 100644
  		    !pf_match_ieee8021q_pcp(r->ieee8021q_pcp.op,
  		    r->ieee8021q_pcp.pcp[0], r->ieee8021q_pcp.pcp[1], m))
 diff --git a/sys/netpfil/pf/pf_ioctl.c b/sys/netpfil/pf/pf_ioctl.c
-index cd4208b..9e2c939 100644
+index cd4208b..36f1967 100644
 --- a/sys/netpfil/pf/pf_ioctl.c
 +++ b/sys/netpfil/pf/pf_ioctl.c
 @@ -1150,7 +1150,9 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
@@ -256,9 +256,9 @@ index cd4208b..9e2c939 100644
  
  		rule->rpool.cur = TAILQ_FIRST(&rule->rpool.list);
 +#ifndef PF_USER_INFO
-+		if (rule->tracker) {
++		if (rule->cuid) {
 +			tail = = TAILQ_FIRST(ruleset->rules[rs_num].active.ptr);
-+			while ((tail != NULL) && (tail->tracker != rule->tracker))
++			while ((tail != NULL) && (tail->cuid != rule->cuid))
 +				tail = TAILQ_NEXT(tail, entries);
 +			if (tail != NULL) {
 +				tail->evaluations = rule->evaluations;
