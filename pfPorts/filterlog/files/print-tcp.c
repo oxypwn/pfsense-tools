@@ -166,16 +166,21 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                         sbuf_printf(sbuf, "%u:%u,", seq, seq + length);
 		else
 			sbuf_printf(sbuf, "%u,", seq);
-        }
+        } else
+		sbuf_printf(sbuf, ",");
 
-        if (flags & TH_ACK) {
+        if (flags & TH_ACK)
                 sbuf_printf(sbuf, "%u,", ack);
-        }
+	else
+		sbuf_printf(sbuf, ",");
 
         sbuf_printf(sbuf, "%d,", win);
 
         if (flags & TH_URG)
                 sbuf_printf(sbuf, "%d,", urp);
+	else
+		sbuf_printf(sbuf, ",");
+
         /*
          * Handle any options.
          */
