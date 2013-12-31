@@ -313,6 +313,8 @@ ip_print(struct sbuf *sbuf,
 		 code2str(ipproto_values, "unknown", ipds->ip->ip_p));
 	sbuf_printf(sbuf, "%u,", EXTRACT_16BITS(&ipds->ip->ip_len));
 
+	sbuf_printf(sbuf, "%s,", inet_ntoa(ipds->ip->ip_src));
+	sbuf_printf(sbuf, "%s,", inet_ntoa(ipds->ip->ip_dst));
 	/*
 	 * If this is fragment zero, hand it to the next higher
 	 * level protocol.
@@ -321,17 +323,6 @@ ip_print(struct sbuf *sbuf,
 		ipds->cp = (const u_char *)ipds->ip + hlen;
 		ipds->nh = ipds->ip->ip_p;
 
-		sbuf_printf(sbuf, "%s,%s,",
-			     inet_ntoa(ipds->ip->ip_src),
-			     inet_ntoa(ipds->ip->ip_dst));
 		ip_print_demux(sbuf, ipds);
-	} else {
-	    /*
-	     * if this isn't the first frag, we're missing the
-	     * next level protocol header.  print the ip addr
-	     * and the protocol.
-	     */
-	      sbuf_printf(sbuf, "%s,%s", inet_ntoa(ipds->ip->ip_src),
-			     inet_ntoa(ipds->ip->ip_dst));
 	}
 }
