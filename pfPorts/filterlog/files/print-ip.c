@@ -321,12 +321,9 @@ ip_print(struct sbuf *sbuf,
 		ipds->cp = (const u_char *)ipds->ip + hlen;
 		ipds->nh = ipds->ip->ip_p;
 
-		if (ipds->nh != IPPROTO_TCP && ipds->nh != IPPROTO_UDP &&
-		    ipds->nh != IPPROTO_SCTP && ipds->nh != IPPROTO_DCCP) {
-			sbuf_printf(sbuf, "%s,%s,",
-				     inet_ntoa(ipds->ip->ip_src),
-				     inet_ntoa(ipds->ip->ip_dst));
-		}
+		sbuf_printf(sbuf, "%s,%s,",
+			     inet_ntoa(ipds->ip->ip_src),
+			     inet_ntoa(ipds->ip->ip_dst));
 		ip_print_demux(sbuf, ipds);
 	} else {
 	    /*
@@ -334,9 +331,7 @@ ip_print(struct sbuf *sbuf,
 	     * next level protocol header.  print the ip addr
 	     * and the protocol.
 	     */
-	    if (ipds->off & 0x1fff) {
-	        sbuf_printf(sbuf, "%s,%s", inet_ntoa(ipds->ip->ip_src),
+	      sbuf_printf(sbuf, "%s,%s", inet_ntoa(ipds->ip->ip_src),
 			     inet_ntoa(ipds->ip->ip_dst));
-	    }
 	}
 }
