@@ -257,7 +257,7 @@ index cd4208b..36f1967 100644
  		rule->rpool.cur = TAILQ_FIRST(&rule->rpool.list);
 +#ifndef PF_USER_INFO
 +		if (rule->cuid) {
-+			tail = = TAILQ_FIRST(ruleset->rules[rs_num].active.ptr);
++			tail = TAILQ_FIRST(ruleset->rules[rs_num].active.ptr);
 +			while ((tail != NULL) && (tail->cuid != rule->cuid))
 +				tail = TAILQ_NEXT(tail, entries);
 +			if (tail != NULL) {
