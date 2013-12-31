@@ -142,7 +142,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
         sport = EXTRACT_16BITS(&tp->th_sport);
         dport = EXTRACT_16BITS(&tp->th_dport);
 
-	sbuf_printf(sbuf, "%u,%u,%d", sport, dport, length - hlen);
+	sbuf_printf(sbuf, "%u,%u,%d,", sport, dport, length - hlen);
 
         seq = EXTRACT_32BITS(&tp->th_seq);
         ack = EXTRACT_32BITS(&tp->th_ack);
