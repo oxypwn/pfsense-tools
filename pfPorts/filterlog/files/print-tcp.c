@@ -191,7 +191,6 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
 
                 hlen -= sizeof(*tp);
                 cp = (const u_char *)tp + sizeof(*tp);
-                sbuf_printf(sbuf, "[");
                 while (hlen > 0) {
                         if (ch != '\0')
                                 sbuf_printf(sbuf, "%c", ch);
@@ -207,7 +206,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                         --hlen;			/* account for type byte */
                         datalen = 0;
 
-                        sbuf_printf(sbuf, "%s ", code2str(tcp_option_values, "Unknown Option %u", opt));
+                        sbuf_printf(sbuf, "%s", code2str(tcp_option_values, "Unknown Option %u", opt));
 
 			switch (opt) {
                         case TCPOPT_MAXSEG:
@@ -263,7 +262,6 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                         if (opt == TCPOPT_EOL)
                                 break;
                 }
-                sbuf_printf(sbuf, "],");
         }
 
         if (length <= 0)
