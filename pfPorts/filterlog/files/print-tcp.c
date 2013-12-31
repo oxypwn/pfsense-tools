@@ -139,8 +139,8 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
                 ip6 = NULL;
 #endif /*INET6*/
         ch = '\0';
-        sport = ntohs(EXTRACT_16BITS(&tp->th_sport));
-        dport = ntohs(EXTRACT_16BITS(&tp->th_dport));
+        sport = EXTRACT_16BITS(&tp->th_sport);
+        dport = EXTRACT_16BITS(&tp->th_dport);
 
 	sbuf_printf(sbuf, "%u,%u,%d", sport, dport, length - hlen);
 
