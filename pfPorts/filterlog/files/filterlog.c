@@ -119,7 +119,7 @@ decode_packet(u_char *user __unused, const struct pcap_pkthdr *pkthdr, const u_c
 		sbuf_printf(&sbuf, ",,");
 	else
 		sbuf_printf(&sbuf, "%u,%s,", subrulenr, hdr->ruleset); 
-	sbuf_printf(&sbuf, "%s,", hdr->ifname);
+	sbuf_printf(&sbuf, "%u,%s,", hdr->ridentifier, hdr->ifname);
 	sbuf_printf(&sbuf, "%s,", code2str(pf_reasons, "unkn(%u)", hdr->reason));
 	sbuf_printf(&sbuf, "%s,", code2str(pf_actions, "unkn(%u)", hdr->action));
 	sbuf_printf(&sbuf, "%s,", code2str(pf_directions, "unkn(%u)", hdr->dir));
