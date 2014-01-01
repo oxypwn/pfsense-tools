@@ -186,7 +186,7 @@ index fc07c6c..2d90713 100644
  		a->flags |= PFRULE_DN_IS_PIPE;
  }
  
-+#if PF_USER_INFO
++#ifdef PF_USER_INFO
  int
  pf_socket_lookup(int direction, struct pf_pdesc *pd, struct mbuf *m)
  {
