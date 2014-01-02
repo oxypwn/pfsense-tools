@@ -1,9 +1,9 @@
-IPv4 rulenr,subrulenr,ridentifier(tracker),anchorname,interface,reason,action,dir,version, tos, ecn, ttl, id,offset,flags,proto,protoname,length,src,dst
+IPv4 rulenr,subrulenr,anchorname,ridentifier(tracker),interface,reason,action,dir,version, tos, ecn, ttl, id,offset,flags,proto,protoname,length,src,dst
 	UDP srcport,dstport, datalen
 	TCP srcport,dstport,datalen,flags,error?|seq,ack,window,urg,options
 	CARP type,ttl,vhid, version,advskew,advbase
 
-IPv6 rulenr,subrulenr,ridentifier(tracker), anchorname,interface,reason,action,dir,version,class,flowlabel,hlim,next-header(protoname),next,payload-length,src,dst
+IPv6 rulenr,subrulenr,anchorname,ridentifier(tracker),interface,reason,action,dir,version,class,flowlabel,hlim,next-header(protoname),next,payload-length,src,dst
 	HBHOPT, HBH, PAD1,
 			PADN | PADNTRUNC
 			RTALERT,data | RTALERTTRUNC | RTALERTINVALID, len
