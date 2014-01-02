@@ -1542,7 +1542,7 @@ restore_pfSense() {
 freesbie_make() {
 	# Make sure MAKEOBJDIRPREFIX is not set, otherwise OBJDIR will be wrong
 	# and it will always rebuild everything.
-	(cd ${FREESBIE_PATH} && env -u MAKEOBJDIRPREFIX MAKEOBJDIR="${BUILDER_LOGS}/freesbie2" make $*)
+	(cd ${FREESBIE_PATH} && env -u MAKEOBJDIRPREFIX CUSTOM_MAKEOBJDIRPREFIX="${MAKEOBJDIRPREFIX}" MAKEOBJDIR="${BUILDER_LOGS}/freesbie2" make $*)
 }
 
 # This updates the pfSense sources from rcs.pfsense.org
