@@ -177,7 +177,7 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 	len = payload_len + sizeof(struct ip6_hdr);
 	if (length < len)
 		sbuf_printf(sbuf, "error='truncated-ip6 - %u bytes missing!',",
-			len - length));
+			len - length);
 
 	flow = EXTRACT_32BITS(&ip6->ip6_flow);
 #if 0
@@ -188,14 +188,14 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 	(void)ND_PRINT((ndo, "flowlabel 0x%06x, ", flow & 0x00ffffff));
 #else
 	/* RFC 2460 */
-	sbuf_printf(sbuf, "0x%02x,", (flow & 0x0ff00000) >> 20));
-	sbuf_printf(sbuf, "0x%05x,", flow & 0x000fffff));
+	sbuf_printf(sbuf, "0x%02x,", (flow & 0x0ff00000) >> 20);
+	sbuf_printf(sbuf, "0x%05x,", flow & 0x000fffff);
 #endif
 
 	sbuf_printf(sbuf, "%u,%s,%u,%u,",
 		ip6->ip6_hlim,
 		code2str(ipproto_values, "unknown", ip6->ip6_nxt),
-		ip6->ip6_nxt, payload_len));
+		ip6->ip6_nxt, payload_len);
 	
 
 	/*
@@ -212,7 +212,7 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 
 		if (cp == (const u_char *)(ip6 + 1)) {
 			sbuf_printf(sbuf, "%s,%s,", ip6addr_string(&ip6->ip6_src),
-				     ip6addr_string(&ip6->ip6_dst)));
+				     ip6addr_string(&ip6->ip6_dst));
 		}
 
 		switch (nh) {
