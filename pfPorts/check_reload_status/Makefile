@@ -7,18 +7,16 @@
 
 PORTNAME=	check_reload_status
 PORTVERSION=	0.0.3
-PORTREVISION?=	0
 CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
-NO_STAGE=	yes
 
 MAINTAINER?=	eri@pfsense.org
 COMMENT?=	run various pfSense scripts on event.
 
 WHERE=		sbin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+PLIST_FILES=    ${WHERE}/${PORTNAME} ${WHERE}/pfSctl ${WHERE}/fcgicli
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
 
 CFLAGS+=	-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
@@ -39,8 +37,8 @@ do-build:
 	${CC} ${CFLAGS} -lsbuf -o ${WRKSRC}/fcgicli ${FILESDIR}/fcgicli.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
-	${INSTALL_PROGRAM} ${WRKSRC}/pfSctl ${PREFIX}/${WHERE}/
-	${INSTALL_PROGRAM} ${WRKSRC}/fcgicli ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${STAGEDIR}${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/pfSctl ${STAGEDIR}${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/fcgicli ${STAGEDIR}${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
