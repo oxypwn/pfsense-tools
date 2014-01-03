@@ -34,6 +34,11 @@ while test "$1" != "" ; do
 		NO_PORTS=yo
 		shift
 		;;
+	--no-ports|-n)
+		echo "$2"
+		NO_PORTS=yo
+		shift
+		;;
 	--noupload|-u)
 		NO_UPLOAD="-u"
 		shift
