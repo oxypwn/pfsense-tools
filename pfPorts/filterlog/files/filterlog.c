@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/sbuf.h>
+#include <sys/file.h>
 
 #include <net/if.h>
 #include <pcap/pcap.h>
@@ -24,6 +25,7 @@ static pcap_t *tap = NULL;
 static char errbuf[PCAP_ERRBUF_SIZE];
 static struct sbuf sbuf;
 static u_char *sbuf_buf;
+static char *pidfile;
 
 static const struct tok pf_reasons[] = {
 	{ 0,	"match" },
@@ -162,12 +164,16 @@ main(int argc, char **argv)
 	int perr, ch;
 	char *interface;
 
+	pidfile = NULL;
 	tzset();
 
 	while ((ch = getopt(argc, argv, "i:")) != -1) {
 		switch (ch) {
 		case 'i':
 			interface = optarg;
+			break;
+		case 'p':
+			pidfile = optarg;
 			break;
 		default:
 			printf("Unknown option specified\n");
@@ -176,6 +182,21 @@ main(int argc, char **argv)
 	}
 
 	daemon(0, 0);
+
+	if (pidfile) {
+		FILE *pidfd;
+
+                /* write PID to file */
+                pidfd = fopen(pidfile, "w");
+                if (pidfd) {
+                        while (flock(fileno(pidfd), LOCK_EX) != 0)
+                                ;
+                        fprintf(pidfd, "%d\n", getpid());
+                        flock(fileno(pidfd), LOCK_UN);
+                        fclose(pidfd);
+                } else
+                        syslog(LOG_WARNING, "could not open pid file");
+        }
 
 	do {
 		sbuf_buf = calloc(1, 2048);
