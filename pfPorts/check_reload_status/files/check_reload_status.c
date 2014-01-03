@@ -110,12 +110,12 @@ build_nvpair(struct sbuf *sb, int lkey, int lvalue, const char *key, char *svalu
         if (lkey < 128)
                 sbuf_putc(sb, lkey);
         else
-                sbuf_printf(sb, "%c%c%c%c", (u_char)((lkey >> 24) | 0x80), (u_char)((lkey >> 16) & 0xFF), (u_char)((lkey >> 16) & 0xFF), (u_char)(lkey & 0xFF));
+                sbuf_printf(sb, "%c%c%c%c", (u_char)((lkey >> 24) | 0x80), (u_char)((lkey >> 16) & 0xFF), (u_char)((lkey >> 8) & 0xFF), (u_char)(lkey & 0xFF));
 
         if (lvalue < 128 || lvalue > 65535)
                 sbuf_putc(sb, lvalue);
         else
-                sbuf_printf(sb, "%c%c%c%c", (u_char)((lvalue >> 24) | 0x80), (u_char)((lvalue >> 16) & 0xFF), (u_char)((lvalue >> 16) & 0xFF), (u_char)(lvalue & 0xFF));
+                sbuf_printf(sb, "%c%c%c%c", (u_char)((lvalue >> 24) | 0x80), (u_char)((lvalue >> 16) & 0xFF), (u_char)((lvalue >> 8) & 0xFF), (u_char)(lvalue & 0xFF));
 
         if (lkey > 0)
                 sbuf_printf(sb, "%s", key);
