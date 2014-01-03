@@ -27,9 +27,15 @@
  * SUCH DAMAGE.
  */
 
-#ifdef INET6
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <netinet/ip6.h>
+#include <arpa/inet.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #include "common.h"
 
@@ -161,13 +167,15 @@ mobility_print(struct sbuf *sbuf, const u_char *bp, int len)
 	const struct ip6_mobility *mh;
 	const u_char *ep;
 	int mhlen, hlen, type;
+	char ip6addr[INET6_ADDRSTRLEN];
 
 	mh = (struct ip6_mobility *)bp;
 
 	/* 'ep' points to the end of available data. */
 	ep = bp + len;
 
-	if (!TTEST(mh->ip6m_len)) {
+#if 0
+	if (!(ep - sizeof(mh->ip6m_len)) < ep) {
 		/*
 		 * There's not enough captured data to include the
 		 * mobility header length.
@@ -183,11 +191,11 @@ mobility_print(struct sbuf *sbuf, const u_char *bp, int len)
 		mhlen = ep - bp;
 		goto trunc;
 	}
+#endif
 	mhlen = (int)((mh->ip6m_len + 1) << 3);
 
 	/* XXX ip6m_cksum */
 
-	TCHECK(mh->ip6m_type);
 	type = mh->ip6m_type;
 	switch (type) {
 	case IP6M_BINDING_REQUEST:
@@ -199,41 +207,32 @@ mobility_print(struct sbuf *sbuf, const u_char *bp, int len)
 		sbuf_printf(sbuf, "%soTI,",
 			type == IP6M_HOME_TEST_INIT ? "H" : "C");
 		hlen = IP6M_MINLEN;
-		TCHECK2(*mh, hlen + 8);
 		sbuf_printf(sbuf, "%s, %08x:%08x,",
 			       type == IP6M_HOME_TEST_INIT ? "Home" : "Care-of",
 			       EXTRACT_32BITS(&bp[hlen]),
 			       EXTRACT_32BITS(&bp[hlen + 4]));
-		}
 		hlen += 8;
 		break;
 	case IP6M_HOME_TEST:
 	case IP6M_CAREOF_TEST:
 		sbuf_printf(sbuf, "%soT,",
 			type == IP6M_HOME_TEST ? "H" : "C");
-		TCHECK(mh->ip6m_data16[0]);
 		sbuf_printf(sbuf, "0x%x, ", EXTRACT_16BITS(&mh->ip6m_data16[0]));
 		hlen = IP6M_MINLEN;
-		TCHECK2(*mh, hlen + 8);
 		sbuf_printf(sbuf, "%s, %08x:%08x,",
 			       type == IP6M_HOME_TEST ? "Home" : "Care-of",
 			       EXTRACT_32BITS(&bp[hlen]),
 			       EXTRACT_32BITS(&bp[hlen + 4]));
-		}
 		hlen += 8;
-		TCHECK2(*mh, hlen + 8);
 		sbuf_printf(sbuf, "%08x:%08x,",
 			       EXTRACT_32BITS(&bp[hlen]),
 			       EXTRACT_32BITS(&bp[hlen + 4]));
-		}
 		hlen += 8;
 		break;
 	case IP6M_BINDING_UPDATE:
 		sbuf_printf(sbuf, "BINDINGUPDATE,");
-		TCHECK(mh->ip6m_data16[0]);
 		sbuf_printf(sbuf, "%d,", EXTRACT_16BITS(&mh->ip6m_data16[0]));
 		hlen = IP6M_MINLEN;
-		TCHECK2(*mh, hlen + 1);
 		if (bp[hlen] & 0xf0)
 			sbuf_printf(sbuf, " ");
 		if (bp[hlen] & 0x80)
@@ -248,35 +247,30 @@ mobility_print(struct sbuf *sbuf, const u_char *bp, int len)
 		hlen += 1;
 		/* Reserved (8bits) */
 		hlen += 1;
-		TCHECK2(*mh, hlen + 2);
 		/* units of 4 secs */
 		sbuf_printf(sbuf, "%d,", EXTRACT_16BITS(&bp[hlen]) << 2);
 		hlen += 2;
 		break;
 	case IP6M_BINDING_ACK:
 		sbuf_printf(sbuf, "BINDINGACK,");
-		TCHECK(mh->ip6m_data8[0]);
 		sbuf_printf(sbuf, "%d,", mh->ip6m_data8[0]);
 		if (mh->ip6m_data8[1] & 0x80)
 			sbuf_printf(sbuf, "K");
 		/* Reserved (7bits) */
 		hlen = IP6M_MINLEN;
-		TCHECK2(*mh, hlen + 2);
 		sbuf_printf(sbuf, "%d,", EXTRACT_16BITS(&bp[hlen]));
 		hlen += 2;
-		TCHECK2(*mh, hlen + 2);
 		/* units of 4 secs */
 		sbuf_printf(sbuf, "%d,", EXTRACT_16BITS(&bp[hlen]) << 2);
 		hlen += 2;
 		break;
 	case IP6M_BINDING_ERROR:
 		sbuf_printf(sbuf, "BINDINGERR,");
-		TCHECK(mh->ip6m_data8[0]);
 		sbuf_printf(sbuf, "%d,", mh->ip6m_data8[0]);
 		/* Reserved */
 		hlen = IP6M_MINLEN;
-		TCHECK2(*mh, hlen + 16);
-		sbuf_printf(sbuf, "%s,", ip6addr_string(&bp[hlen]));
+		memset(ip6addr, 0, INET6_ADDRSTRLEN);
+		sbuf_printf(sbuf, "%s,", inet_ntop(AF_INET6, &bp[hlen], ip6addr, INET6_ADDRSTRLEN));
 		hlen += 16;
 		break;
 	default:
@@ -289,9 +283,4 @@ mobility_print(struct sbuf *sbuf, const u_char *bp, int len)
 #endif
 
 	return(mhlen);
-
- trunc:
-	sbuf_printf(sbuf, "[|MOBILITY],", stdout);
-	return(mhlen);
 }
-#endif /* INET6 */

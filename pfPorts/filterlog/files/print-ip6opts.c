@@ -27,9 +27,19 @@
  * SUCH DAMAGE.
  */
 
-#ifdef INET6
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <netinet/ip6.h>
+#include <arpa/inet.h>
+
+#include <netinet/udp.h>
 
 #include <stdio.h>
+#include <string.h>
+
+#include "common.h"
 
 /* items outside of rfc2292bis */
 #ifndef IP6OPT_MINLEN
@@ -52,11 +62,26 @@
 #define IP6SOPT_AUTH          0x4
 #define IP6SOPT_AUTH_MINLEN     6
 
+#define IP6OPT_BINDING_UPDATE	0xc6	/* 11 0 00110 */
+#define IP6OPT_BINDING_ACK	0x07	/* 00 0 00111 */
+#define IP6OPT_BINDING_REQ	0x08	/* 00 0 01000 */
+#define IP6OPT_HOME_ADDRESS	0xc9	/* 11 0 01001 */
+#define IP6OPT_EID		0x8a	/* 10 0 01010 */
+
+#define IP6OPT_TYPE(o)		((o) & 0xC0)
+#define IP6OPT_TYPE_SKIP	0x00
+#define IP6OPT_TYPE_DISCARD	0x40
+#define IP6OPT_TYPE_FORCEICMP	0x80
+#define IP6OPT_TYPE_ICMP	0xC0
+
+#define IP6OPT_MUTABLE		0x20
+
 static void ip6_sopt_print(struct sbuf *, const u_char *, int);
 
 static void
 ip6_sopt_print(struct sbuf *sbuf, const u_char *bp, int len)
 {
+    char ip6addr[INET6_ADDRSTRLEN];
     int i;
     int optlen;
 
@@ -95,7 +120,8 @@ ip6_sopt_print(struct sbuf *sbuf, const u_char *bp, int len)
 		sbuf_printf(sbuf, "altcoa=trunc ");
 		goto trunc;
 	    }
-            sbuf_printf(sbuf, "alt-CoA=%s ", ip6addr_string(&bp[i+2]));
+	    memset(ip6addr, 0, INET6_ADDRSTRLEN);
+            sbuf_printf(sbuf, "alt-CoA=%s ", inet_ntop(AF_INET6, &bp[i+2], ip6addr, INET6_ADDRSTRLEN));
 	    break;
         case IP6SOPT_AUTH:
              if (len - i < IP6SOPT_AUTH_MINLEN) {
@@ -122,6 +148,7 @@ trunc:
 void
 ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 {
+    char ip6addr[INET6_ADDRSTRLEN];
     int i;
     int optlen = 0;
 
@@ -181,9 +208,10 @@ ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 		sbuf_printf(sbuf, "HOMEADDRINVALID, %d,", bp[i + 1]);
 		goto trunc;
 	    }
-	    sbuf_printf(sbuf, "HOMEADDR, %s,", ip6addr_string(&bp[i + 2]));
+	    memset(ip6addr, 0, INET6_ADDRSTRLEN);
+	    sbuf_printf(sbuf, "HOMEADDR, %s,", inet_ntop(AF_INET6, &bp[i + 2], ip6addr, INET6_ADDRSTRLEN));
             if (bp[i + 1] > IP6OPT_HOMEADDR_MINLEN - 2) {
-		ip6_sopt_print(&bp[i + IP6OPT_HOMEADDR_MINLEN],
+		ip6_sopt_print(sbuf, &bp[i + IP6OPT_HOMEADDR_MINLEN],
 		    (optlen - IP6OPT_HOMEADDR_MINLEN));
 	    }
 	    break;
@@ -211,7 +239,7 @@ ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 	    sbuf_printf(sbuf, "%u,", EXTRACT_32BITS(&bp[i + 6]));
 
 	    if (bp[i + 1] > IP6OPT_BU_MINLEN - 2) {
-		ip6_sopt_print(&bp[i + IP6OPT_BU_MINLEN],
+		ip6_sopt_print(sbuf, &bp[i + IP6OPT_BU_MINLEN],
 		    (optlen - IP6OPT_BU_MINLEN));
 	    }
 	    break;
@@ -221,7 +249,7 @@ ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 		goto trunc;
 	    }
 	    if (bp[i + 1] < IP6OPT_BA_MINLEN - 2) {
-		printf(sbuf, "BINDINGACKINVALID,%d,", bp[i + 1]);
+		sbuf_printf(sbuf, "BINDINGACKINVALID,%d,", bp[i + 1]);
 		goto trunc;
 	    }
 	    sbuf_printf(sbuf, "BINDINGACK,");
@@ -235,7 +263,7 @@ ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 	    sbuf_printf(sbuf, "%u,", EXTRACT_32BITS(&bp[i + 9]));
 
 	    if (bp[i + 1] > IP6OPT_BA_MINLEN - 2) {
-		ip6_sopt_print(&bp[i + IP6OPT_BA_MINLEN],
+		ip6_sopt_print(sbuf, &bp[i + IP6OPT_BA_MINLEN],
 		    (optlen - IP6OPT_BA_MINLEN));
 	    }
 	    break;
@@ -246,7 +274,7 @@ ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len)
 	    }
             sbuf_printf(sbuf, "BINDINGREQ,");
             if (bp[i + 1] > IP6OPT_BR_MINLEN - 2) {
-		ip6_sopt_print(&bp[i + IP6OPT_BR_MINLEN],
+		ip6_sopt_print(sbuf, &bp[i + IP6OPT_BR_MINLEN],
 		    (optlen - IP6OPT_BR_MINLEN));
 	    }
 	    break;
@@ -270,17 +298,11 @@ hbhopt_print(struct sbuf *sbuf, register const u_char *bp)
     const struct ip6_hbh *dp = (struct ip6_hbh *)bp;
     int hbhlen = 0;
 
-    TCHECK(dp->ip6h_len);
     hbhlen = (int)((dp->ip6h_len + 1) << 3);
-    TCHECK2(*dp, hbhlen);
     sbuf_printf(sbuf, "HBH,");
     ip6_opt_print(sbuf, (const u_char *)dp + sizeof(*dp), hbhlen - sizeof(*dp));
 
     return(hbhlen);
-
-trunc:
-    sbuf_printf(sbuf, "[|HBH]");
-    return(-1);
 }
 
 int
@@ -289,13 +311,10 @@ dstopt_print(struct sbuf *sbuf, register const u_char *bp)
     const struct ip6_dest *dp = (struct ip6_dest *)bp;
     int dstoptlen = 0;
 
-    TCHECK(dp->ip6d_len);
     dstoptlen = (int)((dp->ip6d_len + 1) << 3);
-    TCHECK2(*dp, dstoptlen);
-    sbuf_printf("DSTOPT,");
+    sbuf_printf(sbuf, "DSTOPT,");
 	ip6_opt_print(sbuf, (const u_char *)dp + sizeof(*dp),
 	    dstoptlen - sizeof(*dp));
 
     return(dstoptlen);
 }
-#endif /* INET6 */

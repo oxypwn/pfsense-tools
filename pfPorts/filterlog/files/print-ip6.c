@@ -21,7 +21,14 @@
  * $FreeBSD$
  */
 
-#ifdef INET6
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <netinet/ip6.h>
+#include <arpa/inet.h>
+
+#include <netinet/udp.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,14 +44,13 @@ rt6_print(struct sbuf *sbuf, register const u_char *bp, int datalen)
 	register const u_char *ep;
 	int i, len;
 	register const struct in6_addr *addr;
+	char ip6addr[INET6_ADDRSTRLEN];
 
 	dp = (struct ip6_rthdr *)bp;
 	len = dp->ip6r_len;
 
 	/* 'ep' points to the end of available data. */
 	ep = bp + datalen;
-
-	TCHECK(dp->ip6r_segleft);
 
 	sbuf_printf(sbuf, "%d,%d,%d,", dp->ip6r_len, dp->ip6r_type, dp->ip6r_segleft);	/*)*/
 
@@ -59,19 +65,19 @@ rt6_print(struct sbuf *sbuf, register const u_char *bp, int datalen)
 	case IPV6_RTHDR_TYPE_2:			/* Mobile IPv6 ID-20 */
 		dp0 = (struct ip6_rthdr0 *)dp;
 
-		TCHECK(dp0->ip6r0_reserved);
 		sbuf_printf(sbuf, "0x%0x,",
 			    EXTRACT_32BITS(&dp0->ip6r0_reserved));
 
 		if (len % 2 == 1)
 			goto trunc;
 		len >>= 1;
-		addr = &dp0->ip6r0_addr[0];
+		addr = (struct in6_addr *)(dp0+1);
 		for (i = 0; i < len; i++) {
 			if ((u_char *)(addr + 1) > ep)
 				goto trunc;
 
-			sbuf_printf(sbuf, "%d, %s", i, ip6addr_string(addr));
+			memset(ip6addr, 0, INET6_ADDRSTRLEN);
+			sbuf_printf(sbuf, "%d, %s", i, inet_ntop(AF_INET6, addr, ip6addr, INET6_ADDRSTRLEN));
 			addr++;
 		}
 		/*(*/
@@ -96,7 +102,6 @@ frag6_print(struct sbuf *sbuf, register const u_char *bp, register const u_char 
 	dp = (const struct ip6_frag *)bp;
 	ip6 = (const struct ip6_hdr *)bp2;
 
-	TCHECK(dp->ip6f_offlg);
 
 	sbuf_printf(sbuf, "FRAG6, 0x%08x:%d|%ld,",
 		       EXTRACT_32BITS(&dp->ip6f_ident),
@@ -169,7 +174,7 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 	sbuf_printf(sbuf, "6,");
 
 	if (length < sizeof (struct ip6_hdr)) {
-		sbuf_printf((sbuf, "truncated-ip6=%u,", length));
+		sbuf_printf(sbuf, "truncated-ip6=%u,", length);
 		return;
 	}
 
@@ -207,12 +212,14 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 	advance = sizeof(struct ip6_hdr);
 	nh = ip6->ip6_nxt;
 	while (cp < ipend && advance > 0) {
+		char ip6addr[INET6_ADDRSTRLEN];
+
 		cp += advance;
 		len -= advance;
 
 		if (cp == (const u_char *)(ip6 + 1)) {
-			sbuf_printf(sbuf, "%s,%s,", ip6addr_string(&ip6->ip6_src),
-				     ip6addr_string(&ip6->ip6_dst));
+			sbuf_printf(sbuf, "%s,", inet_ntop(AF_INET6, &ip6->ip6_src, ip6addr, INET6_ADDRSTRLEN));
+			sbuf_printf(sbuf, "%s,", inet_ntop(AF_INET6, &ip6->ip6_dst, ip6addr, INET6_ADDRSTRLEN));
 		}
 
 		switch (nh) {
@@ -242,7 +249,7 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 			 * which payload can be piggybacked atop a
 			 * mobility header.
 			 */
-			sbuf_print(sbuf, "MOBILITY,");
+			sbuf_printf(sbuf, "MOBILITY,");
 			advance = mobility_print(sbuf, cp, len);
 			nh = *cp;
 			return;
@@ -259,13 +266,13 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 			return;
 #endif
 		case IPPROTO_TCP:
-			tcp_print(sbuf, cp, len, (const u_char *)ip6, fragmented);
+			tcp_print(sbuf, cp, len, (const u_char *)ip6);
 			return;
 		case IPPROTO_UDP:
 		{
 			const struct udphdr *up;
 
-			up = (struct udphdr *)ipds->cp;
+			up = (struct udphdr *)cp;
 			sbuf_printf(sbuf, "%d,%d,%d", EXTRACT_16BITS(&up->uh_sport), EXTRACT_16BITS(&up->uh_dport),
 				EXTRACT_16BITS(&up->uh_ulen));
 
@@ -334,5 +341,3 @@ ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length)
 
 	return;
 }
-
-#endif /* INET6 */

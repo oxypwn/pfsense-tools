@@ -140,11 +140,9 @@ decode_packet(u_char *user __unused, const struct pcap_pkthdr *pkthdr, const u_c
         case 4:
                 ip_print(&sbuf, packet, length);
 		break;
-#ifdef INET6
         case 6:
                 ip6_print(&sbuf, packet, length);
 		break;
-#endif
         default:
                 sbuf_printf(&sbuf, "%d", IP_V(ip));
                 break;

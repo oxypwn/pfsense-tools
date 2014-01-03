@@ -47,5 +47,8 @@ void ip6_print(struct sbuf *sbuf, const u_char *bp, u_int length);
 int mobility_print(struct sbuf *sbuf, const u_char *bp, int len);
 void tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
           register const u_char *bp2);
+int hbhopt_print(struct sbuf *sbuf, register const u_char *bp);
+int dstopt_print(struct sbuf *sbuf, register const u_char *bp);
+void ip6_opt_print(struct sbuf *sbuf, const u_char *bp, int len);
 
 #endif /* _FILTER_LOG_COMMON_H_ */

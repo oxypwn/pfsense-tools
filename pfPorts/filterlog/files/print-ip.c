@@ -179,14 +179,11 @@ again:
 		//ip_print(sbuf, ipds->cp, ipds->len);
 		break;
 
-#ifdef INET6
 	case IPPROTO_IPV6:
 		/* ip6-in-ip encapsulation */
 		//ip6_print(sbuf, ipds->cp, ipds->len);
 		sbuf_printf(sbuf, "IPV6-IN-IPV4,");
 		break;
-#endif /*INET6*/
-
 #if 0
 	case IPPROTO_RSVP:
 		rsvp_print(ipds->cp, ipds->len);

@@ -27,6 +27,7 @@
 #include <sys/socket.h>
 #include <sys/sbuf.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <netinet/tcp.h>
 
 #include <stdio.h>
@@ -118,9 +119,7 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
         register char ch;
         u_int16_t sport, dport, win, urp;
         u_int32_t seq, ack;
-#ifdef INET6
         register const struct ip6_hdr *ip6;
-#endif
 
         tp = (struct tcphdr *)bp;
 
@@ -132,12 +131,10 @@ tcp_print(struct sbuf *sbuf, register const u_char *bp, register u_int length,
         }
 
         ip = (struct ip *)bp2;
-#ifdef INET6
         if (IP_V(ip) == 6)
                 ip6 = (struct ip6_hdr *)bp2;
         else
                 ip6 = NULL;
-#endif /*INET6*/
         ch = '\0';
         sport = EXTRACT_16BITS(&tp->th_sport);
         dport = EXTRACT_16BITS(&tp->th_dport);
