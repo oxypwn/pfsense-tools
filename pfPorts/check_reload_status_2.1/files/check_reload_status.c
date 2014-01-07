@@ -135,12 +135,12 @@ parse_command(int fd, int argc, char **argv)
 {
 	struct command	*start = first_level;
 	struct command	*match = NULL;
-	char *errstring = (char *)"ERROR:\tvalid commands are:\n";
+	const char *errstring = "ERROR:\tvalid commands are:\n";
 
 	while (argc >= 0) {
 		match = match_command(start, *argv);
 		if (match == NULL) {
-			errstring = (char *)"ERROR:\tNo match found.\n";
+			errstring = "ERROR:\tNo match found.\n";
 			goto error3;
 		}
 
@@ -148,19 +148,19 @@ parse_command(int fd, int argc, char **argv)
 		argv++;
 
 		if (argc > 0 && match->next == NULL) {
-			errstring = (char *)"ERROR:\textra arguments passed.\n";
+			errstring = "ERROR:\textra arguments passed.\n";
 			goto error3;
 		}
 		if (argc < 0 && match->type != NON) {
 			if (match->next != NULL)
 				start = match->next;
-			errstring = (char *)"ERROR:\tincomplete command.\n";
+			errstring = "ERROR:\tincomplete command.\n";
 			goto error3;
 		}
 		if (argc == 0 && *argv == NULL && match->type != NON) {
 			if (match->next != NULL)
 				start = match->next;
-			errstring = (char *)"ERROR:\tincomplete command.\n";
+			errstring = "ERROR:\tincomplete command.\n";
 			goto error3;
 		}
 
