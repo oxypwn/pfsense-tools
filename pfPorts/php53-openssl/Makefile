@@ -1,6 +1,4 @@
-# $FreeBSD$
-
-PORTREVISION=	1
+# $FreeBSD: head/security/php53-openssl/Makefile 336500 2013-12-14 23:30:36Z flo $
 
 CATEGORIES=	security
 
@@ -8,5 +6,4 @@ MASTERDIR=	${.CURDIR}/../../lang/php53
 
 PKGNAMESUFFIX=	-openssl
 
-NO_STAGE=	yes
 .include "${MASTERDIR}/Makefile"
