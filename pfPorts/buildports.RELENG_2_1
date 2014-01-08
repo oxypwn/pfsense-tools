@@ -62,7 +62,7 @@ dhcpleases			/usr/ports/sysutils/dhcpleases			/usr/local/sbin/dhcpleases
 dhcpleases6			/usr/ports/sysutils/dhcpleases6			/usr/local/sbin/dhcpleases6
 filterdns			/usr/ports/net/filterdns			/usr/local/sbin/filterdns
 apinger				/usr/ports/net/apinger				/usr/local/sbin/apinger
-rrdtool				/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
+rrdtool12			/usr/ports/databases/rrdtool12			/usr/local/bin/rrdtool
 cpdup				/usr/ports/sysutils/cpdup			/usr/local/bin/cpdup
 cpustats			/usr/ports/sysutils/cpustats			/usr/local/sbin/cpustats
 beep				/usr/ports/audio/beep				/usr/local/bin/beep
