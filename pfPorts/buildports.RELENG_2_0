@@ -250,10 +250,8 @@ clean_build_install_clean() {
 
 	if [ -d ${PFPORTSDIR}/$PORTNAME ]; then
 		echo ">>> Overlaying pfPorts ${PFPORTSDIR}/$PORTNAME to ${PORTPATH} and building..."
-		if [ ! -f ${PFPORTSDIR}/$PORTNAME/useports ]; then
-			rm -rf $PORTPATH
-			mkdir -p $PORTPATH
-		fi
+		rm -rf $PORTPATH
+		mkdir -p $PORTPATH
 		rm -rf ${PFPORTSDIR}/$PORTNAME/work 2>/dev/null
 		cp -R ${PFPORTSDIR}/$PORTNAME/* $PORTPATH/
 	fi
