@@ -19,6 +19,9 @@ PFPORTSDIR=`dirname $0`
 # Individual logs here
 mkdir -p /tmp/pfPort/buildlogs
 
+# Individual OPTIONS
+OPTIONSDIR="${PFPORTSDIR}/../builder_scripts/conf/pfPorts/options"
+
 BUILD_ONEPORT=""
 MAKEJ_PORTS=""
 CHECK_INSTALLED=""
@@ -214,7 +217,18 @@ clean_make_install() {
 		fi
 	fi
 
-	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} WITHOUT_X11=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" clean build install clean </dev/null 2>&1 1>/dev/null; then
+	[ -f "${OPTIONSDIR}/${_PORTNAME}_SET" ] \
+		&& OPTIONS_SET=`head -n 1 ${OPTIONSDIR}/${_PORTNAME}_SET` \
+		|| OPTIONS_SET=""
+
+	[ -f "${OPTIONSDIR}/${_PORTNAME}_UNSET" ] \
+		&& OPTIONS_UNSET=`head -n 1 ${OPTIONSDIR}/${_PORTNAME}_UNSET`
+
+	OPTIONS_UNSET="${OPTIONS_UNSET} X11 DOCS EXAMPLES MAN"
+
+	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} \
+	    BATCH=yes FORCE_PKG_REGISTER=yes OPTIONS_SET="${OPTIONS_SET}" OPTIONS_UNSET="${OPTIONS_UNSET}" \
+	    clean build deinstall install clean 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 		echo "Failed to build. Error log in /tmp/pfPort/buildlogs/$_PORTNAME."
 	else
