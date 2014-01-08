@@ -1,5 +1,5 @@
 # Created by: Ryan Steinmetz <rpsfa@rit.edu>
-# $FreeBSD$
+# $FreeBSD: head/net/isc-dhcp42-server/Makefile 327755 2013-09-20 22:10:23Z bapt $
 
 PORTNAME=	dhcp
 DISTVERSION=	4.2.5
@@ -10,14 +10,13 @@ MASTER_SITE_SUBDIR=	${PORTNAME}/${DISTVERSION}-${PATCHLEVEL}
 PKGNAMEPREFIX=	isc-
 PKGNAMESUFFIX=	42-${SUBSYS}
 DISTNAME=	${PORTNAME}-${DISTVERSION}-${PATCHLEVEL}
-NO_STAGE=	yes
 
 MAINTAINER=	zi@FreeBSD.org
 COMMENT?=	The ISC Dynamic Host Configuration Protocol server
 
 LICENSE=	ISCL
 
-USE_GMAKE=	yes
+USES=		gmake
 
 PATCHLEVEL=	P1
 PORTREVISION_SERVER=	0
@@ -62,6 +61,7 @@ GNU_CONFIGURE=	yes
 CPPFLAGS+=	-D_PATH_DHCLIENT_SCRIPT='\"${PREFIX}/sbin/dhclient-script\"' -D_PATH_DHCLIENT_CONF='\"${PREFIX}/etc/dhclient.conf\"' -D_PATH_DHCPD_CONF='\"${PREFIX}/etc/dhcpd.conf\"'
 SCRIPTS_ENV+=	PKG_PREFIX=${PREFIX}
 
+NO_STAGE=	yes
 .include <bsd.port.options.mk>
 
 .if ${SUBSYS} == client
@@ -115,6 +115,7 @@ CONFIGURE_ARGS+=--with-ldap
 USE_OPENLDAP=	yes
 LDAP_SCRIPT=	${WRKSRC}/contrib/ldap/dhcpd-conf-to-ldap
 LDAP_SCHEMA=	${WRKSRC}/contrib/ldap/dhcp.schema
+LDAP_README=	${WRKSRC}/contrib/ldap/README.ldap
 CFLAGS+=	-I${LOCALBASE}/include -L${LOCALBASE}/lib
 PORTDOCS+=	README.ldap
 PLIST_SUB+=	SCHEMA_DIR="${SCHEMA_DIR:S,^${PREFIX}/,,}" LDAP=""
@@ -138,7 +139,7 @@ PLIST_SUB+=	IPV6="@comment "
 .endif
 
 .if ${PORT_OPTIONS:MBIND_SYMBOLS}
-USE_PERL5=	yes
+USES+=		perl5
 .else
 EXTRA_PATCHES+=	${PATCHDIR}/extra-patch-bind__Makefile
 .endif
@@ -159,10 +160,7 @@ do-install:
 	${MAKE} -C ${WRKSRC}/omapip install
 	${MAKE} -C ${WRKSRC}/includes install
 	${MAKE} -C ${WRKSRC}/common install
-	@${CP} -r ${WRKSRC}/bind/include/isc ${PREFIX}/include
 	${INSTALL_DATA} ${WRKSRC}/dhcpctl/dhcpctl.h ${PREFIX}/include
-	${INSTALL_DATA} ${WRKSRC}/bind/lib/libisc.a ${PREFIX}/lib
-	${INSTALL_DATA} ${WRKSRC}/bind/lib/libdns.a ${PREFIX}/lib
 .if ${PORT_OPTIONS:MIPV6}
 	${INSTALL_DATA} ${WRKSRC}/doc/examples/dhcpd-dhcpv6.conf \
 		${PREFIX}/etc/dhcpd6.conf.example
@@ -172,9 +170,9 @@ do-install:
 	${INSTALL_DATA} ${LDAP_SCHEMA} ${SCHEMA_DIR}
 	${INSTALL_SCRIPT} ${LDAP_SCRIPT} ${PREFIX}/bin
 .endif
-.if ${PORT_OPTIONS:MLDAP} && empty(PORT_OPTIONS:MDOCS)
+.if ${PORT_OPTIONS:MLDAP} && ${PORT_OPTIONS:MDOCS}
 	${MKDIR} ${DOCSDIR}
-	${INSTALL_MAN} ${WRKSRC}/contrib/ldap/README.ldap ${DOCSDIR}
+	${INSTALL_MAN} ${LDAP_README} ${DOCSDIR}
 .endif
 .endif
 
