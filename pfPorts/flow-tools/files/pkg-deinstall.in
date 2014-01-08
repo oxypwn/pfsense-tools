@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/net-mgmt/flow-tools/files/pkg-deinstall.in,v 1.1 2006/11/08 01:06:16 stas Exp $
+# $FreeBSD: head/net-mgmt/flow-tools/files/pkg-deinstall.in 300897 2012-07-14 14:29:18Z beat $
 #
 
 PATH=/bin:/usr/sbin:/usr/bin:/usr/sbin

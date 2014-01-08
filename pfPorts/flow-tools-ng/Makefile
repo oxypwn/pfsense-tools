@@ -1,19 +1,27 @@
-# New ports collection makefile for:	flow-tools
-# Date created:				2000 Jul 25
-# Whom:					@BABOLO <.@babolo.ru>
-#
-# $FreeBSD$
-#
+# Created by: @BABOLO <.@babolo.ru>
+# $FreeBSD: head/net-mgmt/flow-tools-ng/Makefile 334443 2013-11-20 19:12:47Z sunpoet $
 
 PORTNAME=	flow-tools
 PORTVERSION=	0.68.5.1
 CATEGORIES=	net-mgmt
 MASTER_SITES=	${MASTER_SITE_GOOGLE_CODE}
 PKGNAMESUFFIX=	-ng
-NO_STAGE=	yes
 
 MAINTAINER=	c.kworr@gmail.com
 COMMENT=	Suite of tools and library to work with netflow data
+
+LICENSE=	BSD
+
+OPTIONS_DEFINE=	MYSQL OPENSSL PGSQL
+PGSQL_CONFIGURE_OFF=	--without-postgresql
+PGSQL_CONFIGURE_ON=	--with-postgresql
+PGSQL_USE=		PGSQL=yes
+MYSQL_CONFIGURE_OFF=	--without-mysql
+MYSQL_CONFIGURE_ON=	--with-mysql="${PREFIX}"
+MYSQL_USE=		MYSQL=yes
+OPENSSL_CONFIGURE_OFF=	--without-openssl
+OPENSSL_CONFIGURE_ON=	--with-openssl="${OPENSSLBASE}"
+OPENSSL_USE=		OPENSSL=yes
 
 CONFLICTS=	flow-tools-[0-9]*
 
@@ -49,26 +57,7 @@ FLOW_CAPTURE_UID=	174
 FLOW_CAPTURE_GID=	174
 FLOW_CAPTURE_PIDDIR=	${VARDIR}/run/flow-capture
 
-.if defined(WITH_PGSQL)
-CONFIGURE_ARGS+=--with-postgresql
-USE_PGSQL=	yes
-.else
-CONFIGURE_ARGS+=--without-postgresql
-.endif
-
-.if defined(WITH_MYSQL)
-CONFIGURE_ARGS+=--with-mysql="${PREFIX}"
-USE_MYSQL=	yes
-.else
-CONFIGURE_ARGS+=--without-mysql
-.endif
-
-.if defined(WITH_OPENSSL)
-USE_OPENSSL=	Yes
-CONFIGURE_ARGS+=--with-openssl="${OPENSSLBASE}"
-.else
-CONFIGURE_ARGS+=--without-openssl
-.endif
+NO_STAGE=	yes
 
 post-patch:
 	@${REINPLACE_CMD}\

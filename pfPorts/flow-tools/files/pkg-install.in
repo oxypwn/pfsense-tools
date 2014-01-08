@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/net-mgmt/flow-tools/files/pkg-install.in,v 1.2 2007/04/10 19:32:35 stas Exp $
+# $FreeBSD: head/net-mgmt/flow-tools/files/pkg-install.in 300897 2012-07-14 14:29:18Z beat $
 #
 
 PATH=/bin:/usr/sbin:/usr/bin:/usr/sbin
