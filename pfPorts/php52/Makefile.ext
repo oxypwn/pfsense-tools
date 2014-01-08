@@ -135,8 +135,7 @@ CONFIGURE_ARGS+=--enable-hash
 .endif
 
 .if ${PHP_MODNAME} == "iconv"
-CONFIGURE_ARGS+=--with-iconv=${LOCALBASE} \
-		--with-iconv-dir=${LOCALBASE}
+CONFIGURE_ARGS+=--with-iconv
 
 USES+=		iconv
 .endif
@@ -375,6 +374,7 @@ CONFIGURE_ARGS+=--enable-shmop
 CONFIGURE_ARGS+=--enable-simplexml \
 		--with-libxml-dir=${LOCALBASE}
 
+USES+=		pkgconfig
 USE_GNOME=	libxml2
 .endif
 
@@ -402,6 +402,7 @@ USE_PHP_BUILD=	yes
 CONFIGURE_ARGS+=--enable-spl \
 		--with-libxml-dir=${LOCALBASE}
 
+CFLAGS+=	-I${LOCALBASE}/include
 USE_GNOME=	libxml2
 
 USE_PHP=	pcre simplexml
@@ -482,8 +483,7 @@ USE_PHP_BUILD=	yes
 
 .if ${PHP_MODNAME} == "xmlrpc"
 CONFIGURE_ARGS+=--with-xmlrpc \
-		--with-libxml-dir=${LOCALBASE} \
-		--with-iconv-dir=${LOCALBASE}
+		--with-libxml-dir=${LOCALBASE}
 
 USES+=		iconv
 USE_GNOME=	libxml2

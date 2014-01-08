@@ -1,5 +1,5 @@
 # Created by: Alex Keda <admin@lissyara.su>
-# $FreeBSD$
+# $FreeBSD: head/lang/php52/Makefile 337385 2013-12-24 21:22:21Z kwm $
 
 PORTNAME=	php52
 PORTVERSION=	5.2.17
@@ -8,7 +8,6 @@ CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
 DISTNAME=	php-${PORTVERSION}
-NO_STAGE=	yes
 
 MAINTAINER=	admin@lissyara.su
 COMMENT=	PHP Scripting Language
@@ -46,7 +45,7 @@ USE_GNOME=	libxml2
 OPTIONS_DEFINE=	CLI CGI APACHE DEBUG SUHOSIN MULTIBYTE IPV6 MAILHEAD REDIRECT DISCARD \
 		FASTCGI FPM PATHINFO LINKTHR
 
-OPTIONS_DEFAULT=	CLI CGI SUHOSIN IPV6 PATHINFO FASTCGI LINKTHR
+OPTIONS_DEFAULT=	CLI CGI SUHOSIN PATHINFO FASTCGI PATHINFO
 
 CLI_DESC=	Build CLI version
 CGI_DESC=	Build CGI version
@@ -67,6 +66,7 @@ CONFLICTS=	php53-5* php5-5*
 
 MAN1=		php-config.1 phpize.1
 
+NO_STAGE=	yes
 .include <bsd.port.pre.mk>
 
 PATCH_DIST_STRIP=	-p1
@@ -197,6 +197,7 @@ CONFIGURE_ARGS+=--disable-ipv6
 
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
+	@${REINPLACE_CMD} -e 's|freetype/||g' ${WRKSRC}/configure
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
 .if ${PORT_OPTIONS:MFPM} && ${PORT_OPTIONS:MCGI}
 	@${REINPLACE_CMD} -e 's,BUILD_CGI=\"\\$$\(.*\)\\$$(EXTRA_LIBS),BUILD_CGI=\"\\$$\1\\$$(EXTRA_LIBS) \\$$(SAPI_EXTRA_LIBS),g' \
