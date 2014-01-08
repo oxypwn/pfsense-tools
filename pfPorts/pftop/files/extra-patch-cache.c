@@ -1,11 +1,13 @@
---- cache.c.orig	2007-11-07 00:34:18.000000000 -0600
-+++ cache.c	2013-06-23 06:23:03.000000000 -0500
+# Adjusted to work with the changes in r240233.
+$OpenBSD: patch-cache_c,v 1.1 2008/06/13 00:38:12 canacar Exp $
+--- cache.c.orig	Tue Nov  6 23:34:18 2007
++++ cache.c	Wed Jun 11 19:50:07 2008
 @@ -118,12 +118,21 @@
  
  	cache_size--;
  
 +#ifdef HAVE_PFSYNC_STATE
-+#if __FreeBSD_version > 1000000
++#ifdef HAVE_FINE_GRAINED_LOCKING
 +	ent->id = st->id;
 +#else
 +	ent->id[0] = st->id[0];
@@ -27,7 +29,7 @@
  		return (NULL);
  
 +#ifdef HAVE_PFSYNC_STATE
-+#if __FreeBSD_version > 1000000
++#ifdef HAVE_FINE_GRAINED_LOCKING
 +	ent.id = st->id;
 +#else
 +	ent.id[0] = st->id[0];
@@ -50,7 +52,7 @@
  sc_cmp(struct sc_ent *a, struct sc_ent *b)
  {
 +#ifdef HAVE_PFSYNC_STATE
-+#if __FreeBSD_version > 1000000
++#ifdef HAVE_FINE_GRAINED_LOCKING
 +	if (a->id > b->id)
 +		return (1);
 +	if (a->id < b->id)
