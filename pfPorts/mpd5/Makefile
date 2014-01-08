@@ -1,17 +1,15 @@
 # Created by: Archie Cobbs
-# $FreeBSD: head/net/mpd5/Makefile 319824 2013-06-04 06:34:05Z bapt $
+# $FreeBSD: head/net/mpd5/Makefile 338616 2014-01-04 00:59:15Z bapt $
 
 PORTNAME=	mpd
-DISTVERSION=	5.6
+DISTVERSION=	5.7
 CATEGORIES=	net
 MASTER_SITES=	SF/${PORTNAME}/Mpd5/Mpd-${PORTVERSION}
 DIST_SUBDIR=	mpd5
-NO_STAGE=	yes
+PKGNAMESUFFIX=	5
 
 MAINTAINER=	mav@FreeBSD.org
 COMMENT=	Multi-link PPP daemon based on netgraph(4)
-
-LATEST_LINK=	mpd5
 
 OPTIONS_DEFINE=	NG_IPACCT
 NG_IPACCT_DESC=	Use ng_ipacct kernel module from port
@@ -21,9 +19,8 @@ CONFIGURE_WRKSRC=	"${WRKSRC}/src"
 
 USE_OPENSSL=	yes
 
+NO_STAGE=	yes
 .include <bsd.port.options.mk>
-
-CONFIGURE_ARGS+= --enable-ipv6
 
 .if ${PORT_OPTIONS:MNG_IPACCT}
 BUILD_DEPENDS+=	${LOCALBASE}/include/netgraph/ng_ipacct.h:${PORTSDIR}/net-mgmt/ng_ipacct
