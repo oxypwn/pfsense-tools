@@ -68,7 +68,7 @@ cpdup				/usr/ports/sysutils/cpdup			/usr/local/bin/cpdup
 cpustats			/usr/ports/sysutils/cpustats			/usr/local/sbin/cpustats
 beep				/usr/ports/audio/beep				/usr/local/bin/beep
 choparp				/usr/ports/net-mgmt/choparp			/usr/local/sbin/choparp
-dnsmasq-no-isc-dhcp-parser	/usr/ports/dns/dnsmasq-no-isc-dhcp-parser	/usr/local/sbin/dnsmasq
+dnsmasq				/usr/ports/dns/dnsmasq				/usr/local/sbin/dnsmasq
 expiretable			/usr/ports/security/expiretable			/usr/local/sbin/expiretable
 ifstated			/usr/ports/net/ifstated				/usr/local/sbin/ifstated
 igmpproxy			/usr/ports/net/igmpproxy			/usr/local/sbin/igmpproxy
