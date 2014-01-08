@@ -8,8 +8,5 @@ estimating overall traffic rates, determining nodes generating the
 highest traffic, determining connections and flows generating the highest 
 traffic and extracting strings from packets.
 
-WWW:	http://s-tech.elsat.net.pl/
-AUTHOR:	<mtg@elsat.net.pl>
-
-- Michael L. Hostbaek
-   mich@FreeBSD.org
+Author:	<mtg@elsat.net.pl>
+WWW: http://s-tech.elsat.net.pl/

@@ -1,28 +1,19 @@
-# New ports collection makefile for:   rate
-# Date created:        Thu Aug 21 18:12:35 GMT 2003
-# Whom:                mich@FreeBSD.org
-#
-# $FreeBSD: ports/net-mgmt/rate/Makefile,v 1.4 2006/05/11 22:49:43 edwin Exp $
-#
+# Created by: mich@FreeBSD.org
+# $FreeBSD: head/net-mgmt/rate/Makefile 327757 2013-09-20 22:24:43Z bapt $
 
 PORTNAME=	rate
 PORTVERSION=	0.9
 CATEGORIES=	net-mgmt
 MASTER_SITES=	http://s-tech.elsat.net.pl/bmtools/
-NO_STAGE=	yes
 
 MAINTAINER=	mich@FreeBSD.org
 COMMENT=	A traffic analysis command-line utility
 
+MAKE_ARGS=	${MAKE_ENV}
 LDFLAGS+=	-lcompat
 CFLAGS+=	-DOPEN_BSD=1 -DHAVE_REGEX -DSTREAM_ANALYZER -DIOCTL_GETWINSIZE -DAUTOSENSE_DLH
 
-post-patch:
-	@${REINPLACE_CMD} -e \
-	's|^CFLAGS.*$$|CFLAGS=${CFLAGS}|g ; \
-	s|^LDFLAGS.*$$|LDFLAGS=${LDFLAGS}|g ; \
-	s|gcc|${CC}|g' ${WRKSRC}/Makefile
-
+NO_STAGE=	yes
 do-install:
 	${INSTALL_SCRIPT} ${WRKSRC}/rate ${PREFIX}/bin/rate
 	${INSTALL_MAN} ${WRKSRC}/doc/rate.1 ${PREFIX}/man/man1
