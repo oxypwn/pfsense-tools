@@ -321,13 +321,18 @@ recompile_pfPorts() {
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ] || [ "$1" != "" ]; then
 
 		# Set some neede variables
-		pfSPORTS_COPY_BASE_DIR="$pfSPORTS_BASE_DIR"
-		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
+		USE_PORTS_FILE="${BUILDER_TOOLS}/builder_scripts/conf/pfPorts"
 		if [ -n "$PFSPORTSFILE" ]; then
-			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSPORTSFILE}"
+			USE_PORTS_FILE="${USE_PORTS_FILE}/${PFSPORTSFILE}"
 		else
-			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}"
+			USE_PORTS_FILE="${USE_PORTS_FILE}/buildports.${PFSENSETAG}"
 		fi
+
+		if [ ! -f "${USE_PORTS_FILE}" ]; then
+			echo ">>> ERROR: Ports file doesn't exist: '${USE_PORTS_FILE}'"
+			exit 1
+		fi
+
 		PFPORTSBASENAME=`basename ${USE_PORTS_FILE}`
 
 		echo "--> Preparing for pfPorts build ${PFPORTSBASENAME}"
@@ -356,16 +361,12 @@ recompile_pfPorts() {
 			echo "--> Skipping the make includes run for a single port build."
 		fi
 
-		rm -rf ${pfSPORTS_BASE_DIR}
-		mkdir ${pfSPORTS_BASE_DIR}
-
 		echo "==> Compiling pfPorts..."
 		if [ -f /etc/make.conf ]; then
 			mv /etc/make.conf /tmp/
 			DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
 			CPUS=`expr $DCPUS '*' 2`
 			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
-			echo "WITHOUT_X11=yo" >> /etc/make.conf
 			echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN INFO" >> /etc/make.conf
 			MKCNF="pfPorts"
 		fi
@@ -381,16 +382,18 @@ recompile_pfPorts() {
 		echo ">>> Executing $PFPORTSBASENAME"
 
 		if [ "$1" != "" ]; then
-			( ${USE_PORTS_FILE} -P ${1} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED} ) 2>&1
+			( ${BUILDER_TOOLS}/builder_scripts/scripts/buildports.sh \
+				-l ${USE_PORTS_FILE} -P ${1} -J "${MAKEJ_PORTS}" \
+				${CHECK_PORTS_INSTALLED} ) 2>&1
 		else
-			( ${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED} ) 2>&1 \
+			( ${BUILDER_TOOLS}/builder_scripts/scripts/buildports.sh \
+			       -l ${USE_PORTS_FILE} -J "${MAKEJ_PORTS}" \
+			       ${CHECK_PORTS_INSTALLED} ) 2>&1 \
 				| egrep -wi "(^>>>|error)"
 		fi
 
-		if [ "${MKCNF}x" = "pfPortsx" ]; then
-			if [ -f /tmp/make.conf ]; then
-				mv /tmp/make.conf /etc/
-			fi
+		if [ "${MKCNF}" = "pfPorts" -a -f /tmp/make.conf ]; then
+			mv /tmp/make.conf /etc/
 		fi
 
 		handle_tools_stats_crypto
