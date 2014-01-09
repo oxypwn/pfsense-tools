@@ -50,7 +50,6 @@ get_text() {
 get_pfsense_version() {
 	$DIALOG --title "pfSense version" --clear \
 	        --radiolist "Please select which version you would like to build:\n" -1 -1 6 \
-	        "RELENG_1_2"	"Release branch" OFF \
 	        "RELENG_2_0"	"FreeBSD 8.1 + RELENG_2_0" OFF \
 	        "RELENG_2_1"	"FreeBSD 8.3 + RELENG_2_1" ON \
 		"RELENG_8_3"	"FreeBSD 8.3 + HEAD" OFF \

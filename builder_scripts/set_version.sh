@@ -272,21 +272,6 @@ RELENG_8_3)
 	set_items
 ;;
 
-RELENG_1_2)
-	echo ">>> Setting builder environment to use RELENG_1_3-REL ..."
-	export FREEBSD_VERSION="7"
-	export FREEBSD_BRANCH="RELENG_7_2"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/${FREEBSD_BRANCH}-supfile"
-	export PFSENSE_VERSION=1.2.3
-	export PFSENSETAG=RELENG_1_2
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_7_2
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_1_2"	
-	export PFSPORTSFILE=buildports.RELENG_1_2
-	export EXTRA_DEVICES=${EXTRA_DEVICES:-""}
-	set_items
-;;
-
 RELENG_2_1)
 	echo ">>> Setting builder environment to use head + RELENG_8_3 ..."
 	export FREEBSD_VERSION="8"

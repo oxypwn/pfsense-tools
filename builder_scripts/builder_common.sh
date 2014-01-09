@@ -458,9 +458,6 @@ cust_overlay_host_binaries() {
 		install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
 	fi
 
-	# Temporary hack for RELENG_1_2
-	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
-
 	if [ ! -z "${CUSTOM_COPY_LIST:-}" ]; then
 		echo ">>> Using ${CUSTOM_COPY_LIST:-}..."
 		FOUND_FILES=`cat ${CUSTOM_COPY_LIST:-}`
@@ -603,11 +600,7 @@ cust_populate_installer_bits() {
 	chmod a+rx $PFSENSEBASEDIR/usr/sbin/cleargpt.sh
 	# Copy installer launcher scripts
 	cp $BUILDER_TOOLS/installer/scripts/pfi $PFSENSEBASEDIR/scripts/
-	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
-		cp $BUILDER_TOOLS/installer/scripts/lua_installer_RELENG_1_2 $PFSENSEBASEDIR/scripts/lua_installer
-	else
-		cp $BUILDER_TOOLS/installer/scripts/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
-	fi
+	cp $BUILDER_TOOLS/installer/scripts/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
 	cp $BUILDER_TOOLS/installer/scripts/freebsd_installer $PFSENSEBASEDIR/scripts/
 	cp $BUILDER_TOOLS/installer/scripts/lua_installer_rescue $PFSENSEBASEDIR/scripts/
 	cp $BUILDER_TOOLS/installer/scripts/lua_installer_rescue $PFSENSEBASEDIR/scripts/
