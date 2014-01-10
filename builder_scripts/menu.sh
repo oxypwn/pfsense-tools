@@ -53,7 +53,7 @@ get_pfsense_version() {
 	        "RELENG_2_0"	"FreeBSD 8.1 + RELENG_2_0" OFF \
 	        "RELENG_2_1"	"FreeBSD 8.3 + RELENG_2_1" ON \
 		"RELENG_8_3"	"FreeBSD 8.3 + HEAD" OFF \
-		"RELENG_9_0"	"FreeBSD 9.0 + HEAD" OFF \
+		"RELENG_10_0"	"FreeBSD 10.0 + HEAD" OFF \
 	        "Custom"		"Enter a custom version" OFF \
 			2> /tmp/radiolist.tmp.$$
 	retval=$?

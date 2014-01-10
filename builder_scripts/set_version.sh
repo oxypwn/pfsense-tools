@@ -197,63 +197,33 @@ set_items() {
 echo
 
 case $1 in
-RELENG_9_0)
-	echo ">>> Setting builder environment to use HEAD/RELENG_9_0 ..."
-	export FREEBSD_VERSION="9"
-	export FREEBSD_BRANCH="RELENG_9_0"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_9_0-supfile"
-	export PFSENSE_VERSION=2.1-DEVELOPMENT
+RELENG_10_0)
+	echo ">>> Setting builder environment to use HEAD/RELENG_10_0 ..."
+	export FREEBSD_VERSION="10"
+	export FREEBSD_BRANCH="RELENG_10_0"
+	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_10_0-supfile"
+	export PFSENSE_VERSION=2.2-DEVELOPMENT
 	export PFSENSETAG=HEAD
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_9_0
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_9_0
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_9_0"
-	export PFSPORTSFILE=buildports.RELENG_2_1
-	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_10_0
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_10_0
+	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_2"
+	export PFSPORTSFILE=buildports.RELENG_2_2
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn"}
 	set_items
 ;;
 
 HEAD)
 	echo ">>> Setting builder environment to use HEAD/RELENG_10_0 ..."
 	export FREEBSD_VERSION="10"
-	export FREEBSD_BRANCH="RELENG_10"
+	export FREEBSD_BRANCH="RELENG_10_0"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_10_0-supfile"
 	export PFSENSE_VERSION=2.2-DEVELOPMENT
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_10_0
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_10_0
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_1"
-	export PFSPORTSFILE=buildports.RELENG_2_1
+	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_2"
+	export PFSPORTSFILE=buildports.RELENG_2_2
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn"}
-	set_items
-;;
-
-RELENG_8_1)
-	echo ">>> Setting builder environment to use HEAD/RELENG_8_1 ..."
-	export FREEBSD_VERSION="8"
-	export FREEBSD_BRANCH="RELENG_8_1"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_8_1-supfile"
-	export PFSENSE_VERSION=2.0-RELEASE
-	export PFSENSETAG=RELENG_2_0
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_1
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_8_0"
-	export PFSPORTSFILE=buildports.RELENG_2_0
-	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
-	set_items
-;;
-
-RELENG_8_2)
-	echo ">>> Setting builder environment to use HEAD/RELENG_8_2 ..."
-	export FREEBSD_VERSION="8"
-	export FREEBSD_BRANCH="RELENG_8_2"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/conf/csup/RELENG_8_2-supfile"
-	export PFSENSE_VERSION=2.0-RELEASE
-	export PFSENSETAG=HEAD
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_2
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_2
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_8_0"
-	export PFSPORTSFILE=buildports.RELENG_2_0
-	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
 
