@@ -54,10 +54,20 @@ if [ -z "${PORTS_LIST}" -o ! -f "${PORTS_LIST}" ]; then
 	exit 1
 fi
 
+if [ $(sysctl -n kern.osreldate) -gt 1000000 ]; then
+	USE_PKGNG=1
+else
+	unset USE_PKGNG
+fi
+
 if [ -f ./pfsense-build.conf ]; then
 	if grep -q '^export REMOVE_PHP=true' pfsense-build.conf; then
 		echo ">>> Removing previous PHP environment..."
-		pkg delete -y -R -f -q -g php* 2>/dev/null
+		if [ -n "${USE_PKGNG}" ]; then
+			pkg delete -y -R -f -q -g php* 2>/dev/null
+		else
+			rm -rf /var/db/pkg/php*
+		fi
 		find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
 		find /usr/local -name extensions.ini -delete
 	fi
@@ -71,6 +81,28 @@ fi
 
 # Remove blank and commented out lines
 PORTSTOBUILD=$(cat ${PORTS_LIST} | sed -e '/^[[:blank:]]*$/d; /^[[:blank:]]#/d')
+
+is_port_installed() {
+	local PORT
+
+	PORT="${1}"
+
+	if [ -z "${PORT}" ]; then
+		return 1
+	elif [ -n "${USE_PKGNG}" ]; then
+		if pkg query %n ${PORT} >/dev/null 2>&1; then
+			return 0
+		else
+			return 1
+		fi
+	else
+		if [ -d /var/db/pkg/${PORT} ]; then
+			return 0
+		else
+			return 1
+		fi
+	fi
+}
 
 overlay_port() {
 	local PORTPATH
@@ -128,7 +160,7 @@ clean_make_install() {
 			SKIP=1
 			echo "    Dependency $BUILD of $PORTA already built on this run.  Skipping."
 		elif [ "${CHECK_INSTALLED}" = "check_installed" ]; then
-			if pkg query %n ${_PKGNAME} >/dev/null 2>&1; then
+			if is_port_installed ${_PKGNAME}; then
 				if [ -z "$VERIFY" -o -f $VERIFY ]; then
 					echo "$_PKGNAME" >> /tmp/pfPort_alreadybuilt
 					SKIP=1
@@ -146,7 +178,7 @@ clean_make_install() {
 
 	echo -n ">>> Building $_PORTNAME(${PKGNAME})..."
 	if [ "${BUILD_ONEPORT}" = "" -a "${CHECK_INSTALLED}" = "check_installed" ]; then
-		if pkg query %n ${PKGNAME} >/dev/null 2>&1; then
+		if is_port_installed ${PKGNAME}; then
 			if [ -z "$VERIFY" -o -f $VERIFY ]; then
 				echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
 				echo "already built.  Skipping."
