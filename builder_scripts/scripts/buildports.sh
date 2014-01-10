@@ -15,18 +15,16 @@ touch /tmp/pfPort_alreadybuilt
 # Individual logs here
 mkdir -p /tmp/pfPort/buildlogs
 
-BASEDIR=$(dirname $0)
-PFPORTSDIR=$(cd ${BASEDIR}/../../pfPorts; pwd)
-
-# Individual OPTIONS
-OPTIONSDIR=$(cd ${BASEDIR}/../conf/pfPorts/options; pwd)
+BASEDIR=$(cd $(dirname $0)/../..; pwd)
+PFPORTSDIR="${BASEDIR}/pfPorts"
 
 BUILD_ONEPORT=""
 MAKEJ_PORTS=""
 CHECK_INSTALLED=""
 PORTS_LIST=""
+MAKE_CONF=""
 
-while getopts P:J:l:c o; do
+while getopts P:J:l:m:c o; do
 	case "${o}" in
 		P)	BUILD_ONEPORT="${OPTARG}"
 			echo ">>> Building a single port: '${BUILD_ONEPORT}'"
@@ -37,10 +35,19 @@ while getopts P:J:l:c o; do
 		l)	PORTS_LIST="${OPTARG}"
 			echo ">>> Setting ports list: '${PORTS_LIST}'"
 			;;
+		m)	MAKE_CONF="${OPTARG}"
+			echo ">>> Setting ports make.conf: '${MAKE_CONF}'"
+			;;
 		c)	CHECK_INSTALLED="check_installed"
 			;;
 	esac
 done
+
+if [ -z "${MAKE_CONF}" -o ! -f "${MAKE_CONF}" ]; then
+	MAKE_CONF="${BASEDIR}/builder_scripts/conf/pfPorts/make.conf"
+fi
+
+MAKE_CONF="__MAKE_CONF=${MAKE_CONF}"
 
 if [ -z "${PORTS_LIST}" -o ! -f "${PORTS_LIST}" ]; then
 	echo ">>> ERROR! Invalid Port list"
@@ -148,18 +155,8 @@ clean_make_install() {
 		fi
 	fi
 
-	[ -f "${OPTIONSDIR}/${_PORTNAME}_SET" ] \
-		&& OPTIONS_SET=$(head -n 1 ${OPTIONSDIR}/${_PORTNAME}_SET) \
-		|| OPTIONS_SET=""
-
-	[ -f "${OPTIONSDIR}/${_PORTNAME}_UNSET" ] \
-		&& OPTIONS_UNSET=$(head -n 1 ${OPTIONSDIR}/${_PORTNAME}_UNSET) \
-		|| OPTIONS_UNSET=""
-
-	OPTIONS_UNSET="${OPTIONS_UNSET} X11 DOCS EXAMPLES MAN"
-
-	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} \
-	    BATCH=yes FORCE_PKG_REGISTER=yes OPTIONS_SET="${OPTIONS_SET}" OPTIONS_UNSET="${OPTIONS_UNSET}" \
+	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make ${MAKE_CONF} -C $PORTA \
+	    TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes \
 	    clean build deinstall install clean 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 		echo "Failed to build. Error log in /tmp/pfPort/buildlogs/$_PORTNAME."

@@ -321,11 +321,11 @@ recompile_pfPorts() {
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ] || [ "$1" != "" ]; then
 
 		# Set some neede variables
-		USE_PORTS_FILE="${BUILDER_TOOLS}/builder_scripts/conf/pfPorts"
+		PFPORTS_CONF_DIR="${BUILDER_TOOLS}/builder_scripts/conf/pfPorts"
 		if [ -n "$PFSPORTSFILE" ]; then
-			USE_PORTS_FILE="${USE_PORTS_FILE}/${PFSPORTSFILE}"
+			USE_PORTS_FILE="${PFPORTS_CONF_DIR}/${PFSPORTSFILE}"
 		else
-			USE_PORTS_FILE="${USE_PORTS_FILE}/buildports.${PFSENSETAG}"
+			USE_PORTS_FILE="${PFPORTS_CONF_DIR}/buildports.${PFSENSETAG}"
 		fi
 
 		if [ ! -f "${USE_PORTS_FILE}" ]; then
@@ -362,18 +362,17 @@ recompile_pfPorts() {
 		fi
 
 		echo "==> Compiling pfPorts..."
-		if [ -f /etc/make.conf ]; then
-			mv /etc/make.conf /tmp/
-			DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
-			CPUS=`expr $DCPUS '*' 2`
-			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
-			echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN INFO" >> /etc/make.conf
-			MKCNF="pfPorts"
-		fi
+		DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
+		CPUS=`expr $DCPUS '*' 2`
+		echo SUBTHREADS="${CPUS}" > /tmp/pfPorts_make.conf
 		if [ "$ARCH" = "mips" ]; then
-			echo "WITHOUT_PERL_MALLOC=1" >> /etc/make.conf
-			echo "TARGET_BIG_ENDIAN=yes" >> /etc/make.conf
+			echo "WITHOUT_PERL_MALLOC=1" >> /tmp/pfPorts_make.conf
+			echo "TARGET_BIG_ENDIAN=yes" >> /tmp/pfPorts_make.conf
 		fi
+		if [ -f "${PFPORTS_CONF_DIR}/make.conf" ]; then
+			cat ${PFPORTS_CONF_DIR}/make.conf >> /tmp/pfPorts_make.conf
+		fi
+
 		export FORCE_PKG_REGISTER=yo
 		export BATCH=yo
 		export DISABLE_VULNERABILITIES=yo
@@ -384,16 +383,12 @@ recompile_pfPorts() {
 		if [ "$1" != "" ]; then
 			( ${BUILDER_TOOLS}/builder_scripts/scripts/buildports.sh \
 				-l ${USE_PORTS_FILE} -P ${1} -J "${MAKEJ_PORTS}" \
-				${CHECK_PORTS_INSTALLED} ) 2>&1
+				-m /tmp/pfPorts_make.conf ${CHECK_PORTS_INSTALLED} ) 2>&1
 		else
 			( ${BUILDER_TOOLS}/builder_scripts/scripts/buildports.sh \
 			       -l ${USE_PORTS_FILE} -J "${MAKEJ_PORTS}" \
-			       ${CHECK_PORTS_INSTALLED} ) 2>&1 \
+			       -m /tmp/pfPorts_make.conf ${CHECK_PORTS_INSTALLED} ) 2>&1 \
 				| egrep -wi "(^>>>|error)"
-		fi
-
-		if [ "${MKCNF}" = "pfPorts" -a -f /tmp/make.conf ]; then
-			mv /tmp/make.conf /etc/
 		fi
 
 		handle_tools_stats_crypto
