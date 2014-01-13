@@ -12,13 +12,12 @@ CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
-NO_STAGE=	yes
 
 MAINTAINER?=	eri@pfsense.org
 COMMENT?=	run various pfSense scripts on event.
 
 WHERE=		sbin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+PLIST_FILES=    ${WHERE}/${PORTNAME} ${WHERE}/pfSctl
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
 
 CFLAGS+=	-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
@@ -26,7 +25,7 @@ CFLAGS+=	-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
                 -Wmissing-prototypes -Wpointer-arith -Wreturn-type \
                 -Wcast-qual -Wwrite-strings -Wswitch -Wshadow \
                 -Wunused-parameter -Wchar-subscripts -Winline \
-                -Wnested-externs -Wredundant-decls -Wno-pointer-sign    
+                -Wnested-externs -Wredundant-decls -Wno-pointer-sign
 
 LIB_DEPENDS=   event:${PORTSDIR}/devel/libevent
 
@@ -38,7 +37,7 @@ do-build:
 	${CC} ${CFLAGS} -o ${WRKSRC}/pfSctl ${FILESDIR}/pfSctl.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
-	${INSTALL_PROGRAM} ${WRKSRC}/pfSctl ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${STAGEDIR}${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/pfSctl ${STAGEDIR}${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
