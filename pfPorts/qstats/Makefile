@@ -1,11 +1,9 @@
 PORTNAME=	qstats
 PORTVERSION=	0.1
-PORTREVISION?=	0
 CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
-NO_STAGE=	yes
 
 MAINTAINER?=	eri@pfsense.org
 COMMENT?=	read dhpcd.lease file and add it to hosts file
@@ -21,6 +19,6 @@ do-build:
 	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${STAGEDIR}${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
