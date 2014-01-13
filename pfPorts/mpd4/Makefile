@@ -8,14 +8,12 @@ CATEGORIES=	net
 MASTER_SITES=	SF
 MASTER_SITE_SUBDIR=	mpd/Mpd4/Mpd-${DISTVERSION}
 DIST_SUBDIR=	mpd4
-NO_STAGE=	yes
+PKGNAMESUFFIX=	4
 
 MAINTAINER=	mav@FreeBSD.org
 COMMENT=	Multi-link PPP daemon based on netgraph(4)
 
-LIB_DEPENDS=	pdel.0:${PORTSDIR}/devel/libpdel
-
-LATEST_LINK=	mpd4
+LIB_DEPENDS=	libpdel.so.0:${PORTSDIR}/devel/libpdel
 
 OPTIONS_DEFINE=	NG_IPACCT
 NG_IPACCT_DESC=	Use ng_ipacct kernel module from port
@@ -43,8 +41,6 @@ RUN_DEPENDS+=	/boot/modules/ng_ipacct.ko:${PORTSDIR}/net-mgmt/ng_ipacct
 .endif
 .endif
 
-MAN8=		mpd4.8
-MANCOMPRESSED=	maybe
 USE_RC_SUBR=	mpd4.sh
 HTMLNUM!=	jot 67 1
 CONFSUF=	conf links secret script
@@ -52,6 +48,6 @@ DOCSDIR=	${PREFIX}/share/doc/mpd4
 PORTDOCS=	${HTMLNUM:S/^/mpd/:S/$/.html/} mpd.html mpd.ps README	\
 		mpd_toc.html
 PLIST_DIRS=	etc/mpd4
-PLIST_FILES=	${CONFSUF:S/^/etc\/mpd4\/mpd./:S/$/.sample/} sbin/mpd4
+PLIST_FILES=	${CONFSUF:S/^/etc\/mpd4\/mpd./:S/$/.sample/} sbin/mpd4 man/man8/mpd4.8.gz
 
 .include <bsd.port.mk>
