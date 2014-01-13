@@ -1,11 +1,9 @@
 PORTNAME=	gzsig
 PORTVERSION=	0.0.2
-PORTREVISION?=	0
 CATEGORIES=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
-NO_STAGE=	yes
 
 MAINTAINER?=	geekgod@geekgod.com
 COMMENT?=	reinits ata channel 0
@@ -17,14 +15,13 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	cd files && make
+	make -C ${FILESDIR}
 
 do-install:
-	cp files/gzsig /usr/local/sbin/
-	chmod a+rx /usr/local/sbin/gzsig
+	${INSTALL_PROGRAM} ${FILESDIR}/${PORTNAME} ${STAGEDIR}${PREFIX}/${WHERE}
 
 do-clean:
-	cd files && make clean
-	rm -rf work
+	make -C ${FILESDIR} clean
+	rm -rf ${WRKDIR}
 
 .include <bsd.port.mk>
