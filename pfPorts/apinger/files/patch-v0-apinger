@@ -337,12 +337,7 @@ diff -ur src_old/apinger.h src/apinger.h
  };
  
  #define AVG_DELAY_KNOWN(t) (t->upsent >= t->config->avg_delay_samples)
-@@ -119,12 +123,12 @@
- 
- extern int icmp_sock;
- extern int icmp6_sock;
--extern int ident;
-+extern uint16_t ident;
+@@ -123,8 +127,8 @@
  
  extern struct timeval next_probe;
  
@@ -3747,15 +3742,6 @@ diff -ur src_old/icmp.c src/icmp.c
  #endif
  	if (len<0){
  		if (errno==EAGAIN) return;
-@@ -197,7 +199,7 @@
- 	debug("checking CMSG...");
- 	for (c = CMSG_FIRSTHDR(&msg); c; c = CMSG_NXTHDR(&msg, c)) {
- 		debug("CMSG level: %i type: %i",c->cmsg_level,c->cmsg_type);
--		if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SO_TIMESTAMP)
-+		if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SCM_TIMESTAMP)
- 			continue;
- 		if (c->cmsg_len < CMSG_LEN(sizeof(struct timeval)))
- 			continue;
 @@ -207,7 +209,7 @@
  #endif
  	if (time_recvp==NULL){
@@ -3816,15 +3802,6 @@ diff -ur src_old/main.c src/main.c
  				1000,		/* interval */
  				20,		/* avg_delay_samples */
  				5,		/* avg_loss_delay_samples */
-@@ -96,7 +97,7 @@
- 
- int icmp_sock;
- int icmp6_sock;
--int ident;
-+uint16_t ident;
- 
- struct timeval next_probe={0,0};
- 
 @@ -217,11 +218,13 @@
  		}
  	}
@@ -3839,15 +3816,6 @@ diff -ur src_old/main.c src/main.c
  
  	pw=getpwnam(config->user);
  	if (!pw) {
-@@ -277,7 +280,7 @@
- 		return 1;
- 	}
- 
--	ident=getpid();
-+	ident=getpid() & 0xFFFF;
- 	signal(SIGTERM,signal_handler);
- 	signal(SIGINT,signal_handler);
- 	signal(SIGHUP,signal_handler);
 @@ -286,9 +289,13 @@
  #ifdef FORKED_RECEIVER
  	signal(SIGCHLD,sigchld_handler);
