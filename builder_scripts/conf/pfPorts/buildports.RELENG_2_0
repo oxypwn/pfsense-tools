@@ -61,7 +61,7 @@ php52-xmlreader			/usr/ports/textproc/php52-xmlreader		/usr/local/lib/php/200606
 php52-xmlwriter			/usr/ports/textproc/php52-xmlwriter		/usr/local/lib/php/20060613/xmlwriter.so
 pecl-inclued			/usr/ports/devel/pecl-inclued			/usr/local/lib/php/20060613/inclued.so
 zmq				/usr/ports/net/libzmq2				/usr/local/lib/libzmq.so.1
-php-zmq				/usr/ports/devel/php-zmq			/usr/local/lib/php/20060613/zmq.so
+php52-zmq			/usr/ports/devel/php52-zmq			/usr/local/lib/php/20060613/zmq.so
 php-xdebug			/usr/ports/devel/php-xdebug			/usr/local/lib/php/20060613/xdebug.so
 php-suhosin-2.0			/usr/ports/security/php-suhosin-2.0		/usr/local/lib/php/20060613/suhosin.so
 openvpn22			/usr/ports/security/openvpn22			/usr/local/sbin/openvpn
