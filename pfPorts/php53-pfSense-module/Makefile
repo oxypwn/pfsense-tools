@@ -12,7 +12,6 @@ MASTER_SITES=	#
 DISTFILES=	#
 PKGNAMEPREFIX=	php53-
 PKGNAMESUFFIX=	-module
-NO_STAGE=	yes
 
 MAINTAINER=	eri@pfsense.org
 COMMENT=	Library for getting useful info
@@ -35,8 +34,5 @@ extract:
 	fi
 	mkdir -p ${WRKSRC}
 	cp -r files/* ${WRKSRC}
-
-post-install:
-	cp ${WRKSRC}/modules/pfSense.so /usr/local/lib/php/${PHP_EXT_DIR}/
 
 .include <bsd.port.mk>

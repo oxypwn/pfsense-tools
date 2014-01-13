@@ -10,7 +10,6 @@ PORTVERSION=	20091215
 CATEGORIES=	comms
 MASTER_SITES=	# none
 DISTFILES=	# none
-NO_STAGE=	yes
 
 MAINTAINER=	thompsa@FreeBSD.org
 COMMENT=	3G status
@@ -25,6 +24,6 @@ do-extract:
 	${LN} -sf ${FILESDIR}/${PORTNAME}.c ${FILESDIR}/Makefile ${WRKDIR}
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/bin
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${STAGEDIR}${PREFIX}/bin
 
 .include <bsd.port.mk>
