@@ -1,6 +1,6 @@
 # $Id: Makefile 579 2008-08-02 12:39:14Z mtm $
 
-PROG=ipfw-classifyd
+PROG=		ipfw-classifyd
 PREFIX?=	/usr/local
 BINDIR?=	${PREFIX}/sbin
 CONFDIR?=	${PREFIX}/etc/ipfw-classifyd
@@ -18,7 +18,7 @@ WARNS=		-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
 		-Wunused-parameter -Wchar-subscripts -Winline \
 		-Wnested-externs -Wredundant-decls -Wno-pointer-sign	
 LDD=		-lpthread -lm -lutil
-CFLAGS+= -O2 -pipe ${WARNS}
+CFLAGS+=	${WARNS}
 
 all: ${PROG}
 
@@ -26,9 +26,9 @@ ${PROG}: ${OBJS}
 	cc ${CFLAGS} -o ${PROG} ${OBJS} ${LDD}
 
 install: all
-	${INSTALL} -d ${CONFDIR}
-	${INSTALL} -d ${PROTOCOLDIR}
-	${INSTALL} ${PROG} ${BINDIR}/
+	${INSTALL} -d ${DESTDIR}${CONFDIR}
+	${INSTALL} -d ${DESTDIR}${PROTOCOLDIR}
+	${INSTALL} ${PROG} ${DESTDIR}${BINDIR}
 
 clean:
 	rm -f ${PROG} *.o
