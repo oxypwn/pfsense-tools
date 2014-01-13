@@ -7,12 +7,10 @@
 
 PORTNAME=	minicron
 PORTVERSION=	0.0.2
-PORTREVISION?=	0
 CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
-NO_STAGE=	yes
 
 MAINTAINER?=	jebc@c4solutions.net
 COMMENT?=	very small cron
@@ -27,6 +25,6 @@ do-build:
 	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${STAGEDIR}${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
