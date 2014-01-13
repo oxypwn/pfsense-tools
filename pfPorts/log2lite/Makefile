@@ -7,19 +7,14 @@
 PORTNAME=	log2lite
 PORTVERSION=	0.8
 CATEGORIES=	sysutils
-#DISTNAME=	${PORTNAME}-${PORTVERSION}
-PORTREVISION?=  0
 MASTER_SITES=   # empty
 DISTFILES=      # none
 EXTRACT_ONLY=   # empty
-NO_STAGE=	yes
 
 MAINTAINER=	geekgod@geekgod.com
 COMMENT=	Logs to sqlite database
 
-LIB_DEPENDS=	sqlite3:${PORTSDIR}/databases/sqlite3
-
-MAN8=		log2lite.8
+LIB_DEPENDS=	libsqlite3.so:${PORTSDIR}/databases/sqlite3
 
 PLIST_FILES=    sbin/log2lite
 
@@ -32,9 +27,6 @@ do-build:
 	${CC} ${CFLAGS} -static -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c -I/usr/local/include/ -L/usr/local/lib -lsqlite3 -lpthread
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/log2lite ${PREFIX}/sbin
-	#${INSTALL_MAN} ${WRKSRC}/log2lite.8 ${PREFIX}/man/man8
+	${INSTALL_PROGRAM} ${WRKSRC}/log2lite ${STAGEDIR}${PREFIX}/sbin
 
-clean:
-	rm -rf ${WRKSRC}
 .include <bsd.port.post.mk>
