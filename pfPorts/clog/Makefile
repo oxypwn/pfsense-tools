@@ -12,13 +12,13 @@ CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
-NO_STAGE=	yes
 
 MAINTAINER?=	sullrich@gmail.com
 COMMENT?=	Circular log support for FreeBSD syslogd
 
+PREFIX=		/usr
 WHERE=		sbin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+PLIST_FILES=    ${WHERE}/${PORTNAME} local/include/clog.h
 
 # -O2 is dangerous for clog! It breaks on i386 -O works.
 CFLAGS+=	-O
@@ -30,7 +30,8 @@ do-build:
 	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} /usr/${WHERE}/
-	${INSTALL_DATA} ${FILESDIR}/${PORTNAME}.h ${PREFIX}/include
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${STAGEDIR}${PREFIX}/${WHERE}
+	${MKDIR} ${STAGEDIR}/${PREFIX}/local/include
+	${INSTALL_DATA} ${FILESDIR}/${PORTNAME}.h ${STAGEDIR}${PREFIX}/local/include
 
 .include <bsd.port.mk>
