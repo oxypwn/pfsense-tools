@@ -45,24 +45,25 @@ if(file_exists("/usr/local/sbin/pbi_create"))
 $DCPUS=trim(`sysctl -n kern.smp.cpus`);
 $CPUS=$DCPUS * 2;
 
-if(!file_exists("/usr/local/bin/svn"))
-	die("Could not find subversion");
-
 $preq_txt = <<<EOF
 #!/bin/sh
 
 # pbi installation for pfSense
 cd /usr/ports/devel/xdg-utils && make install clean
 cd /root
-if [ -d current ]; then
-	cd current
-	svn up
+if [ -d pcbsd ]; then
+	cd /root/pcbsd
+	(/usr/local/bin/git fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	(/usr/local/bin/git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	(/usr/local/bin/git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
 else
-	svn co svn://svn.pcbsd.org/pcbsd/current
+	git clone git@github.com:pcbsd/pcbsd.git /root/pcbsd
 fi
-cd /root/current/src-sh/libsh
+cd /root/pcbsd/src-sh/libsh
 make install 2>/dev/null
-cd /root/current/src-sh/pbi-manager
+cd /root/pcbsd/src-sh/pbi-manager
 ./install.sh 2>/dev/null
 EOF;
 
