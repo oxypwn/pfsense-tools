@@ -135,7 +135,6 @@ decode_packet(u_char *user __unused, const struct pcap_pkthdr *pkthdr, const u_c
                 sbuf_printf(&sbuf, "%d, IP(truncated-ip %d) ", IP_V(ip), length);
 		goto printsbuf;
         }
-        ip = (struct ip *)packet;
         switch (IP_V(ip)) {
         case 4:
                 ip_print(&sbuf, packet, length);
