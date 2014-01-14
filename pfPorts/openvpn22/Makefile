@@ -9,14 +9,13 @@ CATEGORIES=	security net
 # so just one MASTER_SITES entry should be OK.
 MASTER_SITES=	http://swupdate.openvpn.net/community/releases/ \
 		${MASTER_SITE_LOCAL:S,$,mandree/,}
-NO_STAGE=	yes
+PKGNAMESUFFIX=	22
 
 MAINTAINER=	mandree@FreeBSD.org
 COMMENT=	Secure IP/Ethernet tunnel daemon
 
 LICENSE=	GPLv2
 
-LATEST_LINK=	openvpn22
 CONFLICTS_INSTALL=	openvpn-devel-[0-9]* openvpn-2.[!2]* openvpn-beta-[0-9]*
 
 DEPRECATED=		Please migrate to a newer OpenVPN version
@@ -42,7 +41,6 @@ INSTALL_TARGET=	install-exec install-man
 .endif
 
 INSTALL_TARGET+=	mandir=${MANPREFIX}/man
-MAN8=		openvpn.8
 
 USE_RC_SUBR=	openvpn
 USE_LDCONFIG=	${PREFIX}/lib
@@ -56,7 +54,7 @@ SUB_LIST+=	OSVERSION=${OSVERSION}
 CFLAGS+=	-DLOG_OPENVPN=${LOG_OPENVPN}
 .endif
 
-LIB_DEPENDS+=	lzo2:${PORTSDIR}/archivers/lzo2
+LIB_DEPENDS+=	liblzo2.so:${PORTSDIR}/archivers/lzo2
 
 .if ${PORT_OPTIONS:MPW_SAVE}
 CONFIGURE_ARGS+=	--enable-password-save
@@ -65,7 +63,7 @@ CONFIGURE_ARGS+=	--disable-password-save
 .endif
 
 .if ${PORT_OPTIONS:MPKCS11}
-LIB_DEPENDS+=	pkcs11-helper:${PORTSDIR}/security/pkcs11-helper
+LIB_DEPENDS+=	libpkcs11-helper.so:${PORTSDIR}/security/pkcs11-helper
 .else
 CONFIGURE_ARGS+=	--disable-pkcs11
 .endif
@@ -100,28 +98,23 @@ post-build:
 .endif
 
 post-install:
-	${MKDIR} ${PREFIX}/lib
-	${INSTALL_PROGRAM} ${WRKSRC}/plugin/down-root/openvpn-down-root.so ${PREFIX}/lib/
-	${INSTALL_PROGRAM} ${WRKSRC}/plugin/auth-pam/openvpn-auth-pam.so ${PREFIX}/lib/
-.if ${PORT_OPTIONS:MDOCS}
-	${MKDIR} ${DOCSDIR}
-	${INSTALL_DATA} ${WRKSRC}/plugin/down-root/README ${DOCSDIR}/README.openvpn-down-root
-	${INSTALL_DATA} ${WRKSRC}/plugin/auth-pam/README ${DOCSDIR}/README.openvpn-auth-pam
+	${MKDIR} ${STAGEDIR}${PREFIX}/lib
+	${INSTALL_PROGRAM} ${WRKSRC}/plugin/down-root/openvpn-down-root.so ${STAGEDIR}${PREFIX}/lib/
+	${INSTALL_PROGRAM} ${WRKSRC}/plugin/auth-pam/openvpn-auth-pam.so ${STAGEDIR}${PREFIX}/lib/
+	${MKDIR} ${STAGEDIR}${DOCSDIR}
+	${INSTALL_DATA} ${WRKSRC}/plugin/down-root/README ${STAGEDIR}${DOCSDIR}/README.openvpn-down-root
+	${INSTALL_DATA} ${WRKSRC}/plugin/auth-pam/README ${STAGEDIR}${DOCSDIR}/README.openvpn-auth-pam
 .for docs in AUTHORS COPYING COPYRIGHT.GPL ChangeLog INSTALL \
 	PORTS README
-	${INSTALL_DATA} ${WRKSRC}/${docs} ${DOCSDIR}/
+	${INSTALL_DATA} ${WRKSRC}/${docs} ${STAGEDIR}${DOCSDIR}/
 .endfor
 .for dir in easy-rsa easy-rsa/1.0 easy-rsa/2.0 sample-config-files
-	${MKDIR} ${DOCSDIR}/${dir}
-	${FIND} ${WRKSRC}/${dir}/ -maxdepth 1 -type f -exec ${INSTALL_DATA} \{\} ${DOCSDIR}/${dir} \;
+	${MKDIR} ${STAGEDIR}${DOCSDIR}/${dir}
+	${FIND} ${WRKSRC}/${dir}/ -maxdepth 1 -type f -exec ${INSTALL_DATA} \{\} ${STAGEDIR}${DOCSDIR}/${dir} \;
 .endfor
 .for dir in sample-scripts
-	${MKDIR} ${DOCSDIR}/${dir}
-	${FIND} ${WRKSRC}/${dir}/ -maxdepth 1 -type f -exec ${INSTALL_SCRIPT} \{\} ${DOCSDIR}/${dir} \;
+	${MKDIR} ${STAGEDIR}${DOCSDIR}/${dir}
+	${FIND} ${WRKSRC}/${dir}/ -maxdepth 1 -type f -exec ${INSTALL_SCRIPT} \{\} ${STAGEDIR}${DOCSDIR}/${dir} \;
 .endfor
-.else
-	-@${RMDIR} ${DOCSDIR}
-.endif
-	@${CAT} ${PKGMESSAGE}
 
 .include <bsd.port.post.mk>
