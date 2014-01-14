@@ -437,6 +437,7 @@ options 	COMPAT_FREEBSD7
 
 #options 	FLOWTABLE
 device 		padlock
+device		padlock_rng
 
 options		PPS_SYNC
 options		TCP_SIGNATURE
