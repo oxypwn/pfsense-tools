@@ -50,20 +50,20 @@ $preq_txt = <<<EOF
 
 # pbi installation for pfSense
 cd /usr/ports/devel/xdg-utils && make install clean
-cd /root
-if [ -d pcbsd ]; then
-	cd /root/pcbsd
+PBI_SRC_DIR=/home/pfsense/pcbsd
+if [ -d \${PBI_SRC_DIR} ]; then
+	cd \${PBI_SRC_DIR}
 	(/usr/local/bin/git fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	(/usr/local/bin/git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	(/usr/local/bin/git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
 else
-	git clone git@github.com:pcbsd/pcbsd.git /root/pcbsd
+	git clone git@github.com:pcbsd/pcbsd.git ${PBI_SRC_DIR}
 fi
-cd /root/pcbsd/src-sh/libsh
+cd \${PBI_SRC_DIR}/src-sh/libsh
 make install 2>/dev/null
-cd /root/pcbsd/src-sh/pbi-manager
+cd \${PBI_SRC_DIR}/src-sh/pbi-manager
 ./install.sh 2>/dev/null
 EOF;
 
