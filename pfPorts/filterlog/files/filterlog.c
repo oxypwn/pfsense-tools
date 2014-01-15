@@ -22,6 +22,7 @@
 #include "common.h"
 
 static pcap_t *tap = NULL;
+static char *filterlog_pcap_file = NULL;
 static char errbuf[PCAP_ERRBUF_SIZE];
 static struct sbuf sbuf;
 static u_char *sbuf_buf;
@@ -143,13 +144,17 @@ decode_packet(u_char *user __unused, const struct pcap_pkthdr *pkthdr, const u_c
                 ip6_print(&sbuf, packet, length);
 		break;
         default:
+                ip_print(&sbuf, packet, length);
                 sbuf_printf(&sbuf, "%d", IP_V(ip));
                 break;
         }
 
 printsbuf:
 	sbuf_finish(&sbuf);
-	syslog(LOG_INFO, "%s", sbuf_data(&sbuf));
+	if (filterlog_pcap_file != NULL)
+		printf("%s\n", sbuf_data(&sbuf));
+	else
+		syslog(LOG_INFO, "%s", sbuf_data(&sbuf));
 	memset(sbuf_data(&sbuf), 0, sbuf_len(&sbuf));
 	sbuf_clear(&sbuf);
 	return;
@@ -162,9 +167,10 @@ main(int argc, char **argv)
 	char *interface;
 
 	pidfile = NULL;
+	interface = filterlog_pcap_file = NULL;
 	tzset();
 
-	while ((ch = getopt(argc, argv, "i:")) != -1) {
+	while ((ch = getopt(argc, argv, "i:p:P:")) != -1) {
 		switch (ch) {
 		case 'i':
 			interface = optarg;
@@ -172,13 +178,22 @@ main(int argc, char **argv)
 		case 'p':
 			pidfile = optarg;
 			break;
+		case 'P':
+			filterlog_pcap_file = optarg;
+			break;
 		default:
 			printf("Unknown option specified\n");
 			return (-1);
 		}
 	}
 
-	daemon(0, 0);
+	if (interface == NULL && filterlog_pcap_file == NULL) {
+		printf("Should specify an interface or a pcap file\n");
+		exit(-1);
+	}
+
+	if (filterlog_pcap_file == NULL)
+		daemon(0, 0);
 
 	if (pidfile) {
 		FILE *pidfd;
@@ -207,7 +222,10 @@ main(int argc, char **argv)
 		if (tap != NULL)
 			pcap_close(tap);
 
-		tap = pcap_open_live(interface, MAXIMUM_SNAPLEN, 1, 1000, errbuf);
+		if (filterlog_pcap_file != NULL)
+			tap = pcap_open_offline(filterlog_pcap_file, errbuf);
+		else
+			tap = pcap_open_live(interface, MAXIMUM_SNAPLEN, 1, 1000, errbuf);
 		if (tap == NULL) {
 			syslog(LOG_ERR, "Failed to initialize: %s(%m)", errbuf);
 			return (-1);
@@ -226,7 +244,13 @@ main(int argc, char **argv)
 		} else if (perr == -2) {
 			pcap_close(tap);
 			break;
+		} else if (perr == 0) {
+			pcap_close(tap);
+			tap = NULL;
 		}
+
+		if (filterlog_pcap_file != NULL)
+			break;
 	}
 
 	closelog();
