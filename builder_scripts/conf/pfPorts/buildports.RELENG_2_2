@@ -71,7 +71,7 @@ syslog-ng			/usr/ports/sysutils/syslog-ng			/usr/local/sbin/syslog-ng
 zip				/usr/ports/archivers/zip			/usr/local/bin/zip
 links				/usr/ports/www/links				/usr/local/bin/links
 elinks				/usr/ports/www/elinks				/usr/local/bin/elinks
-ntp				/usr/ports/net/ntp-devel			/usr/local/bin/ntpd
+ntp				/usr/ports/net/ntp-devel			/usr/local/sbin/ntpd
 php53-json			/usr/ports/devel/php53-json			/usr/local/lib/php/20090626/json.so
 rate				/usr/ports/net-mgmt/rate			/usr/local/bin/rate
 wol				/usr/ports/net/wol				/usr/local/bin/wol
