@@ -1,8 +1,44 @@
-diff --git a/dhcp6c.c b/dhcp6c.c
-index 1caaaa5..3291e52 100644
---- dhcp6c.c
-+++ dhcp6c.c
-@@ -1828,15 +1828,6 @@ client6_recvreply(ifp, dh6, len, optinfo)
+--- dhcp6c.c.orig	2008-06-15 09:48:41.000000000 +0200
++++ dhcp6c.c	2014-01-15 11:14:33.000000000 +0100
+@@ -67,6 +67,7 @@
+ #include <string.h>
+ #include <err.h>
+ #include <ifaddrs.h>
++#include <fcntl.h>
+ 
+ #include <dhcp6.h>
+ #include <config.h>
+@@ -257,7 +258,7 @@
+ {
+ 	struct addrinfo hints, *res;
+ 	static struct sockaddr_in6 sa6_allagent_storage;
+-	int error, on = 1;
++	int error, on = 0;
+ 
+ 	/* get our DUID */
+ 	if (get_duid(DUID_FILE, &client_duid)) {
+@@ -287,6 +288,20 @@
+ 		dprintf(LOG_ERR, FNAME, "socket");
+ 		exit(1);
+ 	}
++
++        if ((on = fcntl(sock, F_GETFL, 0)) == -1) {
++		dprintf(LOG_ERR, FNAME, "fctnl getflags");
++		exit(1);
++	}
++
++        on |= FD_CLOEXEC;
++
++        if ((on = fcntl(sock, F_SETFL, on)) == -1) {
++		dprintf(LOG_ERR, FNAME, "fctnl setflags");
++		exit(1);
++	}
++
++	on = 1;
+ 	if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
+ 		       &on, sizeof(on)) < 0) {
+ 		dprintf(LOG_ERR, FNAME,
+@@ -1828,15 +1843,6 @@
  	}
  
  	/*
@@ -18,7 +54,7 @@ index 1caaaa5..3291e52 100644
  	 * Set refresh timer for configuration information specified in
  	 * information-request.  If the timer value is specified by the server
  	 * in an information refresh time option, use it; use the protocol
-@@ -1888,6 +1879,15 @@ client6_recvreply(ifp, dh6, len, optinfo)
+@@ -1888,6 +1894,15 @@
  		    &optinfo->serverID, ev->authparam);
  	}
  
