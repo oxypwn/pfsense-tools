@@ -3074,7 +3074,7 @@ update_freebsd_sources_and_apply_patches() {
 				( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin/${SVN_BRANCH} )
 			fi
 		else
-			( cd ${SRCDIR} && git clone -branch ${SVN_BRANCH} --single-branch ${FREEBSD_REPO_BASE} ../src )
+			( cd ${SRCDIR} && git clone --branch ${SVN_BRANCH} --single-branch ${FREEBSD_REPO_BASE} ../src )
 		fi
 	else
 		# CVSUp freebsd version -- this MUST be after Loop through and remove files
