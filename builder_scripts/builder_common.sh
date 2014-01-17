@@ -377,7 +377,6 @@ recompile_pfPorts() {
 		export BATCH=yo
 		export DISABLE_VULNERABILITIES=yo
 
-		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
 
 		if [ "$1" != "" ]; then
