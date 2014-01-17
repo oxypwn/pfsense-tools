@@ -60,7 +60,7 @@ if [ -d \${PBI_SRC_DIR} ]; then
 	(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
 else
 	cd `/usr/bin/dirname \${PBI_SRC_DIR}`
-	/usr/local/bin/git clone git@github.com:pcbsd/pcbsd.git ${PBI_SRC_DIR}
+	/usr/local/bin/git clone git@github.com:pcbsd/pcbsd.git \${PBI_SRC_DIR}
 fi
 cd \${PBI_SRC_DIR}/src-sh/libsh
 make install 2>/dev/null
