@@ -1,8 +1,23 @@
 Index: files
 ===================================================================
---- files	(revision 258738)
+--- files	(revision 260826)
 +++ files	(working copy)
-@@ -920,6 +920,8 @@
+@@ -898,11 +1287,11 @@
+ dev/ed/if_ed_pci.c		optional ed pci
+ dev/eisa/eisa_if.m		standard
+ dev/eisa/eisaconf.c		optional eisa
+-dev/e1000/if_em.c		optional em inet \
++dev/e1000/if_em.c		optional em \
+ 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+-dev/e1000/if_lem.c		optional em inet \
++dev/e1000/if_lem.c		optional em \
+ 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+-dev/e1000/if_igb.c		optional igb inet \
++dev/e1000/if_igb.c		optional igb \
+ 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+ dev/e1000/e1000_80003es2lan.c	optional em | igb \
+ 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+@@ -920,6 +1309,8 @@
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
  dev/e1000/e1000_ich8lan.c	optional em | igb \
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
@@ -11,7 +26,7 @@ Index: files
  dev/e1000/e1000_api.c		optional em | igb \
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
  dev/e1000/e1000_mac.c		optional em | igb \
-@@ -1231,7 +1233,7 @@
+@@ -1231,7 +1673,7 @@
  dev/ixgb/ixgb_ee.c		optional ixgb
  dev/ixgb/ixgb_hw.c		optional ixgb
  dev/ixgbe/ixgbe.c		optional ixgbe inet \
@@ -20,7 +35,7 @@ Index: files
  dev/ixgbe/ixv.c			optional ixgbe inet \
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
  dev/ixgbe/ixgbe_phy.c		optional ixgbe inet \
-@@ -1250,6 +1252,12 @@
+@@ -1250,6 +1692,12 @@
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
  dev/ixgbe/ixgbe_x540.c		optional ixgbe inet \
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
