@@ -1,4 +1,5 @@
 %%CGI%%bin/php
+%%CLI%%bin/php-cli
 bin/php-config
 bin/phpize
 %%FPM%%sbin/php-fpm
