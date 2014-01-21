@@ -1,4 +1,4 @@
-@comment $FreeBSD: head/www/lighttpd/pkg-plist 340276 2014-01-19 12:55:06Z mm $
+@comment $FreeBSD: head/www/lighttpd/pkg-plist 340625 2014-01-21 17:18:22Z garga $
 @unexec if cmp -s %D/etc/lighttpd/lighttpd.conf %D/etc/lighttpd/lighttpd.conf.sample; then rm -f %D/etc/lighttpd/lighttpd.conf; fi
 etc/lighttpd/lighttpd.conf.sample
 @exec [ -f %B/lighttpd.conf ] || cp %B/%f %B/lighttpd.conf
@@ -181,4 +181,4 @@ sbin/lighttpd-angel
 @cwd /
 @exec %%MKDIR%% -m 0700 %%LOGROOT%%
 @exec %%CHOWN%% %%USER%%:%%GROUP%% %%LOGROOT%%
-@dirrmtry %%LOGROOT%%
+@unexec rmdir %%LOGROOT%% >/dev/null 2>&1 || :
