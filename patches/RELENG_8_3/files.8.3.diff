@@ -1,23 +1,17 @@
 Index: files
 ===================================================================
---- files	(revision 260826)
+--- files	(revision 261024)
 +++ files	(working copy)
-@@ -898,11 +1287,11 @@
- dev/ed/if_ed_pci.c		optional ed pci
- dev/eisa/eisa_if.m		standard
- dev/eisa/eisaconf.c		optional eisa
--dev/e1000/if_em.c		optional em inet \
-+dev/e1000/if_em.c		optional em \
+@@ -903,7 +903,7 @@
+ dev/e1000/if_lem.c		optional em inet \
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
--dev/e1000/if_lem.c		optional em inet \
-+dev/e1000/if_lem.c		optional em \
- 	compile-with "${NORMAL_C} -I$S/dev/e1000"
--dev/e1000/if_igb.c		optional igb inet \
-+dev/e1000/if_igb.c		optional igb \
- 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+ dev/e1000/if_igb.c		optional igb inet \
+-	compile-with "${NORMAL_C} -I$S/dev/e1000"
++	compile-with "${NORMAL_C} -I$S/dev/e1000 -DSMP -DIGB_LEGACY_TX"
  dev/e1000/e1000_80003es2lan.c	optional em | igb \
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
-@@ -920,6 +1309,8 @@
+ dev/e1000/e1000_82540.c		optional em | igb \
+@@ -920,6 +920,8 @@
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
  dev/e1000/e1000_ich8lan.c	optional em | igb \
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
@@ -26,16 +20,16 @@ Index: files
  dev/e1000/e1000_api.c		optional em | igb \
  	compile-with "${NORMAL_C} -I$S/dev/e1000"
  dev/e1000/e1000_mac.c		optional em | igb \
-@@ -1231,7 +1673,7 @@
+@@ -1231,7 +1233,7 @@
  dev/ixgb/ixgb_ee.c		optional ixgb
  dev/ixgb/ixgb_hw.c		optional ixgb
  dev/ixgbe/ixgbe.c		optional ixgbe inet \
 -	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
-+	compile-with "${NORMAL_C} -I$S/dev/ixgbe -DSMP -DIXGBE_FDIR"
++	compile-with "${NORMAL_C} -I$S/dev/ixgbe -DSMP -DIXGBE_FDIR -DIXGBE_LEGACY_TX"
  dev/ixgbe/ixv.c			optional ixgbe inet \
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
  dev/ixgbe/ixgbe_phy.c		optional ixgbe inet \
-@@ -1250,6 +1692,12 @@
+@@ -1250,6 +1252,12 @@
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
  dev/ixgbe/ixgbe_x540.c		optional ixgbe inet \
  	compile-with "${NORMAL_C} -I$S/dev/ixgbe"
