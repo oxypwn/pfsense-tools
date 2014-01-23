@@ -3000,7 +3000,7 @@ install_required_builder_system_ports() {
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make BATCH=yes deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} OPTIONS_UNSET="X11 DOCS EXAMPLES MAN INFO SDL ${UNSET_OPTS}" BATCH=yes FORCE_PKG_REGISTER=yes install clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} WITHOUT="X11 DOCS EXAMPLES MAN INFO SDL ${UNSET_OPTS}" BATCH=yes FORCE_PKG_REGISTER=yes install clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			echo "Done!"
 		fi
 	done
@@ -3393,7 +3393,7 @@ install_pkg_install_ports_build() {
 			${PKG_QUERY} $_BUILT_PKGNAME
 			if [ $? -ne 0 ]; then
 				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-				script ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
+				script ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV WITHOUT="X11 DOCS EXAMPLES MAN INFO SDL" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 				if [ "$?" != "0" ]; then
 					echo
 					echo
@@ -3440,7 +3440,7 @@ install_pkg_install_ports_build() {
 		fi
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN LATEST_LINK" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		script ${BUILDER_LOGS}/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV WITHOUT="X11 DOCS EXAMPLES MAN INFO SDL LATEST_LINK" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
