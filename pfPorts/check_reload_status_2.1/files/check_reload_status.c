@@ -78,7 +78,6 @@ TAILQ_HEAD(runqueue, runq) cmds = TAILQ_HEAD_INITIALIZER(cmds);;
 pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 
 static pid_t ppid = -1;
-static int child = 0;
 
 static void
 show_command_list(int fd, const struct command *list)
@@ -199,8 +198,6 @@ handle_signal(int sig)
         switch(sig) {
         case SIGHUP:
         case SIGTERM:
-		if (child)
-			exit(0);
                 break;
         }
 }
@@ -219,7 +216,6 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 		pthread_mutex_lock(&mtx);
 		TAILQ_REMOVE(&cmds, cmd, rq_link);
 		pthread_mutex_unlock(&mtx);
-		child = 0;
 		timeout_del(&cmd->ev);
 		free(cmd);
 		return;
@@ -230,7 +226,6 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 		syslog(LOG_ERR, "Could not vfork() error %d - %s!!!", errno, strerror(errno));
 		break;
 	case 0:
-		child = 1;
 		/* Possibly optimize by creating argument list and calling execve. */
 		execl("/bin/sh", "/bin/sh", "-c", cmd->command, (char *)NULL);
 		syslog(LOG_ERR, "could not run: %s", cmd->command);
