@@ -334,8 +334,10 @@ socket_read_command(int fd, short event, void *arg)
 	char **ap, *argv[bufsize], *p;
 	int i, loop = 0;
 
-	if (event == EV_TIMEOUT)
+	if (event == EV_TIMEOUT) {
 		socket_close_command(fd, ev);
+		return;
+	}
 		
 tryagain:
 	bzero(buf, sizeof(buf));
