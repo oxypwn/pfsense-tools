@@ -289,7 +289,7 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 	struct timeval tv = { 8, 0 };
 	static int requestId = 0;
 	int len, result;
-	char *p, sbuf[2048], buf[2048];
+	char *p, sbuf[4096], buf[4096];
 
 	cmd = arg;
 	if (cmd == NULL)
@@ -306,7 +306,7 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 	cmd->requestId = requestId;
 
 	memset(sbuf, 0, sizeof(sbuf));
-	sbuf_new(&sb, sbuf, 2048, 0);
+	sbuf_new(&sb, sbuf, 4096, 0);
 	/* TODO: Use hardcoded length instead of strlen allover later on */
 	/* TODO: Remove some env variables since might not be needed at all!!! */
 	build_nvpair(&sb, strlen("GATEWAY_INTERFACE"), strlen("FastCGI/1.0"), "GATEWAY_INTERFACE", (char *)"FastCGI/1.0");
@@ -329,7 +329,7 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 
 	len = (3 * sizeof(FCGI_Header)) + sizeof(FCGI_BeginRequestRecord) + sbuf_len(&sb);
 #if 0
-	if (len > 2048) {
+	if (len > 4096) {
 		buf = calloc(1, len);
 		if (buf == NULL) {
 			tv.tv_sec = 1;
@@ -371,11 +371,14 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 	} else if (cmd->aggregate > 0) {
 		cmd->dontexec = 1;
 		timeout_add(&cmd->ev, &tv);
+	}
+#if 0
 	} else {
 		TAILQ_REMOVE(&cmds, cmd, rq_link);
 		timeout_del(&cmd->ev);
 		free(cmd);
 	}
+#endif
 }
 
 static void
@@ -502,7 +505,7 @@ socket_read_fcgi(int fd, short event, void *arg __unused)
 {
 	struct runq *tmpcmd = NULL;
 	FCGI_Header header;
-	char buf[2048];
+	char buf[4096];
         int len, terr, success = 0;
 
 	if (event == EV_TIMEOUT) {
@@ -533,7 +536,8 @@ socket_read_fcgi(int fd, short event, void *arg __unused)
 				return;
 			}
 		}
-	}
+	} else 
+		return;
 
 	switch (header.type) {
 	case FCGI_DATA:
