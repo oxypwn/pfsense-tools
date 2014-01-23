@@ -84,7 +84,6 @@ struct runq {
 TAILQ_HEAD(runqueue, runq) cmds = TAILQ_HEAD_INITIALIZER(cmds);;
 
 static pid_t ppid = -1;
-static int child = 0;
 static struct utsname uts;
 static int fcgifd = -1;
 static int keepalive = 1;
@@ -272,8 +271,10 @@ handle_signal(int sig)
         switch(sig) {
         case SIGHUP:
         case SIGTERM:
+#if 0
 		if (child)
 			exit(0);
+#endif
                 break;
         }
 }
@@ -296,7 +297,6 @@ fcgi_send_command(int fd __unused , short event __unused, void *arg)
 
 	if (cmd->dontexec) {
 		TAILQ_REMOVE(&cmds, cmd, rq_link);
-		child = 0;
 		timeout_del(&cmd->ev);
 		free(cmd);
 		return;
@@ -390,7 +390,6 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 
 	if (cmd->dontexec) {
 		TAILQ_REMOVE(&cmds, cmd, rq_link);
-		child = 0;
 		timeout_del(&cmd->ev);
 		free(cmd);
 		return;
@@ -402,7 +401,6 @@ run_command_detailed(int fd __unused, short event __unused, void *arg) {
 		syslog(LOG_ERR, "Could not vfork() error %d - %s!!!", errno, strerror(errno));
 		break;
 	case 0:
-		child = 1;
 		/* Possibly optimize by creating argument list and calling execve. */
 		if (cmd->params[0])
 			execl("/bin/sh", "/bin/sh", "-c", cmd->command, cmd->params, (char *)NULL);
