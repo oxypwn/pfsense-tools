@@ -1,4 +1,3 @@
-openssl				/usr/ports/security/openssl			/usr/local/bin/openssl
 pfflowd-0.8			/usr/ports/net/pfflowd-0.8			/usr/local/sbin/pfflowd
 ipsec-tools			/usr/ports/security/ipsec-tools-0.8.1		/usr/local/sbin/racoon
 openiked			/usr/ports/security/openiked			/usr/local/sbin/iked
