@@ -1,5 +1,5 @@
 # Created by: Alex Dupre <sysadmin@alexdupre.com>
-# $FreeBSD: lang/php53/Makefile 336500 2013-12-14 23:30:36Z flo $
+# $FreeBSD: head/lang/php53/Makefile 337385 2013-12-24 21:22:21Z kwm $
 
 PORTNAME=	php53
 PORTVERSION=	5.3.28
@@ -38,11 +38,6 @@ OPTIONS_DEFINE=	CLI CGI FPM APACHE AP2FILTER DEBUG SUHOSIN MULTIBYTE IPV6 \
 		MAILHEAD LINKTHR
 
 OPTIONS_DEFAULT=	CLI CGI SUHOSIN IPV6 LINKTHR
-
-OSRELDATE!=	/sbin/sysctl -n kern.osreldate
-.if ${OSRELDATE} >= 1000000
-OPTIONS_DEFAULT+=	FPM
-.endif
 
 CLI_DESC=	Build CLI version
 CGI_DESC=	Build CGI version
@@ -159,6 +154,7 @@ CONFIGURE_ARGS+=--disable-ipv6
 
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
+	@${REINPLACE_CMD} -e 's|freetype/||g' ${WRKSRC}/configure
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
 .if ${PORT_OPTIONS:MFPM}
 	@${REINPLACE_CMD} -e "s|^;\(pid\)|\1|;s|^;\(pm\.[a-z_]*_servers\)|\1|" \
