@@ -49,7 +49,9 @@ fi
 
 # Source pfsense-build.conf variables
 . ./pfsense_local.sh
-. ./pfsense-build.conf
+if [ -f ./pfsense-build.conf ]; then
+	. ./pfsense-build.conf
+fi
 
 # Default SUPHOST
 if [ "$2" != "" ]; then
