@@ -113,7 +113,7 @@ update_status() {
 	fi
 	echo $1
 	echo "`date` -|- $1" >> $LOGFILE
-	if [ -n "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
+	if [ -n "$MASTER_BUILDER_SSH_LOG_DEST" -a -z "${NO_UPLOAD}" ]; then
 		LU=`cat $LASTUPDATE`
 		CT=`date "+%H%M%S"`
 		# Only update every minute
@@ -134,7 +134,7 @@ rotate_logfile() {
 		done
 		rm -rf ${BUILDER_LOGS}/pfPort/*
 	fi
-	if [ -n "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
+	if [ -n "$MASTER_BUILDER_SSH_LOG_DEST" -a -z "${NO_UPLOAD}" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST.old
 	fi
 	# Cleanup log file
