@@ -31,11 +31,9 @@ while test "$1" != "" ; do
 	case $1 in
 	--no-ports|--noports|-n)
 		NO_PORTS=yo
-		shift
 		;;
 	--noupload|-u)
 		NO_UPLOAD="-u"
-		shift
 		;;
 	esac
 	shift
