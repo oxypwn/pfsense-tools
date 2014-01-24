@@ -30,7 +30,6 @@ NO_UPLOAD=""
 while test "$1" != "" ; do
 	case $1 in
 	--no-ports|--noports|-n)
-		echo "$2"
 		NO_PORTS=yo
 		shift
 		;;
