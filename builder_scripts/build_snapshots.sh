@@ -33,7 +33,7 @@ if [ ! -f ./pfsense-build.conf ]; then
 fi
 
 # Read params
-while getopts c opt; do
+while getopts u opt; do
         case "${opt}" in
                 u)      export NO_UPLOAD="yes";;
         esac
