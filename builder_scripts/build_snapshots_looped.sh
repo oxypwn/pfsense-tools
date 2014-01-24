@@ -29,12 +29,7 @@ NO_UPLOAD=""
 # Handle command line arguments
 while test "$1" != "" ; do
 	case $1 in
-	--noports|-n)
-		echo "$2"
-		NO_PORTS=yo
-		shift
-		;;
-	--no-ports|-n)
+	--no-ports|--noports|-n)
 		echo "$2"
 		NO_PORTS=yo
 		shift
