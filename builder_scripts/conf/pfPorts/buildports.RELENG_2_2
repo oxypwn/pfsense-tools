@@ -15,6 +15,7 @@ dnsmasq				/usr/ports/dns/dnsmasq				/usr/local/sbin/dnsmasq
 expiretable			/usr/ports/security/expiretable			/usr/local/sbin/expiretable
 ifstated			/usr/ports/net/ifstated				/usr/local/sbin/ifstated
 igmpproxy			/usr/ports/net/igmpproxy			/usr/local/sbin/igmpproxy
+bind				/usr/ports/dns/bind99				/usr/local/bin/nsupdate
 isc-dhcp42-server		/usr/ports/net/isc-dhcp42-server		/usr/local/sbin/dhcpd
 isc-dhcp42-client		/usr/ports/net/isc-dhcp42-client		/usr/local/sbin/dhclient
 isc-dhcp42-relay		/usr/ports/net/isc-dhcp42-relay			/usr/local/sbin/dhcrelay
@@ -99,4 +100,3 @@ bsnmp-ucd			/usr/ports/net-mgmt/bsnmp-ucd			/usr/local/lib/snmp_ucd.so
 bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so
 svnup				/usr/ports/net/svnup				/usr/local/bin/svnup
 filterlog			/usr/ports/sysutils/filterlog			/usr/local/sbin/filterlog
-bind				/usr/ports/dns/bind99				/usr/local/bin/nsupdate

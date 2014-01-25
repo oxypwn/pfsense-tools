@@ -19,8 +19,8 @@ COMMENT=	Library for getting useful info
 USE_PHP=	yes
 USE_PHPEXT=	yes
 
-# BUILD_DEPENDS+= ${PREFIX}/sbin/named:${PORTSDIR}/dns/bind98
-BUILD_DEPENDS+= dhcpd:${PORTSDIR}/net/isc-dhcp42-server
+BUILD_DEPENDS=	nsupdate:${PORTSDIR}/dns/bind99 \
+		dhcpd:${PORTSDIR}/net/isc-dhcp42-server
 
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I. -DDHCP_INTEGRATION -DIPFW_FUNCTIONS
 LDFLAGS+=	-lomapi -ldhcpctl -ldns -lisc 
@@ -28,10 +28,6 @@ LDFLAGS+=	-lomapi -ldhcpctl -ldns -lisc
 CONFIGURE_ARGS=	--enable-pfSense
 
 extract:
-	if [ ! -d ${PREFIX}/include/isc ]; then \
-		echo "Please reinstall isc-dhcp42-server port from pfPorts"; \
-		exit 1; \
-	fi
 	mkdir -p ${WRKSRC}
 	cp -r files/* ${WRKSRC}
 
