@@ -99,3 +99,4 @@ bsnmp-ucd			/usr/ports/net-mgmt/bsnmp-ucd			/usr/local/lib/snmp_ucd.so
 bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so
 svnup				/usr/ports/net/svnup				/usr/local/bin/svnup
 filterlog			/usr/ports/sysutils/filterlog			/usr/local/sbin/filterlog
+bind				/usr/ports/dns/bind99				/usr/local/bin/nsupdate
