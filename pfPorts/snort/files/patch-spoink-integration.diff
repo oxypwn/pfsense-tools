@@ -334,7 +334,7 @@ diff -urN ../snort-2.9.5.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +            
 +        strlcpy(table.pfrt_name, data->pftable, PF_TABLE_NAME_SIZE); 
 +        
-+        net_addr->family == AF_INET ? memcpy(&addr.pfra_ip4addr.s_addr, &net_addr->ip32, sizeof(in_addr_t)) : memcpy(&addr.pfra_ip6addr, net_addr->ip8, sizeof(struct in6_addr));
++        net_addr->family == AF_INET ? memcpy(&addr.pfra_ip4addr.s_addr, &net_addr->ip32, sizeof(in_addr_t)) : memcpy(&addr.pfra_ip6addr, &net_addr->ip8, sizeof(struct in6_addr));
 +
 +        addr.pfra_af  = net_addr->family; 
 +        addr.pfra_net = net_addr->family == AF_INET ? 32 : 128;; 
@@ -356,7 +356,7 @@ diff -urN ../snort-2.9.5.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +		if (psk.psk_af == AF_INET)
 +			memcpy(&psk.psk_src.addr.v.a.addr.v4.s_addr, &net_addr->ip32, sizeof(in_addr_t));
 +		else if (psk.psk_af == AF_INET6)
-+			memcpy(&psk.psk_src.addr.v.a.addr.v6, net_addr->ip8, sizeof(struct in6_addr));
++			memcpy(&psk.psk_src.addr.v.a.addr.v6, &net_addr->ip8, sizeof(struct in6_addr));
 +		else
 +			return (-1);
 +
