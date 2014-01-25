@@ -193,3 +193,4 @@ usr/local/lib/libssl.so.8
 usr/local/share/certs/ca-root-nss.crt
 usr/bin/getopt
 usr/sbin/ifmcstat
+usr/local/bin/nsupdate
