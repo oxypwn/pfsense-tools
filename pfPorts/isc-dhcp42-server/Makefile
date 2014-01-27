@@ -161,6 +161,8 @@ do-install:
 	${MAKE} -C ${WRKSRC}/includes install
 	${MAKE} -C ${WRKSRC}/common install
 	${INSTALL_DATA} ${WRKSRC}/dhcpctl/dhcpctl.h ${PREFIX}/include
+	${INSTALL_DATA} ${WRKSRC}/bind/lib/libisc.a ${PREFIX}/lib/libisc-dhcp.a
+	${INSTALL_DATA} ${WRKSRC}/bind/lib/libdns.a ${PREFIX}/lib/libdns-dhcp.a
 .if ${PORT_OPTIONS:MIPV6}
 	${INSTALL_DATA} ${WRKSRC}/doc/examples/dhcpd-dhcpv6.conf \
 		${PREFIX}/etc/dhcpd6.conf.example

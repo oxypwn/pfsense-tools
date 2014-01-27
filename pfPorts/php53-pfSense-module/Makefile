@@ -19,11 +19,10 @@ COMMENT=	Library for getting useful info
 USE_PHP=	yes
 USE_PHPEXT=	yes
 
-BUILD_DEPENDS=	nsupdate:${PORTSDIR}/dns/bind99 \
-		dhcpd:${PORTSDIR}/net/isc-dhcp42-server
+BUILD_DEPENDS=	dhcpd:${PORTSDIR}/net/isc-dhcp42-server
 
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I. -DDHCP_INTEGRATION -DIPFW_FUNCTIONS
-LDFLAGS+=	-lomapi -ldhcpctl -ldns -lisc 
+LDFLAGS+=	-lomapi -ldhcpctl -ldns-dhcp -lisc-dhcp
 
 CONFIGURE_ARGS=	--enable-pfSense
 

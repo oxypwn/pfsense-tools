@@ -24,6 +24,8 @@ include/omapip/result.h
 lib/libdhcpctl.a
 lib/libomapi.a
 lib/libdst.a
+lib/libdns-dhcp.a
+lib/libisc-dhcp.a
 %%LDAP%%%%SCHEMA_DIR%%/dhcp.schema
 %%LDAP%%@dirrm %%SCHEMA_DIR%%
 @dirrm include/omapip
