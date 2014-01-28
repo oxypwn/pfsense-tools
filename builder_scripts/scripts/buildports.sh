@@ -189,7 +189,7 @@ clean_make_install() {
 
 	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make ${MAKE_CONF} -C $PORTA \
 	    TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes \
-	    clean build deinstall install clean 2>&1 1>/dev/null; then
+	    rmconfig clean build deinstall install clean 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 		echo "Failed to build. Error log in /tmp/pfPort/buildlogs/$_PORTNAME."
 	else
