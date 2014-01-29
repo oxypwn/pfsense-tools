@@ -160,6 +160,10 @@ do-install:
 	${MAKE} -C ${WRKSRC}/omapip install
 	${MAKE} -C ${WRKSRC}/includes install
 	${MAKE} -C ${WRKSRC}/common install
+	@${REINPLACE_CMD} -e 's,#include <isc/,#include <isc-dhcp/,' \
+		${PREFIX}/include/omapip/*.h \
+		${WRKSRC}/bind/include/isc/*.h
+	@${CP} -r ${WRKSRC}/bind/include/isc/* ${PREFIX}/include/isc-dhcp
 	${INSTALL_DATA} ${WRKSRC}/dhcpctl/dhcpctl.h ${PREFIX}/include
 	${INSTALL_DATA} ${WRKSRC}/bind/lib/libisc.a ${PREFIX}/lib/libisc-dhcp.a
 	${INSTALL_DATA} ${WRKSRC}/bind/lib/libdns.a ${PREFIX}/lib/libdns-dhcp.a
