@@ -55,6 +55,12 @@ handle_signal(int sig)
 	exit(0);
 }
 
+static void
+handle_signal_act(int sig, siginfo_t *unused1, void *unused2)
+{
+	handle_signal(sig);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -99,6 +105,7 @@ main(int argc, char **argv)
          * Catch SIGHUP in order to reread configuration file.
          */
         sa.sa_handler = handle_signal;
+	sa.sa_sigaction = handle_signal_act;
         sa.sa_flags = SA_SIGINFO|SA_RESTART;
         sigemptyset(&sa.sa_mask);
         error = sigaction(SIGALRM, &sa, NULL);
