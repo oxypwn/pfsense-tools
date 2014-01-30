@@ -2,8 +2,8 @@
 # $FreeBSD: security/strongswan/Makefile 327769 2013-09-20 22:55:24Z bapt $
 
 PORTNAME=	strongswan
-PORTVERSION=	5.0.4
-PORTREVISION=	1
+PORTVERSION=	5.1.1
+PORTREVISION=	0
 CATEGORIES=	security
 MASTER_SITES=	http://download.strongswan.org/ \
 		http://download2.strongswan.org/
