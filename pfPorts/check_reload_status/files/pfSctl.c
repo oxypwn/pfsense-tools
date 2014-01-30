@@ -56,7 +56,7 @@ handle_signal(int sig)
 }
 
 static void
-handle_signal_act(int sig, siginfo_t *unused1, void *unused2)
+handle_signal_act(int sig, siginfo_t *unused1 __unused, void *unused2 __unused)
 {
 	handle_signal(sig);
 }
