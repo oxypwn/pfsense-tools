@@ -57,6 +57,7 @@
 
 /* function definitions */
 static void			handle_signal(int);
+static void			handle_signal_act(int, signinfo_t *, void *);
 static void			run_command(struct command *, char *);
 static void			set_blockmode(int socket, int cmd);
 struct command *	match_command(struct command *target, char *wordpassed);
@@ -263,6 +264,12 @@ match_command(struct command *target, char *wordpassed)
 	}
 
 	return (NULL);
+}
+
+static void
+handle_signal_act(int sig, siginfo_t *unused1, void *unused2)
+{
+	handle_signal(sig);
 }
 
 static void
@@ -732,6 +739,7 @@ main(void)
 	signal(SIGCHLD, SIG_IGN);
 
 	sa.sa_handler = handle_signal;
+	sa.sa_handler = handle_signal_act;
         sa.sa_flags = SA_SIGINFO|SA_RESTART;
         sigemptyset(&sa.sa_mask);
         sigaction(SIGHUP, &sa, NULL);
