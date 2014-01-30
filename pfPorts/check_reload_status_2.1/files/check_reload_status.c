@@ -203,6 +203,12 @@ handle_signal(int sig)
 }
 
 static void
+handle_signal_act(int sig, siginfo_t *unused1 __unused, void *unused2 __unused)
+{
+	handle_signal(sig);
+}
+
+static void
 run_command_detailed(int fd __unused, short event __unused, void *arg) {
 	struct runq *cmd;
 	struct timeval tv = { 8, 0 };
@@ -454,6 +460,7 @@ int main(void) {
 	signal(SIGCHLD, SIG_IGN);
 
 	sa.sa_handler = handle_signal;
+	sa.sa_sigaction = handle_signal_act;
         sa.sa_flags = SA_SIGINFO|SA_RESTART;
         sigemptyset(&sa.sa_mask);
         sigaction(SIGHUP, &sa, NULL);
