@@ -71,11 +71,6 @@ main(int argc, char **argv)
 	int fd, n, ch;
 	int ncmds = 0, nsock = 0, error = 0, i;
 
-	/* If argc is even, we have been given an odd number of parameters which is invalid */
-	if (argc % 2 == 0)
-		return (-1);
-		/* NOTREACHED */
-
 	path = NULL;
 	while ((ch = getopt(argc, argv, "c:s:")) != -1) {
 		switch (ch) {
