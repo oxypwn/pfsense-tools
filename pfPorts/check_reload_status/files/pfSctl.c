@@ -74,7 +74,8 @@ main(int argc, char **argv)
 
 	tzset();
 
-	if (argc != 2)
+	/* If argc is even, we have been given an odd number of parameters which is invalid */
+	if (argc % 2 == 0)
 		return (-1);
 		/* NOTREACHED */
 
