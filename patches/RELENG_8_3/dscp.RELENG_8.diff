@@ -70,13 +70,15 @@ diff -u -r1.2 parse.y
  		| keep {
  			if (filter_opts.marker & FOM_KEEP) {
  				yyerror("modulate or keep cannot be redefined");
-@@ -3152,6 +3169,46 @@
+@@ -3152,6 +3169,48 @@
  		}
  		;
  
 +dscp		: DSCP STRING			{
 +                        if (!strcmp($2, "EF"))
 +                                $$ = DSCP_EF;
++                        else if (!strcmp($2, "VA"))
++                                $$ = DSCP_VA;
 +                        else if (!strcmp($2, "af11"))
 +                                $$ = DSCP_AF11;
 +                        else if (!strcmp($2, "af12"))
@@ -168,10 +170,10 @@ diff -u -r1.2 pf.c
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
-+		else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++		else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos == pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +		else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        !(r->tos == (pd->tos & DSCP_MASK)))
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
@@ -181,10 +183,10 @@ diff -u -r1.2 pf.c
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
 -			r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos == pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        !(r->tos == (pd->tos & DSCP_MASK)))
 +                        r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
@@ -195,10 +197,10 @@ diff -u -r1.2 pf.c
  			r = TAILQ_NEXT(r, entries);
 -		else if (r->tos && !(r->tos == pd->tos))
 -			r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos == pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        !(r->tos == (pd->tos & DSCP_MASK)))
 +                        r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
@@ -209,10 +211,10 @@ diff -u -r1.2 pf.c
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
 -			r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos == pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        !(r->tos == (pd->tos & DSCP_MASK)))
 +                        r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
@@ -224,7 +226,7 @@ retrieving revision 1.2
 diff -u -r1.2 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:07:40 -0000	1.2
 +++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:07:44 -0000
-@@ -672,6 +672,28 @@
+@@ -672,6 +672,29 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
  	u_int8_t		 return_ttl;
@@ -234,6 +236,7 @@ diff -u -r1.2 pfvar.h
 +/* diffserve code points */
 +#define DSCP_MASK       0xfc
 +#define DSCP_CUMASK     0x03
++#define DSCP_VA         0xb0
 +#define DSCP_EF         0xb8
 +#define DSCP_AF11       0x28
 +#define DSCP_AF12       0x30
