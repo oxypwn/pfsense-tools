@@ -67,13 +67,15 @@ index 99c26c0..90e0959 100644
  		| keep {
  			if (filter_opts.marker & FOM_KEEP) {
  				yyerror("modulate or keep cannot be redefined");
-@@ -3398,6 +3415,46 @@ tos	: STRING			{
+@@ -3398,6 +3415,48 @@ tos	: STRING			{
  		}
  		;
  
 +dscp		: DSCP STRING			{
 +                        if (!strcmp($2, "EF"))
 +                                $$ = DSCP_EF;
++                        else if (!strcmp($2, "VA"))
++                                $$ = DSCP_VA;
 +                        else if (!strcmp($2, "af11"))
 +                                $$ = DSCP_AF11;
 +                        else if (!strcmp($2, "af12"))
@@ -154,7 +156,7 @@ diff --git a/sys/net/pfvar.h b/sys/net/pfvar.h
 index c16591b..8ac2659 100644
 --- a/sys/net/pfvar.h
 +++ b/sys/net/pfvar.h
-@@ -643,6 +643,28 @@ struct pf_rule {
+@@ -643,6 +643,29 @@ struct pf_rule {
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
  	u_int8_t		 return_ttl;
@@ -164,6 +166,7 @@ index c16591b..8ac2659 100644
 +/* diffserve code points */
 +#define DSCP_MASK       0xfc
 +#define DSCP_CUMASK     0x03
++#define DSCP_VA         0xb0
 +#define DSCP_EF         0xb8
 +#define DSCP_AF11       0x28
 +#define DSCP_AF12       0x30
@@ -207,10 +210,10 @@ index 2de8c40..5786066b 100644
  			r = TAILQ_NEXT(r, entries);
 -		else if (r->tos && !(r->tos == pd->tos))
 -			r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos == pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        !(r->tos == (pd->tos & DSCP_MASK)))
 +                        r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
@@ -220,7 +223,7 @@ index 2de8c40..5786066b 100644
  		else if (r->tos && !(r->tos == pd->tos))
  			r = TAILQ_NEXT(r, entries);
 +		else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+		    !(r->tos & (pd->tos & DSCP_MASK)))
++		    !(r->tos == (pd->tos & DSCP_MASK)))
 +			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
