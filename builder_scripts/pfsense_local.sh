@@ -154,7 +154,7 @@ export SVNUP_TARGET=${SVNUP_TARGET:-release}
 
 # This is used for using svn for retrieving src
 # export USE_SVN=yes or USE_GIT=yes
-export FREEBSD_REPO_BASE=${SVN_BASE:-"http://svn.freebsd.org/base"}
+export FREEBSD_REPO_BASE=${FREEBSD_REPO_BASE:-"http://svn.freebsd.org/base"}
 export SVN_BRANCH=${SVN_BRANCH:-"stable/10"}
 
 # Define FreeBSD SUPFILE
