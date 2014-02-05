@@ -69,8 +69,8 @@ cd \${PBI_SRC_DIR}/src-sh/pbi-manager
 EOF;
 
 echo ">>> [" . date("H:i:s") . "] Checking out pfSense sources...\n";
-if(file_exists("/usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh"))
-	exec("cd /usr/home/pfsense/tools/builder_scripts && /usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
+if(file_exists("/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh"))
+	exec("cd /home/pfsense/tools/builder_scripts && /home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
 
 if(file_exists("/etc/inc/")) {
 	require_once("/etc/inc/functions.inc");
@@ -79,17 +79,17 @@ if(file_exists("/etc/inc/")) {
 	$handled = true;
 }
 
-if(file_exists("/usr/home/pfsense/pfSense/etc/inc") && !$handled) {
-	require_once("/usr/home/pfsense/pfSense/etc/inc/functions.inc");
-	require_once("/usr/home/pfsense/pfSense/etc/inc/util.inc");
-	require_once("/usr/home/pfsense/pfSense/etc/inc/xmlparse.inc");
+if(file_exists("/home/pfsense/pfSense/etc/inc") && !$handled) {
+	require_once("/home/pfsense/pfSense/etc/inc/functions.inc");
+	require_once("/home/pfsense/pfSense/etc/inc/util.inc");
+	require_once("/home/pfsense/pfSense/etc/inc/xmlparse.inc");
 	$handled = true;
 }
 
-if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$handled) {
-	require_once("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/functions.inc");
-	require_once("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/util.inc");
-	require_once("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/xmlparse.inc");
+if(file_exists("/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$handled) {
+	require_once("/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/functions.inc");
+	require_once("/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/util.inc");
+	require_once("/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/xmlparse.inc");
 	$handled = true;
 }
 
@@ -184,9 +184,9 @@ function usage() {
 	echo "    -U Skip uploading of packages.\n";
 	echo "    -v Show PBI build output.\n";
 	echo "  Examples:\n";
-	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml\n";
-	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -p squid\n";
-	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -ccvsup.livebsd.com\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -ccvsup.livebsd.com\n";
 	exit;
 }
 
@@ -338,13 +338,13 @@ exec("rm -rf /tmp/pf*");
 if (!isset($options['P'])) {
 	echo ">>> [" . date("H:i:s") . "] Applying kernel patches...\n";
 	if($set_version)
-		exec("cd /usr/home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
-	exec("cd /usr/home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
+		exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
+	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 }
 
 if (!isset($options['I'])) {
 	echo ">>> [" . date("H:i:s") . "] Running make includes...\n";
-	exec("cd /usr/pfSensesrc/src && env __MAKE_CONF=/usr/home/pfsense/tools/builders_scripts/conf/src/src.conf.10 make includes");
+	exec("cd /usr/pfSensesrc/src && env __MAKE_CONF=/home/pfsense/tools/builders_scripts/conf/src/src.conf.10 make includes");
 }
 echo ">>> [" . date("H:i:s") . "] pfSense package binary builder is starting.\n";
 
