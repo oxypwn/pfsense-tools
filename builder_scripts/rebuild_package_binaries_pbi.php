@@ -344,7 +344,8 @@ if (!isset($options['P'])) {
 
 if (!isset($options['I'])) {
 	echo ">>> [" . date("H:i:s") . "] Running make includes...\n";
-	exec("cd /usr/pfSensesrc/src && env __MAKE_CONF=/home/pfsense/tools/builders_scripts/conf/src/src.conf.10 make includes");
+	$freebsd_version = explode(".", php_uname("r"));
+	exec("cd /usr/pfSensesrc/src && env __MAKE_CONF=/home/pfsense/tools/builders_scripts/conf/src/src.conf.{$freebsd_version[0]} make includes");
 }
 echo ">>> [" . date("H:i:s") . "] pfSense package binary builder is starting.\n";
 
