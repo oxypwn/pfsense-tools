@@ -72,6 +72,9 @@ ensure_source_directories_present
 # Ensure binaries are present that builder system requires
 install_required_builder_system_ports
 
+# Ensure pbi tools are installed
+install_pbi_tools
+
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run
 

@@ -3005,6 +3005,40 @@ install_required_builder_system_ports() {
 	IFS=$OIFS
 }
 
+# Installs PBI tools on systems based on FreeBSD >= 10
+install_pbi_tools() {
+	if [ -z "${FREEBSD_VERSION}" -o ${FREEBSD_VERSION} -lt 10 ]; then
+		return
+	fi
+
+	if [ ! -d "${PCBSD_PATH}" ]; then
+		mkdir -p "${PCBSD_PATH}"
+	fi
+
+	CLONE=1
+	if [ -d "${PCBSD_PATH}/.git" ]; then
+		CUR_BRANCH=$(cd /${PCBSD_PATH} && git branch | grep '^\*' | cut -d' ' -f2)
+		if [ "${CUR_BRANCH}" = "${PCBSD_BRANCH}" ]; then
+			CLONE=0
+			echo -n ">>> Updating PCBSD repo ..."
+			( cd ${PCBSD_PATH} && git fetch origin; git reset --hard; git clean -fxd; git rebase origin/${PCBSD_BRANCH} ) 2>&1 | grep -C3 -i 'error'
+			echo "Done!"
+		else
+			rm -rf ${PCBSD_PATH}/*
+		fi
+	fi
+
+	if [ ${CLONE} -eq 1 ]; then
+		echo -n ">>> Cloning PCBSD repo to ${PCBSD_PATH} ..."
+		( git clone --branch ${PCBSD_BRANCH} --single-branch ${PCBSD_REPO} ${PCBSD_PATH} ) 2>&1 | grep -C3 -i 'error'
+		echo "Done!"
+	fi
+
+	echo -n ">>> Installing PBI tools ..."
+	( cd ${PCBSD_PATH}/src-sh/pbi-manager && sh ./install.sh ) 2>&1 | grep -C3 -i 'error'
+	echo "Done!"
+}
+
 # Updates FreeBSD sources and applies any custom
 # patches that have been defined.
 update_freebsd_sources_and_apply_patches() {

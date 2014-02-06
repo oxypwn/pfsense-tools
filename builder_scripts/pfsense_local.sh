@@ -48,6 +48,7 @@ export BASE_DIR=${BASE_DIR:-/home/pfsense}
 export TOOLS_DIR=${TOOLS_DIR:-tools}
 export PFSENSE_DIR=${PFSENSE_DIR:-pfSense}
 export FREESBIE_DIR=${FREESBIE_DIR:-freesbie2}
+export PCBSD_DIR=${PCBSD_DIR:-pcbsd}
 
 # Generally /home/pfsense/tools
 export BUILDER_TOOLS=${BUILDER_TOOLS:-${BASE_DIR}/${TOOLS_DIR}}
@@ -88,6 +89,11 @@ export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
 # FreeSBIE 2 toolkit path
 export FREESBIE_PATH=${FREESBIE_PATH:-${BASE_DIR}/${FREESBIE_DIR}}
+
+# PC-BSD utils path
+export PCBSD_PATH=${PCBSD_PATH:-${BASE_DIR}/${PCBSD_DIR}}
+export PCBSD_REPO=${PCBSD_REPO:-https://github.com/pcbsd/pcbsd.git}
+export PCBSD_BRANCH=${PCBSD_BRANCH:-master}
 
 # export variables used by freesbie2
 export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should be override our variables

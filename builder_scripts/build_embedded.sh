@@ -55,6 +55,9 @@ ensure_source_directories_present
 # Ensure binaries are present that builder system requires
 install_required_builder_system_ports
 
+# Ensure pbi tools are installed
+install_pbi_tools
+
 # Check if we need to force a ports rebuild
 check_for_forced_pfPorts_build
 
