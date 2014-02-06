@@ -38,7 +38,8 @@ CONFIGURE_ARGS=	--enable-kernel-pfkey \
 		--enable-addrblock \
 		--enable-whitelist \
 		--with-group=wheel  \
-		--with-lib-prefix=${PREFIX}
+		--with-lib-prefix=${PREFIX} \
+		--sysconfdir=/var/etc/ipsec
 
 # Man pages with default install
 MAN5=	ipsec.conf.5 ipsec.secrets.5 strongswan.conf.5
