@@ -1,4 +1,4 @@
-#!/usr/local/bin/php -q
+#!/usr/local/bin/php-cli -q
 <?php
 /*
  *  rebuild_package_binaries.sh
