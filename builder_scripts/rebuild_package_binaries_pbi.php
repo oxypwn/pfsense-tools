@@ -183,6 +183,7 @@ function usage() {
 	echo "    -u Upload after each port is built rather than at the end.\n";
 	echo "    -U Skip uploading of packages.\n";
 	echo "    -v Show PBI build output.\n";
+	echo "    -S Sign PBI using this key.\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -280,11 +281,17 @@ $opts .= "I::"; // Skip make includes
 $opts .= "u::"; // Upload after every port, not just at the end.
 $opts .= "U::"; // Skip uploading compiled binaries
 $opts .= "v::"; // Verbose, show PBI build output
+$opts .= "S::"; // Key used to sign PBIs
 
 $options = getopt($opts);
 
 if(!isset($options['x']))
 	usage();
+
+if(!empty($options['S']) && !file_exists($options['S'])) {
+	echo "!!! Sign key file does not exist";
+	exit;
+}
 
 // Bootstrap
 if(!file_exists("/usr/local/sbin/pbi_create")) {
@@ -454,9 +461,12 @@ foreach ($build_list as $build => $pbi_options) {
 		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
 	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
-	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
+	$sign = "";
+	if (!empty($options['S']))
+		$sign = "--sign {$options['S']}";
+	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$sign} {$category}/{$port}\n";
 	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log 2>&1 &";
-	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}{$redirbg}");
+	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$sign} {$category}/{$port}{$redirbg}");
 	wait_for_procs_finish();
 	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
