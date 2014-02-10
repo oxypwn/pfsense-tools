@@ -291,8 +291,17 @@ if(!isset($options['x']))
 	usage();
 
 $host_arch = php_uname("m");
-if (empty($options['a']))
-	$options['a'] = 'all';
+if (empty($options['a'])) {
+	if ($host_arch == "amd64")
+		$options['a'] = 'all';
+	else
+		$options['a'] = 'i386';
+}
+
+if ($host_arch == "i386" && $options['a'] == "amd64") {
+	echo "!!! You cannot build an amd64 binary on i386 host.  Exiting.\n";
+	exit;
+}
 
 if(!empty($options['S']) && !file_exists($options['S'])) {
 	echo "!!! Sign key file does not exist";
