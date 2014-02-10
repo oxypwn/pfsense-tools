@@ -184,6 +184,7 @@ function usage() {
 	echo "    -U Skip uploading of packages.\n";
 	echo "    -v Show PBI build output.\n";
 	echo "    -S Sign PBI using this key.\n";
+	echo "    -a Choose arch (amd64|i386|all).\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -282,11 +283,16 @@ $opts .= "u";  // Upload after every port, not just at the end.
 $opts .= "U";  // Skip uploading compiled binaries
 $opts .= "v";  // Verbose, show PBI build output
 $opts .= "S:"; // Key used to sign PBIs
+$opts .= "a:"; // Arch
 
 $options = getopt($opts);
 
 if(!isset($options['x']))
 	usage();
+
+$host_arch = php_uname("m");
+if (empty($options['a']))
+	$options['a'] = 'all';
 
 if(!empty($options['S']) && !file_exists($options['S'])) {
 	echo "!!! Sign key file does not exist";
@@ -448,7 +454,16 @@ foreach ($build_list as $build => $pbi_options) {
 	}
 */
 	$port_start_time = time();
-	echo ">>> [" . date("H:i:s") . "] Processing {$build} ({$j}/{$total_to_build})\n";
+
+	if ($host_arch == "amd64" && $options['a'] == "i386") {
+		$build_32 = "-32 ";
+		$message_32 = "32-bit ";
+	} else {
+		$build_32 = "";
+		$message_32 = "";
+	}
+
+	echo ">>> [" . date("H:i:s") . "] Processing {$build} {$message_32}({$j}/{$total_to_build})\n";
 	// Kill /usr/ports/ if it's there
 	$build = str_replace("/usr/ports/", "", $build);
 	list($category, $port) = explode('/', $build);
@@ -463,12 +478,21 @@ foreach ($build_list as $build => $pbi_options) {
 	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
 	$sign = "";
 	if (!empty($options['S']))
-		$sign = "--sign {$options['S']}";
-	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$sign} {$category}/{$port}\n";
+		$sign = "--sign {$options['S']} ";
+	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}\n";
 	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log 2>&1 &";
-	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$sign} {$category}/{$port}{$redirbg}");
+	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}{$redirbg}");
 	wait_for_procs_finish();
-	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+	echo ">>> [" . date("H:i:s") . "] Finished building {$build} {$message_32}- Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+
+	if ($host_arch == "amd64" && $options['a'] == 'all') {
+		echo ">>> [" . date("H:i:s") . "] Processing {$build} 32-bit ({$j}/{$total_to_build})\n";
+		echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}\n";
+		system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}{$redirbg}");
+		wait_for_procs_finish();
+		echo ">>> [" . date("H:i:s") . "] Finished building {$build} 32-bit - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+	}
+
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
 		copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
 	}
