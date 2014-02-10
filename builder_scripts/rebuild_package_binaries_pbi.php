@@ -267,21 +267,21 @@ function format_elapsed_time($seconds) {
 	return $timestr;
 }
 
-$opts  = "x:";  // Path to XML file
-$opts .= "p::"; // Package name to build (optional)
-$opts .= "d::"; // DESTDIR for packages (optional)
-$opts .= "j::"; // jail use (not currently implemented/needed)
-$opts .= "l::"; // chroot location (not currently implemented/needed)
-$opts .= "c::"; // csup hostname (not fully active)
-$opts .= "r::"; // remove chroot before run (not currently implemented/needed)
-$opts .= "q::"; // quiet mode
-$opts .= "s::"; // pfSense version to pass to set_version.sh
-$opts .= "P::"; // Skip applying kernel patches before the run
-$opts .= "I::"; // Skip make includes
-$opts .= "u::"; // Upload after every port, not just at the end.
-$opts .= "U::"; // Skip uploading compiled binaries
-$opts .= "v::"; // Verbose, show PBI build output
-$opts .= "S::"; // Key used to sign PBIs
+$opts  = "x:"; // Path to XML file
+$opts .= "p:"; // Package name to build (optional)
+$opts .= "d:"; // DESTDIR for packages (optional)
+$opts .= "j:"; // jail use (not currently implemented/needed)
+$opts .= "l:"; // chroot location (not currently implemented/needed)
+$opts .= "c:"; // csup hostname (not fully active)
+$opts .= "r";  // remove chroot before run (not currently implemented/needed)
+$opts .= "q";  // quiet mode
+$opts .= "s:"; // pfSense version to pass to set_version.sh
+$opts .= "P";  // Skip applying kernel patches before the run
+$opts .= "I";  // Skip make includes
+$opts .= "u";  // Upload after every port, not just at the end.
+$opts .= "U";  // Skip uploading compiled binaries
+$opts .= "v";  // Verbose, show PBI build output
+$opts .= "S:"; // Key used to sign PBIs
 
 $options = getopt($opts);
 
