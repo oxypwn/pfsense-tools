@@ -219,7 +219,7 @@ function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 }
 
 function get_procs_count() {
-	$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
+	$processes = intval(trim(`pgrep -f pbi_makeport | wc -l`));
 	return($processes);
 }
 
