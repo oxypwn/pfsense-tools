@@ -496,7 +496,8 @@ foreach ($build_list as $build => $pbi_options) {
 		echo ">>> [" . date("H:i:s") . "] Processing {$build} {$message_32}({$j}/{$total_to_build})\n";
 		echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}\n";
 		system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}{$redirbg}");
-		wait_for_procs_finish();
+		if (!isset($options['v']))
+			wait_for_procs_finish();
 		echo ">>> [" . date("H:i:s") . "] Finished building {$build} {$message_32}- Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 	} else {
 		echo ">>> [" . date("H:i:s") . "] Skipping {$build} for {$main_build_arch}\n";
@@ -507,7 +508,8 @@ foreach ($build_list as $build => $pbi_options) {
 			echo ">>> [" . date("H:i:s") . "] Processing {$build} 32-bit ({$j}/{$total_to_build})\n";
 			echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}\n";
 			system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}{$redirbg}");
-			wait_for_procs_finish();
+			if (!isset($options['v']))
+				wait_for_procs_finish();
 			echo ">>> [" . date("H:i:s") . "] Finished building {$build} 32-bit - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 		} else {
 			echo ">>> [" . date("H:i:s") . "] Skipping {$build} for i386\n";
