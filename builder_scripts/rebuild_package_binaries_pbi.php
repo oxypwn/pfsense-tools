@@ -407,8 +407,9 @@ foreach($pkg['packages']['package'] as $pkg) {
 			$build_list[$build]['build_options'] = "";
 
 		$build_list[$build]['custom_name']    = isset($pkg['build_pbi']['custom_name']) ? $pkg['build_pbi']['custom_name'] : "";
-		$build_list[$build]['ports_before']  = isset($pkg['build_pbi']['ports_before']) ? $pkg['build_pbi']['ports_before'] : "";
-		$build_list[$build]['ports_after']   = isset($pkg['build_pbi']['ports_after']) ? $pkg['build_pbi']['ports_after'] :  "";
+		$build_list[$build]['ports_before']   = isset($pkg['build_pbi']['ports_before']) ? $pkg['build_pbi']['ports_before'] : "";
+		$build_list[$build]['ports_after']    = isset($pkg['build_pbi']['ports_after']) ? $pkg['build_pbi']['ports_after'] :  "";
+		$build_list[$build]['only_for_archs'] = isset($pkg['only_for_archs']) ? preg_split("/\s+/", trim($pkg['only_for_archs'])) : array();
 	} elseif ($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			if (!is_dir($build) && !is_dir("/home/pfsense/tools/pfPorts/" . basename($build))) {
@@ -420,7 +421,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 				$skipped++;
 				continue;
 			}
-			$build_list[$build]['build_options'] = isset($pkg['build_options']) ? $pkg['build_options'] : "";
+			$build_list[$build]['build_options']  = isset($pkg['build_options']) ? $pkg['build_options'] : "";
+			$build_list[$build]['only_for_archs'] = isset($pkg['only_for_archs']) ? preg_split("/\s+/", trim($pkg['only_for_archs'])) : array();
 		}
 	}
 }
@@ -467,16 +469,16 @@ foreach ($build_list as $build => $pbi_options) {
 	if ($host_arch == "amd64" && $options['a'] == "i386") {
 		$build_32 = "-32 ";
 		$message_32 = "32-bit ";
+		$main_build_arch = "i386";
 	} else {
 		$build_32 = "";
 		$message_32 = "";
+		$main_build_arch = $host_arch;
 	}
 
-	echo ">>> [" . date("H:i:s") . "] Processing {$build} {$message_32}({$j}/{$total_to_build})\n";
 	// Kill /usr/ports/ if it's there
 	$build = str_replace("/usr/ports/", "", $build);
 	list($category, $port) = explode('/', $build);
-	//echo ">>> Category: $category/$port \n";
 	if($pbi_options['build_options'])
 		if(!isset($options['q']))
 			echo ">>> [" . date("H:i:s") . "] BUILD_OPTIONS: {$pbi_options['build_options']}\n";
@@ -488,18 +490,28 @@ foreach ($build_list as $build => $pbi_options) {
 	$sign = "";
 	if (!empty($options['S']))
 		$sign = "--sign {$options['S']} ";
-	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}\n";
 	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log 2>&1 &";
-	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}{$redirbg}");
-	wait_for_procs_finish();
-	echo ">>> [" . date("H:i:s") . "] Finished building {$build} {$message_32}- Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+
+	if (in_array($main_build_arch, $pbi_options['only_for_archs'])) {
+		echo ">>> [" . date("H:i:s") . "] Processing {$build} {$message_32}({$j}/{$total_to_build})\n";
+		echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}\n";
+		system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}{$redirbg}");
+		wait_for_procs_finish();
+		echo ">>> [" . date("H:i:s") . "] Finished building {$build} {$message_32}- Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+	} else {
+		echo ">>> [" . date("H:i:s") . "] Skipping {$build} for {$main_build_arch}\n";
+	}
 
 	if ($host_arch == "amd64" && $options['a'] == 'all') {
-		echo ">>> [" . date("H:i:s") . "] Processing {$build} 32-bit ({$j}/{$total_to_build})\n";
-		echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}\n";
-		system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}{$redirbg}");
-		wait_for_procs_finish();
-		echo ">>> [" . date("H:i:s") . "] Finished building {$build} 32-bit - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+		if (in_array("i386", $pbi_options['only_for_archs'])) {
+			echo ">>> [" . date("H:i:s") . "] Processing {$build} 32-bit ({$j}/{$total_to_build})\n";
+			echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}\n";
+			system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}{$redirbg}");
+			wait_for_procs_finish();
+			echo ">>> [" . date("H:i:s") . "] Finished building {$build} 32-bit - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
+		} else {
+			echo ">>> [" . date("H:i:s") . "] Skipping {$build} for i386\n";
+		}
 	}
 
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
