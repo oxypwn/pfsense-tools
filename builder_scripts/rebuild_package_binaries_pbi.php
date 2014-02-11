@@ -492,7 +492,7 @@ foreach ($build_list as $build => $pbi_options) {
 		$sign = "--sign {$options['S']} ";
 	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log 2>&1 &";
 
-	if (in_array($main_build_arch, $pbi_options['only_for_archs'])) {
+	if (empty($pbi_options['only_for_archs']) || in_array($main_build_arch, $pbi_options['only_for_archs'])) {
 		echo ">>> [" . date("H:i:s") . "] Processing {$build} {$message_32}({$j}/{$total_to_build})\n";
 		echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}\n";
 		system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$build_32}{$sign}{$category}/{$port}{$redirbg}");
@@ -503,7 +503,7 @@ foreach ($build_list as $build => $pbi_options) {
 	}
 
 	if ($host_arch == "amd64" && $options['a'] == 'all') {
-		if (in_array("i386", $pbi_options['only_for_archs'])) {
+		if (empty($pbi_options['only_for_archs']) || in_array("i386", $pbi_options['only_for_archs'])) {
 			echo ">>> [" . date("H:i:s") . "] Processing {$build} 32-bit ({$j}/{$total_to_build})\n";
 			echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}\n";
 			system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} -32 {$sign}{$category}/{$port}{$redirbg}");
