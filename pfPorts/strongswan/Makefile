@@ -15,7 +15,7 @@ LIB_DEPENDS=	execinfo:${PORTSDIR}/devel/libexecinfo
 
 USE_BZIP2=	yes
 USE_OPENSSL=	yes
-USE_AUTOTOOLS=	libtool
+USE_AUTOTOOLS=	libtool aclocal autoheader
 USE_RC_SUBR=	strongswan
 GNU_CONFIGURE=	yes
 USE_LDCONFIG=	yes
@@ -33,6 +33,7 @@ CONFIGURE_ARGS=	--enable-kernel-pfkey \
 		--enable-eap-mschapv2 \
 		--enable-eap-peap \
 		--enable-eap-ttls \
+		--enable-xauth-script \
 		--enable-md4 \
 		--enable-blowfish \
 		--enable-addrblock \
