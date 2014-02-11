@@ -99,7 +99,7 @@ function chroot_command($chroot_location, $command_to_run) {
 	`/usr/sbin/chroot {$chroot_location} /cmd.sh`;
 }
 
-$options = getopt("x:p::d::j::l::c::r::q::s::");
+$options = getopt("x:p:d:jl:c:rqs:");
 
 if(!isset($options['x']))
 	usage();
