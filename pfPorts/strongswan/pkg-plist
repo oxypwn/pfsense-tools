@@ -236,21 +236,15 @@ man/man8/_updown_espmark.8.gz
 @dirrm libexec/ipsec
 @dirrm lib/ipsec/plugins
 @dirrm lib/ipsec
-@dirrm etc/ipsec.d/reqs
-@dirrm etc/ipsec.d/private
-@dirrm etc/ipsec.d/ocspcerts
-@dirrm etc/ipsec.d/crls
-@dirrm etc/ipsec.d/certs
-@dirrm etc/ipsec.d/cacerts
-@dirrm etc/ipsec.d/acerts
-@dirrm etc/ipsec.d/aacerts
-@dirrm etc/ipsec.d
-@exec mkdir -p %D/etc/ipsec.d
-@exec mkdir -p %D/etc/ipsec.d/reqs
-@exec mkdir -p %D/etc/ipsec.d/private
-@exec mkdir -p %D/etc/ipsec.d/ocspcerts
-@exec mkdir -p %D/etc/ipsec.d/crls
-@exec mkdir -p %D/etc/ipsec.d/certs
-@exec mkdir -p %D/etc/ipsec.d/cacerts
-@exec mkdir -p %D/etc/ipsec.d/acerts
-@exec mkdir -p %D/etc/ipsec.d/aacerts
+@cwd /var
+@dirrm etc/ipsec/ipsec.d/reqs
+@dirrm etc/ipsec/ipsec.d/private
+@dirrm etc/ipsec/ipsec.d/ocspcerts
+@dirrm etc/ipsec/ipsec.d/crls
+@dirrm etc/ipsec/ipsec.d/certs
+@dirrm etc/ipsec/ipsec.d/cacerts
+@dirrm etc/ipsec/ipsec.d/acerts
+@dirrm etc/ipsec/ipsec.d/aacerts
+@dirrm etc/ipsec/ipsec.d
+@dirrm etc/ipsec
+@cwd

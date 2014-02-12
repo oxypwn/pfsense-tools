@@ -99,7 +99,7 @@ PLIST_SUB+=	SQL="@comment "
 
 post-install:
 	${MKDIR} ${STAGEDIR}${EXAMPLESDIR}
-	${MV} ${STAGEDIR}${PREFIX}/etc/strongswan.conf ${STAGEDIR}${EXAMPLESDIR}
-	${MV} ${STAGEDIR}${PREFIX}/etc/ipsec.conf ${STAGEDIR}${EXAMPLESDIR}
+	${MV} ${STAGEDIR}/var/etc/ipsec/strongswan.conf ${STAGEDIR}${EXAMPLESDIR}
+	${MV} ${STAGEDIR}/var/etc/ipsec/ipsec.conf ${STAGEDIR}${EXAMPLESDIR}
 
 .include <bsd.port.mk>
