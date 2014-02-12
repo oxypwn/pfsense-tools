@@ -1,5 +1,5 @@
 pfflowd-0.8			/usr/ports/net/pfflowd-0.8			/usr/local/sbin/pfflowd
-ipsec-tools			/usr/ports/security/ipsec-tools-0.8.1		/usr/local/sbin/racoon
+strongswan			/usr/ports/security/strongswan			/usr/local/sbin/ipsec
 openiked			/usr/ports/security/openiked			/usr/local/sbin/iked
 ipfw-classifyd			/usr/ports/net/ipfw-classifyd			/usr/local/sbin/ipfw-classifyd
 dhcpleases			/usr/ports/sysutils/dhcpleases			/usr/local/sbin/dhcpleases

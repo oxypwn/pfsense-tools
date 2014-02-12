@@ -46,8 +46,6 @@ usr/local/sbin/mpd5
 usr/local/sbin/openvpn
 usr/local/sbin/pftop
 usr/local/sbin/haproxy
-usr/local/sbin/racoon
-usr/local/sbin/racoonctl
 usr/local/sbin/relayctl
 usr/local/sbin/relayd
 usr/local/sbin/ipfw-classifyd
@@ -118,10 +116,7 @@ usr/local/lib/libmhash.so.2
 usr/local/lib/libmcrypt.so.8
 usr/local/lib/libltdl.so.7
 usr/local/lib/mysql/libmysqlclient.so.15
-usr/local/sbin/setkey
 usr/local/share/rrdtool/fonts/DejaVuSansMono-Roman.ttf 
-usr/local/lib/libipsec.so
-usr/local/lib/libipsec.so.0
 usr/local/bin/wol
 usr/local/sbin/smartctl
 usr/local/sbin/smartd
