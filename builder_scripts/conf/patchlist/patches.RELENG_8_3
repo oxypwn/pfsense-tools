@@ -122,5 +122,3 @@
 ~~udp_crash_workaround.diff~
 -p1~~set_ifaddr_first.diff~
 ~~pam_remove_nullok.diff~
-~~inet_head.tgz~
-~sys/conf~files.8.3.diff~
