@@ -1,0 +1,33 @@
+bin/suricata
+@unexec if cmp  -s %D/etc/suricata/suricata.yaml %D/etc/suricata/suricata.yaml; then rm -f %D/etc/suricata/suricata.yaml; fi
+etc/suricata/suricata.yaml
+@exec if [ ! -f %D/etc/suricata/suricata.yaml ] ; then cp -p %D/%F %B/suricata.yaml; fi
+@unexec if cmp  -s %D/etc/suricata/classification.config %D/etc/suricata/classification.config; then rm -f %D/etc/suricata/classification.config; fi
+etc/suricata/classification.config
+@exec if [ ! -f %D/etc/suricata/classification.config ] ; then cp -p %D/%F %B/classification.config; fi
+@unexec if cmp  -s %D/etc/suricata/reference.config %D/etc/suricata/reference.config; then rm -f %D/etc/suricata/reference.config; fi
+etc/suricata/reference.config
+@exec if [ ! -f %D/etc/suricata/reference.config ] ; then cp -p %D/%F %B/reference.config; fi
+@unexec if cmp  -s %D/etc/suricata/threshold.config %D/etc/suricata/threshold.config; then rm -f %D/etc/suricata/threshold.config; fi
+etc/suricata/threshold.config
+@exec if [ ! -f %D/etc/suricata/threshold.config ] ; then cp -p %D/%F %B/threshold.config; fi
+@dirrmtry etc/suricata/rules
+@exec mkdir -p %D/etc/suricata/rules
+@unexec if cmp  -s %D/etc/surircata/rules/decoder-events.rules %D/etc/suricata/rules/decoder-events.rules; then rm -f %D/etc/suricata/rules/decoder-events.rules; fi
+etc/suricata/rules/decoder-events.rules
+@exec if [ ! -f %D/etc/suricata/rules/decoder-events.rules ] ; then cp -p %D/%F %B/decoder-events.rules; fi
+@unexec if cmp  -s %D/etc/surircata/rules/files.rules %D/etc/suricata/rules/files.rules; then rm -f %D/etc/suricata/rules/files.rules; fi
+etc/suricata/rules/files.rules
+@exec if [ ! -f %D/etc/suricata/rules/files.rules ] ; then cp -p %D/%F %B/files.rules; fi
+@unexec if cmp  -s %D/etc/surircata/rules/http-events.rules %D/etc/suricata/rules/http-events.rules; then rm -f %D/etc/suricata/rules/http-events.rules; fi
+etc/suricata/rules/http-events.rules
+@exec if [ ! -f %D/etc/suricata/rules/http-events.rules ] ; then cp -p %D/%F %B/http-events.rules; fi
+@unexec if cmp  -s %D/etc/surircata/rules/smtp-events.rules %D/etc/suricata/rules/smtp-events.rules; then rm -f %D/etc/suricata/rules/smtp-events.rules; fi
+etc/suricata/rules/smtp-events.rules
+@exec if [ ! -f %D/etc/suricata/rules/smtp-events.rules ] ; then cp -p %D/%F %B/smtp-events.rules; fi
+@unexec if cmp  -s %D/etc/surircata/rules/stream-events.rules %D/etc/suricata/rules/stream-events.rules; then rm -f %D/etc/suricata/rules/stream-events.rules; fi
+etc/suricata/rules/stream-events.rules
+@exec if [ ! -f %D/etc/suricata/rules/stream-events.rules ] ; then cp -p %D/%F %B/stream-events.rules; fi
+@dirrmtry etc/suricata
+@unexec if [ -d %D/%%ETCDIR%% ]; then echo "==> If you are permanently removing this port, you should do a ``rm -rf ${PKG_PREFIX}/etc/suricata`` to remove any configuration files left."; fi
+@dirrm %%DOCSDIR%%

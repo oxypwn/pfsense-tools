@@ -1,0 +1,29 @@
+--- ./src/alert-fastlog.c	2013-12-16 04:48:30.000000000 -0500
++++ ./src/alert-fastlog.new	2014-01-09 17:12:02.000000000 -0500
+@@ -154,9 +154,9 @@
+         }
+ 
+         SCMutexLock(&aft->file_ctx->fp_mutex);
+-        fprintf(aft->file_ctx->fp, "%s  %s[**] [%" PRIu32 ":%" PRIu32 ":%"
+-                PRIu32 "] %s [**] [Classification: %s] [Priority: %"PRIu32"]"
+-                " {%s} %s:%" PRIu32 " -> %s:%" PRIu32 "\n", timebuf, action,
++        fprintf(aft->file_ctx->fp, "%s,%s,%" PRIu32 ",%" PRIu32 ",%"
++                PRIu32 ",%s,%s,%" PRIu32
++                ",%s,%s,%" PRIu32 ",%s,%" PRIu32 "\n", timebuf, action,
+                 pa->s->gid, pa->s->id, pa->s->rev, pa->s->msg, pa->s->class_msg, pa->s->prio,
+                 proto, srcip, p->sp, dstip, p->dp);
+         fflush(aft->file_ctx->fp);
+@@ -204,9 +204,9 @@
+         }
+ 
+         SCMutexLock(&aft->file_ctx->fp_mutex);
+-        fprintf(aft->file_ctx->fp, "%s  %s[**] [%" PRIu32 ":%" PRIu32 ":%"
+-                PRIu32 "] %s [**] [Classification: %s] [Priority: %"
+-                PRIu32 "] {%s} %s:%" PRIu32 " -> %s:%" PRIu32 "\n", timebuf,
++        fprintf(aft->file_ctx->fp, "%s,%s,%" PRIu32 ",%" PRIu32 ",%"
++                PRIu32 ",%s,%s,%"
++                PRIu32 ",%s,%s,%" PRIu32 ",%s,%" PRIu32 "\n", timebuf,
+                 action, pa->s->gid, pa->s->id, pa->s->rev, pa->s->msg, pa->s->class_msg,
+                 pa->s->prio, proto, srcip, p->sp,
+                 dstip, p->dp);
+
