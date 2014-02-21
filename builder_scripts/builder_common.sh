@@ -3065,13 +3065,20 @@ update_freebsd_sources_and_apply_patches() {
 	if [ ! -d "${SRCDIR}" ]; then
 		mkdir -p ${SRCDIR}
 	fi
-	echo ">>> Removing old patch rejects..."
-	find $SRCDIR -name "*.rej" -exec rm {} \;
-	echo ">>> Removing original files ..."
-	find $SRCDIR -name "*.orig" | sed 's/.orig//g' | xargs rm -f
-	find $SRCDIR -name "*.orig" | xargs rm -f
 
-	BASENAMESUPFILE=`basename $SUPFILE`
+	if [ -z "${USE_GIT}" ]; then
+		echo ">>> Removing old patch rejects..."
+		find $SRCDIR -name "*.rej" -exec rm {} \;
+		echo ">>> Removing original files ..."
+		find $SRCDIR -name "*.orig" | sed 's/.orig//g' | xargs rm -f
+		find $SRCDIR -name "*.orig" | xargs rm -f
+	fi
+
+	if [ -z "${USE_GIT}" ]; then
+		BASENAMESUPFILE=`basename $SUPFILE`
+	else
+		BASENAMESUPFILE=${SVN_BRANCH:-"master"}
+	fi
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
 	if [ -n "${USE_SVNUP}" ]; then
 		# SVNup freebsd version -- which normally removes other files as well but leave the removal process for now
