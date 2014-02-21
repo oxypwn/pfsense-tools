@@ -151,6 +151,15 @@ set_items() {
 	echo export BUILDER_TOOLS="${BUILDER_TOOLS}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export BUILDER_SCRIPTS="${BUILDER_SCRIPTS}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export EXTRA_DEVICES="${EXTRA_DEVICES}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	if [ -n "${USE_GIT}" ]; then
+		echo "export USE_GIT=${USE_GIT}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
+	if [ -n "${FREEBSD_REPO_BASE}" ]; then
+		echo "export FREEBSD_REPO_BASE=${FREEBSD_REPO_BASE}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
+	if [ -n "${SVN_BRANCH}" ]; then
+		echo "export SVN_BRANCH=${SVN_BRANCH}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
 	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then
 		echo "export FREESBIE_ERROR_MAIL=${FREESBIE_ERROR_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	fi
@@ -211,6 +220,9 @@ RELENG_10_0)
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_2"
 	export PFSPORTSFILE=buildports.RELENG_2_2
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn"}
+	export USE_GIT=yes
+	export FREEBSD_REPO_BASE=https://github.com/freebsd/freebsd.git
+	export SVN_BRANCH=releng/10.0
 	set_items
 ;;
 
@@ -226,6 +238,9 @@ HEAD)
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/conf/copylist/copy.list.RELENG_2_2"
 	export PFSPORTSFILE=buildports.RELENG_2_2
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn"}
+	export USE_GIT=yes
+	export FREEBSD_REPO_BASE=https://github.com/freebsd/freebsd.git
+	export SVN_BRANCH=releng/10.0
 	set_items
 ;;
 
