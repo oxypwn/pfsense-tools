@@ -1,5 +1,5 @@
 diff --git a/sys/netgraph/ng_iface.c b/sys/netgraph/ng_iface.c
-index 72fc162..ca46898 100644
+index e495f8a..8d80bc3 100644
 --- a/sys/netgraph/ng_iface.c
 +++ b/sys/netgraph/ng_iface.c
 @@ -70,9 +70,11 @@
@@ -89,8 +89,20 @@ index 72fc162..ca46898 100644
  		case NGM_IFACE_POINT2POINT:
  		case NGM_IFACE_BROADCAST:
  		    {
+@@ -699,9 +755,11 @@ ng_iface_rcvmsg(node_p node, item_p item, hook_p lasthook)
+ 		switch (msg->header.cmd) {
+ 		case NGM_LINK_IS_UP:
+ 			ifp->if_drv_flags |= IFF_DRV_RUNNING;
++			if_link_state_change(ifp, LINK_STATE_UP);
+ 			break;
+ 		case NGM_LINK_IS_DOWN:
+ 			ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++			if_link_state_change(ifp, LINK_STATE_DOWN);
+ 			break;
+ 		default:
+ 			break;
 diff --git a/sys/netgraph/ng_iface.h b/sys/netgraph/ng_iface.h
-index 58fb442..3c843c4 100644
+index a78d8cb..fd4b751 100644
 --- a/sys/netgraph/ng_iface.h
 +++ b/sys/netgraph/ng_iface.h
 @@ -70,6 +70,7 @@ enum {
