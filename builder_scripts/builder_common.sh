@@ -3113,14 +3113,21 @@ update_freebsd_sources_and_apply_patches() {
 			(${SVN_BIN} co ${FREEBSD_REPO_BASE}/${SVN_BRANCH} ${SRCDIR} 2>&1) | grep -i 'error'
 		fi
 	elif [ -n "${USE_GIT}" ]; then
+		local _SVN_BRANCH=${SVN_BRANCH:-"master"}
+		local _CLONE=1
+
 		if [ -d "${SRCDIR}/.git" ]; then
-			if [ -z ${SVN_BRANCH} ]; then
-				( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin)
+			CUR_BRANCH=$(cd ${SRCDIR} && git branch | grep '^\*' | cut -d' ' -f2)
+			if [ "${CUR_BRANCH}" = "${_SVN_BRANCH}" ]; then
+				_CLONE=0
+				( cd ${SRCDIR} && git fetch origin; git reset --hard; git clean -fxd; git rebase origin/${_SVN_BRANCH} ) 2>&1 | grep -C3 -i 'error'
 			else
-				( cd ${SRCDIR} && git reset --hard; git fetch; git rebase origin/${SVN_BRANCH} )
+				rm -rf ${SRCDIR}/* ${SRCDIR}/.git
 			fi
-		else
-			( cd ${SRCDIR} && git clone --branch ${SVN_BRANCH} --single-branch ${FREEBSD_REPO_BASE} ../src )
+		fi
+
+		if [ ${_CLONE} -eq 1 ]; then
+			( git clone --branch ${_SVN_BRANCH} --single-branch ${FREEBSD_REPO_BASE} ${SRCDIR} ) 2>&1 | grep -C3 -i 'error'
 		fi
 	else
 		# CVSUp freebsd version -- this MUST be after Loop through and remove files
