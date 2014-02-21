@@ -124,7 +124,7 @@ static struct command c_interface[] = {
         { NEWIP, STRING, "newip", NULL,
                 { "/etc/rc.newwanip %s", "rc.newwanip starting %s", 0 } },
         { NEWIP, STRING, "newipv6", NULL,
-                { "/etc/rc.newwanipv6 %s", "rc.newwanip starting %s", 0 } },
+                { "/etc/rc.newwanipv6 %s", "rc.newwanipv6 starting %s", 0 } },
         { LINKUP, STRING, "linkup", c_interface2, NULL_INIT },
         { SYNC, NON, "sync", NULL,
                 { "/etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc", 1 } },
