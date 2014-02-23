@@ -27,6 +27,7 @@ CONFIGURE_ARGS=	--enable-kernel-pfkey \
 		--disable-scripts  \
 		--disable-gmp \
 		--enable-openssl \
+		--enable-smp \
 		--enable-eap-identity \
 		--enable-eap-md5 \
 		--enable-eap-tls \
